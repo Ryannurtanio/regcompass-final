@@ -1,0 +1,4322 @@
+/* RegCompass interface foundation.
+   One quiet frame around the one thing worth looking at: the route each
+   Document takes through its Steps. Paper field, white-ish surfaces, ink text,
+   and a single accent (route blue) that marks where you are and what to press.
+   Amber means a flag, red means a failure; nothing else carries colour.
+   IBM Plex Sans for the interface (tabular numbers), Newsreader for law text
+   and screen titles, Noto Sans Lao where a Lao title needs it, IBM Plex Mono
+   only in the raw log. Every font is bundled; nothing is fetched at runtime. */
+
+/* ---- tokens: light (the default) ---------------------------------------- */
+
+:root {
+  color-scheme: light;
+
+  /* colour */
+  --paper: #edf0ec;
+  --surface: #f9faf8;
+  --ink: #14252e;
+  --muted: #55646b;
+  --rule: #d2d9d5;
+  --route: #2b4fb8;
+  --route-soft: #dde4f6;
+  /* a primary button under the pointer: the same blue, one step deeper */
+  --route-strong: #1f3c94;
+  --flag: #8f5a0e;
+  --flag-soft: #f3e5cc;
+  --fail: #a8362a;
+  --fail-soft: #f6deda;
+  --accept: #2e6b45;
+  --accept-soft: #dcebe0;
+  --wait: #a3aeb2;
+  --mark: #e4eafb;
+  --on-solid: #ffffff;
+  --hover: #f1f4f1;
+  /* the raw log is a terminal in both themes */
+  --log-bg: #0f1417;
+  --log-ink: #d5dfd9;
+  /* a highlight drawn on a PDF page, which is white in both themes */
+  --hl-fill: rgba(43, 79, 184, 0.24);
+  --hl-line: rgba(43, 79, 184, 0.6);
+
+  /* type */
+  --font-ui: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-law: 'Newsreader', 'Noto Sans Lao', Georgia, serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --text-xl: 20px;
+  --text-title: 44px;
+
+  /* spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --gutter: 56px;
+
+  /* radius */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+
+  /* elevation: surfaces are separated by rules; only things that float
+     above the page (a menu, a tip) cast a shadow */
+  --shadow-pop: 0 8px 24px rgba(20, 37, 46, 0.14);
+
+  /* motion: only a working Step pulses and live counts tick */
+  --dur-fast: 120ms;
+  --dur: 250ms;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* ---- tokens: dark, from the system setting unless light was chosen ------ */
+/* The same dark values appear twice (here and under data-theme='dark'):
+   change one block, change both. */
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --paper: #0d161b;
+    --surface: #142027;
+    --ink: #e3e9e6;
+    --muted: #98a7ad;
+    --rule: #27363e;
+    --route: #93acff;
+    --route-soft: #1f2e57;
+    --route-strong: #b6c7ff;
+    --flag: #e3a850;
+    --flag-soft: #3a2c14;
+    --fail: #f2887a;
+    --fail-soft: #40201c;
+    --accept: #7cc49a;
+    --accept-soft: #173226;
+    --wait: #58686f;
+    --mark: #23325e;
+    --on-solid: #0d161b;
+    --hover: #1a2830;
+    --shadow-pop: 0 8px 24px rgba(0, 0, 0, 0.45);
+  }
+}
+
+/* ---- tokens: dark, chosen with the theme switch -------------------------- */
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --paper: #0d161b;
+  --surface: #142027;
+  --ink: #e3e9e6;
+  --muted: #98a7ad;
+  --rule: #27363e;
+  --route: #93acff;
+  --route-soft: #1f2e57;
+  --route-strong: #b6c7ff;
+  --flag: #e3a850;
+  --flag-soft: #3a2c14;
+  --fail: #f2887a;
+  --fail-soft: #40201c;
+  --accept: #7cc49a;
+  --accept-soft: #173226;
+  --wait: #58686f;
+  --mark: #23325e;
+  --on-solid: #0d161b;
+  --hover: #1a2830;
+  --shadow-pop: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+/* ---- base ---------------------------------------------------------------- */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+button {
+  appearance: none;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-ui);
+  font-size: var(--text-md);
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--route);
+}
+
+:focus-visible {
+  outline: 2px solid var(--route);
+  outline-offset: 2px;
+}
+
+.law {
+  font-family: var(--font-law);
+}
+
+.app {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.skip-link {
+  position: absolute;
+  left: var(--space-4);
+  top: -48px;
+  z-index: 100;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--route);
+  color: var(--on-solid);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  top: var(--space-2);
+}
+
+/* ---- buttons the shell uses --------------------------------------------- */
+
+.btn {
+  font: inherit;
+  font-weight: 500;
+  font-size: var(--text-md);
+  height: 36px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+}
+
+.btn:hover {
+  border-color: var(--muted);
+}
+
+.btn.quiet {
+  border-color: transparent;
+  background: transparent;
+  color: var(--muted);
+}
+
+.btn.quiet:hover {
+  color: var(--ink);
+  background: var(--paper);
+}
+
+.icon-btn {
+  font: inherit;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.icon-btn:hover {
+  color: var(--ink);
+  background: var(--paper);
+}
+
+/* ---- top bar and navigation -------------------------------------------- */
+
+.topbar {
+  flex: 0 0 60px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  padding: 0 var(--gutter);
+  background: var(--surface);
+  border-bottom: 1px solid var(--rule);
+  position: relative;
+  z-index: 30;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: var(--text-lg);
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.brand svg {
+  color: var(--ink);
+}
+
+.topbar .spacer,
+.bottombar .spacer {
+  flex: 1;
+}
+
+.nav {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.nav-item {
+  position: relative;
+}
+
+.nav-btn {
+  font: inherit;
+  font-size: var(--text-md);
+  font-weight: 500;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.nav-btn:hover {
+  color: var(--ink);
+}
+
+.nav-btn.on {
+  color: var(--ink);
+  background: var(--paper);
+}
+
+/* Each screen says in one line what it is for: under its own title, and here
+   whenever a pointer rests on its name or the keyboard reaches it. */
+.nav-tip {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: max-content;
+  max-width: 280px;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+  color: var(--muted);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+}
+
+/* keeps the tip open while the pointer crosses the gap to it */
+.nav-tip::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -9px;
+  height: 9px;
+}
+
+.nav-item:hover .nav-tip,
+.nav-btn:focus-visible + .nav-tip {
+  display: block;
+}
+
+/* the screen you are on already says its line under its title, and Esc
+   puts a tip away */
+.nav-item .nav-btn.on + .nav-tip,
+.nav-item[data-tip-hidden] .nav-tip {
+  display: none;
+}
+
+.menu-btn {
+  display: none;
+}
+
+/* the phone menu: every screen with its one line, then the theme and log out.
+   The scrim under it closes it on a tap outside. */
+.menu-scrim {
+  position: fixed;
+  inset: 56px 0 0 0;
+  z-index: 40;
+  background: rgba(13, 22, 27, 0.35);
+}
+
+.phone-menu {
+  position: absolute;
+  top: 56px;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--surface);
+  border-bottom: 1px solid var(--rule);
+  box-shadow: var(--shadow-pop);
+  padding: var(--space-2) 0 var(--space-3);
+}
+
+.phone-menu ul {
+  list-style: none;
+}
+
+.phone-menu .menu-item {
+  font: inherit;
+  width: 100%;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-3) var(--space-4);
+  border: 0;
+  border-left: 3px solid transparent;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.phone-menu .menu-item b {
+  font-weight: 500;
+  font-size: var(--text-lg);
+}
+
+.phone-menu .menu-item span {
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.phone-menu .menu-item.on {
+  border-left-color: var(--route);
+  background: var(--paper);
+}
+
+.phone-menu .menu-foot {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4) 0;
+  border-top: 1px solid var(--rule);
+  margin-top: var(--space-2);
+}
+
+/* ---- the page: a title, one line, then the screen ------------------------ */
+
+.main:focus {
+  outline: none;
+}
+
+.main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.screen-head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-5);
+  padding: 36px var(--gutter) var(--space-5);
+}
+
+.screen-head .titles {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.screen-head h1 {
+  font-family: var(--font-law);
+  font-size: var(--text-title);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
+
+.screen-head .lead {
+  color: var(--muted);
+  font-size: 15px;
+  max-width: 72ch;
+}
+
+.screen-head .context {
+  font-size: var(--text-sm);
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.screen-head .context .k {
+  color: var(--muted);
+}
+
+/* the audit view keeps the whole height for the page and the record, so its
+   head is one slim bar: the way back, what is open, and the export */
+.screen-bar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  min-height: 52px;
+  padding: var(--space-2) var(--gutter);
+  background: var(--surface);
+  border-bottom: 1px solid var(--rule);
+}
+
+.screen-bar .context {
+  flex: 1 1 200px;
+  min-width: 0;
+  font-size: var(--text-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.screen-bar .context .law {
+  font-size: var(--text-lg);
+}
+
+.screen-bar .context .k {
+  color: var(--muted);
+}
+
+.screen-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.export-btn {
+  background: var(--route);
+  border-color: var(--route);
+  color: var(--on-solid);
+  font-weight: 600;
+}
+
+.export-btn:hover {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--surface);
+}
+
+/* ---- bottom bar: keys and the export's result --------------------------- */
+
+.bottombar {
+  flex: 0 0 auto;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-2) var(--gutter);
+  background: var(--surface);
+  border-top: 1px solid var(--rule);
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+
+/* a bar with nothing to say is not shown */
+.bottombar:not(:has(.key-hints, .export-note:not(:empty), .export-downloads)) {
+  display: none;
+}
+
+.bottombar kbd {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 1px 5px;
+  margin-right: 2px;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+/* What the Export leaves the reviewer with: the workbook reads as the one
+   control, the companion files sit beside it as quiet links. */
+.export-downloads {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.export-downloads .download-primary {
+  font-weight: 600;
+  color: var(--on-solid);
+  background: var(--route);
+  border: 1px solid var(--route);
+  border-radius: var(--radius-sm);
+  padding: 3px 10px;
+  text-decoration: none;
+}
+
+.export-downloads .download-primary:hover {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--surface);
+}
+
+.export-downloads .download-link {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* ---- phone width: the nav folds into a menu ----------------------------- */
+
+/* between a laptop and a phone the frame tightens before the nav folds */
+@media (max-width: 1200px) {
+  :root {
+    --gutter: 32px;
+    --text-title: 38px;
+  }
+
+  .topbar {
+    gap: var(--space-5);
+  }
+}
+
+@media (max-width: 900px) {
+  :root {
+    --gutter: 16px;
+    --text-title: 30px;
+  }
+
+  .topbar {
+    flex-basis: 56px;
+    gap: var(--space-2);
+  }
+
+  .nav,
+  .topbar .theme-btn,
+  .topbar .logout-btn {
+    display: none;
+  }
+
+  .menu-btn {
+    display: inline-flex;
+  }
+
+  .screen-head {
+    padding-top: var(--space-4);
+    padding-bottom: var(--space-3);
+  }
+
+  .screen-head .lead {
+    font-size: var(--text-md);
+  }
+
+  /* the key hints mean nothing on a touch screen */
+  .bottombar .key-hints {
+    display: none;
+  }
+
+  .bottombar:not(:has(.export-note:not(:empty), .export-downloads)) {
+    display: none;
+  }
+
+  /* the audit bar: the way back and the export on one row, what is open below */
+  .screen-bar {
+    gap: var(--space-2);
+  }
+
+  .screen-bar .btn {
+    height: 32px;
+    padding: 0 var(--space-3);
+    font-size: var(--text-sm);
+  }
+
+  /* on a phone the line wraps, so the Economy, Pillar and Engine after the
+     Run id stay readable */
+  .screen-bar .context {
+    order: 3;
+    flex-basis: 100%;
+    white-space: normal;
+    overflow: visible;
+    overflow-wrap: anywhere;
+  }
+
+  .screen-bar .export-btn {
+    margin-left: auto;
+  }
+}
+
+/* ---- reduced motion: nothing moves -------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---- document list ----------------------------------------------------- */
+
+.doclist {
+  height: 100%;
+  overflow-y: auto;
+  padding: var(--space-2) var(--gutter) var(--space-6);
+}
+
+.doclist h1,
+.doclist h2 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.doclist .sub {
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+
+table.docs {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+}
+
+table.docs th {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--rule);
+}
+
+table.docs td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: baseline;
+}
+
+table.docs tr.row {
+  cursor: pointer;
+}
+
+table.docs tr.row:hover td,
+table.docs tr.row.focused td {
+  background: var(--route-soft);
+}
+
+table.docs tr.row.focused td:first-child {
+  box-shadow: inset 2px 0 0 var(--route);
+}
+
+table.docs .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.econ {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 1px 6px;
+  border: 1px solid var(--rule);
+  color: var(--muted);
+  margin-left: 8px;
+}
+
+.progress {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.progress .accepted {
+  color: var(--accept);
+}
+
+.progress .rejected {
+  color: var(--fail);
+}
+
+.progress .flagged {
+  color: var(--flag);
+}
+
+/* ---- audit view: 60/40 split ------------------------------------------ */
+
+.audit {
+  display: flex;
+  height: 100%;
+}
+
+.pdf-pane {
+  flex: 0 0 60%;
+  min-width: 0;
+  border-right: 1px solid var(--rule);
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+}
+
+.pdf-toolbar {
+  flex: 0 0 32px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--rule);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.pdf-toolbar button {
+  font: inherit;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  padding: 1px 8px;
+  cursor: pointer;
+}
+
+.pdf-scroll {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+}
+
+.pdf-page {
+  position: relative;
+  background: #fff;
+  outline: 1px solid var(--rule);
+  height: fit-content;
+}
+
+.pdf-page canvas {
+  display: block;
+}
+
+.hl {
+  position: absolute;
+  background: var(--hl-fill);
+  outline: 1px solid var(--hl-line);
+  pointer-events: none;
+}
+
+.pdf-note {
+  color: var(--muted);
+  padding: var(--space-5) var(--gutter);
+}
+
+/* ---- record pane -------------------------------------------------------- */
+
+.record-pane {
+  flex: 1 1 40%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+}
+
+.record-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.record-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 12px;
+}
+
+.record-nav .rec-btn {
+  font: inherit;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--ink);
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  padding: 2px 10px;
+  cursor: pointer;
+}
+
+.record-nav .rec-btn:hover:not(:disabled) {
+  border-color: var(--route);
+  color: var(--route);
+}
+
+.record-nav .rec-btn:disabled {
+  color: var(--rule);
+  cursor: default;
+}
+
+.record-nav .review-state {
+  margin-left: auto;
+}
+
+.indicator {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.indicator .id {
+  font-family: var(--font-mono);
+  color: var(--route);
+  margin-right: 8px;
+}
+
+.provision {
+  margin: 4px 0 16px;
+  color: var(--muted);
+}
+
+.quote {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.55;
+  border-left: 3px solid var(--route);
+  background: var(--paper);
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  max-height: 32vh;
+  overflow-y: auto;
+}
+
+.quote p + p {
+  margin-top: 8px;
+}
+
+/* ---- the English gloss, BELOW the quote it renders ---------------------- */
+
+.gloss {
+  border-left: 3px solid var(--rule);
+  background: var(--surface);
+  padding: 8px 12px 10px;
+  margin: -8px 0 16px;
+}
+
+.gloss-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.gloss-text {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  padding: 6px 8px;
+  resize: vertical;
+}
+
+.gloss-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.gloss-name {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  font-size: 12px;
+  padding: 5px 8px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+}
+
+.gloss-save {
+  font: inherit;
+  font-size: 12px;
+  padding: 5px 10px;
+  color: var(--surface);
+  background: var(--route);
+  border: 1px solid var(--route);
+  cursor: pointer;
+}
+
+.gloss-save:disabled {
+  color: var(--muted);
+  background: var(--paper);
+  border-color: var(--rule);
+  cursor: not-allowed;
+}
+
+.gloss-failed {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0;
+}
+
+dl.meta {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  row-gap: 6px;
+  column-gap: 12px;
+  margin-bottom: 16px;
+}
+
+dl.meta dt {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+dl.meta dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.confidence {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.dots {
+  letter-spacing: 3px;
+  color: var(--route);
+  font-size: 14px;
+}
+
+.confidence-value {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.review-state {
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.review-state.accepted {
+  color: var(--accept);
+}
+
+.review-state.rejected {
+  color: var(--fail);
+}
+
+.review-state.flagged {
+  color: var(--flag);
+}
+
+.review-state.unreviewed {
+  color: var(--muted);
+}
+
+.actions {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 8px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--rule);
+}
+
+.actions button {
+  flex: 1;
+  font: inherit;
+  font-weight: 600;
+  padding: 8px 0;
+  border: 1px solid;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.actions button u {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.actions .accept {
+  color: var(--accept);
+  border-color: var(--accept);
+}
+
+.actions .reject {
+  color: var(--fail);
+  border-color: var(--fail);
+}
+
+.actions .flag {
+  color: var(--flag);
+  border-color: var(--flag);
+}
+
+.actions .accept.active {
+  background: var(--accept);
+  color: var(--on-solid);
+}
+
+.actions .reject.active {
+  background: var(--fail);
+  color: var(--on-solid);
+}
+
+.actions .flag.active {
+  background: var(--flag);
+  color: var(--on-solid);
+}
+
+button:focus-visible,
+tr.row:focus-visible {
+  outline: 2px solid var(--route);
+  outline-offset: -2px;
+}
+
+.error {
+  color: var(--fail);
+  padding: 16px var(--gutter);
+}
+
+/* ---- panels: Run panel, Runs, Settings ---------------------------------- */
+
+.panel {
+  height: 100%;
+  overflow-y: auto;
+  padding: var(--space-2) var(--gutter) var(--space-6);
+  max-width: calc(760px + 2 * var(--gutter));
+}
+
+.panel.wide {
+  max-width: none;
+}
+
+.panel-title {
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: var(--space-4);
+}
+
+.field {
+  margin-bottom: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 100%;
+}
+
+.field > label {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.field select,
+.field input {
+  font: inherit;
+  min-height: 36px;
+  padding: 6px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  color: var(--ink);
+  max-width: 100%;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+
+.notice {
+  border-left: 3px solid var(--route);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  background: var(--surface);
+  padding: 10px 12px;
+  margin-bottom: var(--space-4);
+  color: var(--ink);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  font: inherit;
+  font-size: var(--text-sm);
+  min-width: 36px;
+  min-height: 32px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.chip:hover:not(:disabled) {
+  border-color: var(--muted);
+}
+
+.chip.on {
+  border-color: var(--route);
+  background: var(--route);
+  color: var(--on-solid);
+}
+
+.chip:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.actions-row {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+button.primary {
+  font: inherit;
+  font-weight: 600;
+  min-height: 36px;
+  padding: 7px 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--route);
+  background: var(--route);
+  color: var(--on-solid);
+  cursor: pointer;
+}
+
+button.primary:hover:not(:disabled) {
+  background: var(--route-strong);
+  border-color: var(--route-strong);
+  color: var(--on-solid);
+}
+
+button.primary:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* The four controls the live test turns on: Economy, Pillar, Engine and Run.
+   They sit together on one surface and read larger than anything else on
+   the screen. */
+.run-setup {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  margin-bottom: var(--space-5);
+}
+
+.run-setup .field > label {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.run-setup .field select {
+  min-height: 44px;
+  font-size: 15px;
+  width: 100%;
+  max-width: 480px;
+}
+
+.run-setup .field.key .chip {
+  min-width: 48px;
+  min-height: 44px;
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+/* Discover sits beside Run but never competes with it */
+.run-setup button.primary + button.primary {
+  background: var(--surface);
+  color: var(--route);
+}
+
+.run-setup .actions-row {
+  margin: var(--space-2) 0 0;
+}
+
+.run-setup button.primary {
+  min-height: 48px;
+  min-width: 160px;
+  font-size: var(--text-lg);
+}
+
+.log {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  background: var(--log-bg);
+  color: var(--log-ink);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  height: 260px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.log .hint {
+  color: #8f9da2;
+}
+
+/* ---- Runs list ---------------------------------------------------------- */
+
+.table-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+/* Only when the table really is wider than the window: a rule down the right
+   edge marks where it is cut off, and the hint below it says so in words. */
+.table-scroll.scrolls {
+  border-right: 2px solid var(--route);
+}
+
+/* What a Run on this Economy would read, listed where somebody has just put
+   something into it. Quieter than the Documents table: this is a check that
+   the add landed, not a place decisions are taken. */
+.corpus-list {
+  margin-top: 14px;
+  border-top: 1px solid var(--rule);
+  padding-top: 10px;
+}
+
+.corpus-head {
+  font-weight: 600;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+table.corpus {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  margin-bottom: 6px;
+}
+
+table.corpus th {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: left;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+
+table.corpus td {
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+
+table.corpus td.ellipsis {
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The cell holding the inline Source URL control: it wraps rather than
+   truncating, so the control is reachable and nothing covers it. */
+table.corpus td.roomy {
+  white-space: normal;
+}
+
+table.corpus td.num,
+table.corpus th.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* A Document with no address recorded: said on the row, because the Evidence
+   Export will refuse it and that is better learned here than at export time. */
+.corpus-flag {
+  color: var(--flag);
+  font-size: 11px;
+}
+
+/* Recording that address, on the row where the problem is shown. */
+.set-source-url {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.set-source-url input {
+  font: inherit;
+  font-size: 12px;
+  padding: 2px 6px;
+  border: 1px solid var(--rule);
+  min-width: 260px;
+}
+
+.set-source-url button {
+  font: inherit;
+  font-size: 12px;
+  padding: 2px 8px;
+  cursor: pointer;
+}
+
+table.runs {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  margin-bottom: 12px;
+}
+
+table.runs th {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+
+table.runs td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+
+table.runs td.num,
+table.runs th.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* One long Engine display name must not push the cost column off the screen:
+   the cell truncates and the full name is the title. */
+table.runs td.ellipsis {
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+table.runs tr.row {
+  cursor: pointer;
+}
+
+table.runs tr.row:hover {
+  background: var(--hover);
+}
+
+table.runs td.status.completed {
+  color: var(--accept);
+}
+
+table.runs td.status.failed {
+  color: var(--fail);
+}
+
+table.runs td.status.running {
+  color: var(--flag);
+}
+
+/* Not an active Run and not a failure: the process that owned it ended without
+   writing a result. Muted, so it does not read as an error the operator caused. */
+table.runs td.status.interrupted {
+  color: var(--muted);
+}
+
+/* ---- Comparison --------------------------------------------------------- */
+
+/* "Open source": the row's way out to the Portal (or to the stored copy when
+   the Document has no Portal address). An anchor, so it opens in a new tab and
+   offers the browser's own copy-link and open-in-window. */
+.source-link {
+  color: var(--route);
+  text-decoration: underline;
+  white-space: nowrap;
+}
+
+.source-link:focus-visible {
+  outline: 2px solid var(--route);
+  outline-offset: 2px;
+}
+
+/* A button that reads as a link: the Runs list row is itself clickable, so the
+   secondary action must not look like a second row target. */
+.link-btn {
+  font: inherit;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--route);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.compare-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.compare-controls .field {
+  margin-bottom: 0;
+  min-width: 160px;
+}
+
+.compare-heads {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.compare-head {
+  flex: 1 1 280px;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  padding: 12px;
+}
+
+.compare-head-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.compare-meta {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 12px;
+  margin: 0;
+  font-size: 12px;
+}
+
+.compare-meta dt {
+  color: var(--muted);
+}
+
+.compare-meta dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.compare-meta dd.mono {
+  font-family: var(--font-mono);
+}
+
+.compare-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 16px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.compare-summary .spacer {
+  flex: 1 1 auto;
+}
+
+.compare-row {
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  margin-bottom: 12px;
+}
+
+.compare-row-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.compare-row-head .spacer {
+  flex: 1 1 auto;
+}
+
+.compare-indicator {
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+.compare-indicator-name {
+  color: var(--muted);
+}
+
+.badge.agree {
+  color: var(--accept);
+  border-color: var(--accept);
+}
+
+.badge.disagree {
+  color: var(--fail);
+  border-color: var(--fail);
+}
+
+.badge.only_a,
+.badge.only_b {
+  color: var(--flag);
+  border-color: var(--flag);
+}
+
+/* neither Engine answered this Indicator: a fact about the evidence, not a
+   verdict on either Engine, so it stays the quiet default grey. */
+.badge.neither {
+  color: var(--muted);
+  border-color: var(--rule);
+}
+
+.compare-sides {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.compare-side {
+  flex: 1 1 320px;
+  min-width: 0;
+  padding: 10px 12px;
+  border-right: 1px solid var(--rule);
+}
+
+.compare-side:last-child {
+  border-right: none;
+}
+
+.compare-side-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 6px;
+  overflow-wrap: anywhere;
+}
+
+.compare-doc {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.compare-loc {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.compare-quote {
+  margin: 0;
+  padding-left: 10px;
+  border-left: 2px solid var(--rule);
+  font-size: 13px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* ---- phone width: one column, nothing wider than the screen ------------- */
+
+@media (max-width: 720px) {
+  .audit {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  /* the fixed 60/40 split is a desktop rule: below this width the two panes
+     stack, and the PDF canvas follows its container (PdfPane derives the
+     scale from clientWidth, so the page always fits). */
+  .pdf-pane {
+    flex: 0 0 auto;
+    width: 100%;
+    height: 60vh;
+    border-right: none;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .record-pane {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+
+  .bottombar .spacer {
+    display: none;
+  }
+
+
+  .log {
+    height: 200px;
+  }
+
+  table.docs,
+  table.runs {
+    font-size: 12px;
+  }
+
+  /* the two Runs stack instead of sitting side by side, and the divider moves
+     from between the columns to between the stacked panes */
+  .compare-side {
+    flex: 1 1 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .compare-side:last-child {
+    border-bottom: none;
+  }
+
+  .compare-controls .field {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+/* ---- Review Decisions: the note field and the export preview ------------ */
+
+.note-row {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px 0;
+}
+
+.note-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.note-input {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  padding: 6px 8px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+}
+
+.note-input:focus-visible {
+  outline: 2px solid var(--route);
+  outline-offset: -2px;
+}
+
+/* The Evidence screen stacks the preview above the scrolling document list. */
+.evidence {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.evidence .doclist {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+}
+
+/* Why a Run that says "completed" has nothing to show. It sits above the
+   export preview because it is the first thing that explains the screen. */
+.evidence .run-warning {
+  flex: 0 0 auto;
+  margin: 12px var(--gutter) 0;
+  padding: 10px 12px;
+  border: 1px solid var(--flag);
+  border-left-width: 3px;
+  background: var(--flag-soft);
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.evidence .run-warning ul {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+
+/* Documents or Review queue: the same chips the Run panel uses for Pillars. */
+.evidence .view-switch {
+  flex: 0 0 auto;
+  padding: 12px var(--gutter) 0;
+}
+
+.queue-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 14px;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.export-preview {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 12px var(--gutter);
+  background: var(--surface);
+  border-bottom: 1px solid var(--rule);
+  font-size: 13px;
+}
+
+.export-preview .preview-line,
+.export-preview .preview-note {
+  color: var(--muted);
+}
+
+.export-preview .count {
+  font-variant-numeric: tabular-nums;
+}
+
+.export-preview .count.accepted {
+  color: var(--accept);
+}
+
+.export-preview .count.rejected {
+  color: var(--fail);
+}
+
+.export-preview .count.flagged,
+.export-preview .count.unreviewed {
+  color: var(--flag);
+}
+
+.export-preview .preview-warn {
+  color: var(--flag);
+  font-weight: 600;
+}
+
+.accept-all-btn {
+  font: inherit;
+  font-weight: 600;
+  padding: 6px 12px;
+  color: var(--accept);
+  background: var(--surface);
+  border: 1px solid var(--accept);
+  cursor: pointer;
+}
+
+.accept-all-btn:hover:not(:disabled) {
+  color: var(--on-solid);
+  background: var(--accept);
+}
+
+.accept-all-btn:disabled {
+  color: var(--muted);
+  border-color: var(--rule);
+  cursor: default;
+}
+
+/* "Add document": the second door into a Corpus. It sits below the Run
+   controls and stays folded away, except on an Economy whose Portal forbids
+   automated collection, where it is the only door and opens by default. */
+.add-document {
+  border-top: 1px solid var(--rule);
+  margin-top: 16px;
+  padding-top: 12px;
+}
+
+.add-document.prominent {
+  border: 1px solid var(--route);
+  padding: 12px;
+  margin-top: 20px;
+}
+
+.add-document-body {
+  margin-top: 12px;
+}
+
+.add-document-body input[type='url'],
+.add-document-body input[type='file'] {
+  font: inherit;
+  padding: 6px 8px;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  color: var(--ink);
+  max-width: 100%;
+}
+
+.add-document-body input[type='file'] {
+  border: none;
+  padding-left: 0;
+}
+
+/* ---- Settings: clear downloads and cache -------------------------------- */
+
+.clear-section {
+  border-top: 1px solid var(--rule);
+  margin-top: 28px;
+  padding-top: 20px;
+}
+
+.clear-counts,
+.clear-confirm {
+  margin-bottom: 16px;
+}
+
+.clear-counts ul,
+.clear-confirm ul {
+  list-style: none;
+  margin: 8px 0;
+}
+
+.clear-counts li,
+.clear-confirm li {
+  border-left: 3px solid var(--rule);
+  padding: 2px 10px;
+}
+
+.clear-confirm {
+  border: 1px solid var(--fail);
+  padding: 12px;
+}
+
+.clear-confirm li {
+  border-left-color: var(--fail);
+}
+
+button.danger {
+  font: inherit;
+  font-weight: 600;
+  min-height: 36px;
+  border-radius: var(--radius-md);
+  padding: 7px 18px;
+  border: 1px solid var(--fail);
+  background: var(--surface);
+  color: var(--fail);
+  cursor: pointer;
+}
+
+button.danger:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* A plain button inside a screen (Preview, Cancel, forget): quiet, but a
+   button in both themes rather than the browser's default. */
+.panel button:not([class]) {
+  font: inherit;
+  min-height: 32px;
+  padding: 4px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.panel button:not([class]):hover:not(:disabled) {
+  border-color: var(--muted);
+}
+
+.panel button:not([class]):disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ==========================================================================
+   Evidence screens: the export summary, the Documents and Review queue
+   lists, and the audit view (PDF page beside one Mapping).
+   Everything here is namespaced .ev-* (plus the Evidence screen's own frame),
+   so it can be read and changed without touching the rest of the sheet.
+   ========================================================================== */
+
+/* ---- the Evidence screen: one scrolling column --------------------------- */
+
+.evidence {
+  overflow-y: auto;
+  gap: var(--space-5);
+  padding-bottom: var(--space-7);
+}
+
+.evidence .run-warning {
+  border-radius: var(--radius-md);
+}
+
+.evidence > .view-switch {
+  padding: 0 var(--gutter);
+  gap: var(--space-2);
+}
+
+/* Documents or Review queue: two tabs, the one on screen in route blue */
+.evidence > .view-switch .chip {
+  min-height: 36px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  font-size: var(--text-md);
+}
+
+.evidence > .view-switch .chip.on {
+  background: var(--route-soft);
+  border-color: var(--route);
+  color: var(--route);
+}
+
+/* ---- small shared pieces ------------------------------------------------- */
+
+.ev-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.ev-muted {
+  color: var(--muted);
+}
+
+.ev-law {
+  font-family: var(--font-law);
+}
+
+.ev-note {
+  color: var(--muted);
+  padding: var(--space-5) var(--gutter);
+}
+
+.ev-error {
+  color: var(--fail);
+  padding: var(--space-4) var(--gutter);
+  overflow-wrap: anywhere;
+}
+
+/* The one line each list opens with: what is here, in plain words. */
+.ev-summary {
+  font-size: var(--text-lg);
+  line-height: 1.5;
+  max-width: 80ch;
+}
+
+.ev-input {
+  font: inherit;
+  min-height: 40px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  color: var(--ink);
+  min-width: 0;
+}
+
+.ev-input:focus-visible {
+  outline: 2px solid var(--route);
+  outline-offset: 0;
+  border-color: var(--route);
+}
+
+.ev-pdf .btn:disabled,
+.ev-record .btn:disabled,
+.ev-preview .btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.btn.ev-icon {
+  width: 36px;
+  padding: 0;
+  justify-content: center;
+}
+
+.btn.ev-primary {
+  background: var(--route);
+  border-color: var(--route);
+  color: var(--on-solid);
+  font-weight: 600;
+}
+
+.btn.ev-primary:hover {
+  background: var(--route-strong);
+  border-color: var(--route-strong);
+  color: var(--on-solid);
+}
+
+/* A Review Decision is a shape and a word; the colour only repeats them. */
+.ev-glyph {
+  flex: 0 0 auto;
+}
+
+.ev-glyph.accepted,
+.ev-decision.accepted,
+.ev-count.accepted {
+  color: var(--accept);
+}
+
+.ev-glyph.rejected,
+.ev-decision.rejected,
+.ev-count.rejected {
+  color: var(--fail);
+}
+
+.ev-glyph.flagged,
+.ev-decision.flagged,
+.ev-count.flagged {
+  color: var(--flag);
+}
+
+.ev-glyph.unreviewed,
+.ev-decision.unreviewed {
+  color: var(--muted);
+}
+
+.ev-decision {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ---- the export summary -------------------------------------------------- */
+
+.ev-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin: 0 var(--gutter);
+  padding: 20px 24px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+}
+
+.ev-preview.ev-error {
+  padding: 20px 24px;
+}
+
+.ev-tally {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4) var(--space-6);
+}
+
+.ev-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) 36px;
+}
+
+.ev-stat {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 2px;
+}
+
+.ev-stat dd {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.ev-stat dt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+
+.ev-bulk {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+.ev-warn {
+  color: var(--flag);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+/* The question Accept all asks before it acts: it sits where the button was,
+   on the flag tint, and its safe answer holds the keyboard. */
+.ev-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-5);
+  padding: var(--space-4) 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--flag);
+  background: var(--flag-soft);
+}
+
+.ev-confirm-words {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+.ev-confirm-q {
+  font-weight: 600;
+  font-size: var(--text-lg);
+}
+
+.ev-confirm .ev-muted {
+  color: var(--ink);
+  font-size: var(--text-sm);
+}
+
+.ev-confirm-actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+/* ---- the two lists: Documents and Review queue --------------------------- */
+
+.ev-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: 0 var(--gutter);
+}
+
+.ev-summary-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-5);
+}
+
+.ev-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 36px;
+  color: var(--ink);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ev-toggle input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--route);
+}
+
+.ev-card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.ev-doc-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 70px 90px minmax(200px, 280px) 16px;
+  gap: var(--space-5);
+  align-items: center;
+}
+
+.ev-queue-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) 90px 110px 130px;
+  gap: var(--space-5);
+  align-items: center;
+}
+
+.ev-head {
+  padding: 10px 20px;
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+
+.ev-head .num,
+.ev-row .num {
+  text-align: right;
+}
+
+.ev-rows {
+  list-style: none;
+}
+
+.ev-row {
+  width: 100%;
+  font: inherit;
+  text-align: left;
+  color: var(--ink);
+  background: transparent;
+  border: none;
+  border-top: 1px solid var(--rule);
+  padding: 14px 20px;
+  cursor: pointer;
+  position: relative;
+}
+
+.ev-row:hover {
+  background: var(--hover);
+}
+
+/* the row the J and K keys are on: a route bar down its edge */
+.ev-row.is-focus {
+  background: var(--route-soft);
+}
+
+.ev-row.is-focus::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--route);
+}
+
+.ev-row:focus-visible {
+  outline: 2px solid var(--route);
+  outline-offset: -2px;
+}
+
+.ev-empty {
+  border-top: 1px solid var(--rule);
+  padding: var(--space-5) 20px;
+  color: var(--muted);
+}
+
+.ev-doc-title {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ev-doc-title .ev-law {
+  font-size: 18px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.ev-tags:empty {
+  display: none;
+}
+
+.ev-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ev-tag {
+  font-size: var(--text-xs);
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-pill);
+  padding: 0 8px;
+  line-height: 18px;
+}
+
+.ev-tag.warn {
+  color: var(--flag);
+  border-color: var(--flag);
+  background: var(--flag-soft);
+}
+
+.ev-strong {
+  font-weight: 600;
+}
+
+/* the unit a column header gives on a wide screen, said in the cell on a phone */
+.ev-unit {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.ev-review {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ev-bar {
+  display: flex;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--rule);
+  overflow: hidden;
+}
+
+.ev-bar i {
+  display: block;
+  height: 100%;
+}
+
+.ev-bar i.accepted {
+  background: var(--accept);
+}
+
+.ev-bar i.rejected {
+  background: var(--fail);
+}
+
+.ev-bar i.flagged {
+  background: var(--flag);
+}
+
+.ev-review-words {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  font-size: var(--text-sm);
+}
+
+.ev-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
+}
+
+.ev-chev {
+  color: var(--muted);
+}
+
+.ev-row:hover .ev-chev,
+.ev-row.is-focus .ev-chev {
+  color: var(--route);
+}
+
+.ev-queue-doc {
+  font-size: 17px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.ev-ind {
+  font-weight: 500;
+}
+
+.ev-conf {
+  display: inline-flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+}
+
+.ev-low-tag {
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--flag);
+  border: 1px solid var(--flag);
+  border-radius: var(--radius-pill);
+  padding: 0 7px;
+  line-height: 17px;
+}
+
+/* ---- the audit view: the page on the left, the Mapping on the right ------ */
+
+.ev-audit {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(380px, 540px);
+  /* one row the height of the screen, so each pane scrolls inside itself
+     rather than growing past a parent that hides its overflow */
+  grid-template-rows: minmax(0, 1fr);
+  gap: var(--space-5);
+  height: 100%;
+  padding: var(--space-4) var(--gutter) var(--space-4);
+}
+
+.ev-pdf,
+.ev-record {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.ev-pdf-bar {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--rule);
+  font-size: var(--text-sm);
+}
+
+.ev-pager {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.ev-page-no {
+  min-width: 100px;
+  text-align: center;
+  font-size: var(--text-md);
+}
+
+.ev-quote-pages {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.ev-page-chip {
+  font: inherit;
+  font-size: var(--text-sm);
+  min-width: 32px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--route);
+  background: var(--surface);
+  color: var(--route);
+  cursor: pointer;
+}
+
+.ev-page-chip.on {
+  background: var(--route-soft);
+  font-weight: 600;
+}
+
+.ev-pdf-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+  background: var(--paper);
+}
+
+.ev-pdf-page {
+  position: relative;
+  background: #fff;
+  box-shadow: 0 0 0 1px var(--rule);
+  height: fit-content;
+}
+
+.ev-pdf-page canvas {
+  display: block;
+}
+
+/* a save or load that failed: said plainly, beside the decision */
+.ev-notice {
+  margin: 0 0 var(--space-2);
+  color: var(--fail);
+  font-size: var(--text-sm);
+}
+
+/* a source that is not a PDF: its text, in the law face, the quote marked */
+.ev-text-scroll {
+  display: block;
+}
+
+.ev-source-text {
+  max-width: 72ch;
+  margin: 0 auto;
+  padding: 20px 24px;
+  background: var(--surface);
+  box-shadow: 0 0 0 1px var(--rule);
+  font-family: var(--font-law);
+  font-size: 18px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.ev-text-hl {
+  color: inherit;
+  background: var(--hl-fill);
+  outline: 1px solid var(--hl-line);
+  border-radius: 2px;
+}
+
+.ev-text-foot {
+  border-top: 1px solid var(--rule);
+  border-bottom: 0;
+}
+
+.ev-hl {
+  position: absolute;
+  background: var(--hl-fill);
+  outline: 1px solid var(--hl-line);
+  pointer-events: none;
+}
+
+.ev-record-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* The column scrolls, so nothing in it may shrink. A block that clips its own
+   overflow (the quote) otherwise gives up its height first and squeezes down
+   to one clipped line whenever the pane is fuller than the screen. */
+.ev-record-scroll > * {
+  flex-shrink: 0;
+}
+
+/* the one line the pane opens with: where you are, and what you decided */
+.ev-record-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.ev-record-top .ev-decision {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-pill);
+  padding: 3px 10px;
+}
+
+.ev-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.ev-stepper-no {
+  padding: 0 var(--space-1);
+  font-weight: 500;
+}
+
+.ev-indicator {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ev-indicator .ev-muted {
+  font-size: var(--text-sm);
+}
+
+.ev-indicator-name {
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.ev-provision {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px var(--space-3);
+  margin-top: 4px;
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+
+.source-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* the Verbatim Quote: law text, in the law face, on the quote tint. Always
+   at its full height: the pane around it is what scrolls, so no part of the
+   quote hides behind a scroll bar the reader cannot see. */
+.ev-quote {
+  font-family: var(--font-law);
+  font-size: 19px;
+  line-height: 1.55;
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  background: var(--mark);
+  box-shadow: inset 3px 0 0 var(--route);
+  overflow-wrap: anywhere;
+}
+
+.ev-quote p + p {
+  margin-top: 10px;
+}
+
+/* the English gloss sits BELOW the quote and never looks like it */
+.ev-gloss {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--rule);
+}
+
+.ev-gloss-label {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.ev-gloss-text {
+  width: 100%;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.ev-gloss-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.ev-gloss-row .ev-input {
+  flex: 1 1 180px;
+}
+
+.ev-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ev-meta-row {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: var(--space-3);
+}
+
+.ev-meta dt {
+  font-size: var(--text-sm);
+  color: var(--muted);
+  padding-top: 1px;
+}
+
+.ev-meta dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ev-meta code {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.ev-confidence {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.ev-confidence .confidence-value {
+  font-family: var(--font-ui);
+  font-size: var(--text-md);
+  font-weight: 500;
+}
+
+.ev-dots {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.ev-dots i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid var(--route);
+}
+
+.ev-dots i.on {
+  background: var(--route);
+}
+
+.ev-more {
+  border-top: 1px solid var(--rule);
+  padding-top: var(--space-3);
+}
+
+.ev-more summary {
+  cursor: pointer;
+  color: var(--route);
+  font-weight: 500;
+  width: fit-content;
+}
+
+.ev-more[open] summary {
+  margin-bottom: var(--space-3);
+}
+
+/* the note and the three decisions stay in reach below the scrolling pane */
+.ev-decide {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: 14px 24px 18px;
+  border-top: 1px solid var(--rule);
+  background: var(--surface);
+}
+
+.ev-note-field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.ev-note-field label {
+  font-weight: 500;
+}
+
+.ev-note-field .ev-input {
+  flex: 1;
+}
+
+.ev-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.btn.ev-act {
+  justify-content: center;
+  height: 44px;
+  font-weight: 600;
+}
+
+.btn.ev-act kbd {
+  font-family: var(--font-ui);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  padding: 0 5px;
+  opacity: 0.7;
+}
+
+.btn.ev-act.accept {
+  background: var(--route);
+  border-color: var(--route);
+  color: var(--on-solid);
+}
+
+.btn.ev-act.accept:hover {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--surface);
+}
+
+/* once another decision is taken, Accept stops shouting over it */
+.btn.ev-act.accept.settled {
+  background: var(--surface);
+  border-color: var(--rule);
+  color: var(--ink);
+}
+
+.btn.ev-act.accept.settled:hover {
+  border-color: var(--muted);
+}
+
+/* the decision this Mapping carries now: its own colour, its own shape */
+.btn.ev-act.active.accept {
+  background: var(--accept);
+  border-color: var(--accept);
+  color: var(--on-solid);
+}
+
+.btn.ev-act.active.accept .ev-glyph {
+  color: var(--on-solid);
+}
+
+.btn.ev-act.active.accept .ev-glyph path {
+  stroke: var(--accept);
+}
+
+.btn.ev-act.active.reject {
+  background: var(--fail-soft);
+  border-color: var(--fail);
+  color: var(--fail);
+}
+
+.btn.ev-act.active.flag {
+  background: var(--flag-soft);
+  border-color: var(--flag);
+  color: var(--flag);
+}
+
+.btn.ev-act.active.flag .ev-glyph path,
+.btn.ev-act.active.flag .ev-glyph circle {
+  fill: var(--flag);
+}
+
+/* ---- narrower screens ---------------------------------------------------- */
+
+@media (max-width: 1200px) {
+  .ev-audit {
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 440px);
+    gap: var(--space-4);
+  }
+}
+
+@media (max-width: 900px) {
+  .ev-preview {
+    padding: 16px;
+  }
+
+  .ev-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3) var(--space-4);
+    width: 100%;
+  }
+
+  .ev-stat dd {
+    font-size: 24px;
+  }
+
+  .ev-bulk {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .ev-bulk .ev-accept-all {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .ev-summary {
+    font-size: var(--text-md);
+  }
+
+  .ev-head {
+    display: none;
+  }
+
+  /* a row becomes a card: the title on top, then its numbers in words */
+  .ev-doc-grid {
+    grid-template-columns: minmax(0, 1fr) auto 16px;
+    grid-template-areas:
+      'title title chev'
+      'pages maps chev'
+      'review review chev';
+    gap: 6px var(--space-3);
+  }
+
+  .ev-doc-grid > .ev-doc-title {
+    grid-area: title;
+  }
+
+  .ev-doc-grid > .num:nth-child(2) {
+    grid-area: pages;
+    text-align: left;
+    color: var(--muted);
+  }
+
+  .ev-doc-grid > .num:nth-child(3) {
+    grid-area: maps;
+  }
+
+  .ev-doc-grid > .ev-review {
+    grid-area: review;
+  }
+
+  .ev-doc-grid > .ev-chev {
+    grid-area: chev;
+  }
+
+  .ev-queue-grid {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'doc doc'
+      'prov prov'
+      'ind conf'
+      'dec dec';
+    gap: 4px var(--space-3);
+  }
+
+  .ev-queue-grid > :nth-child(1) {
+    grid-area: doc;
+  }
+
+  .ev-queue-grid > :nth-child(2) {
+    grid-area: prov;
+  }
+
+  .ev-queue-grid > :nth-child(3) {
+    grid-area: ind;
+  }
+
+  .ev-queue-grid > :nth-child(4) {
+    grid-area: conf;
+  }
+
+  .ev-queue-grid > :nth-child(5) {
+    grid-area: dec;
+  }
+
+  .ev-row .ev-unit {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+  }
+
+  .ev-row {
+    padding: 14px 16px;
+  }
+
+  /* the page and the Mapping stack; the whole view scrolls as one */
+  .ev-audit {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    overflow-y: auto;
+    padding: var(--space-3) var(--gutter) var(--space-5);
+  }
+
+  /* on a phone the Mapping comes first (what it says, and the decision),
+     then the page it came from */
+  .ev-pdf {
+    order: 2;
+    flex: 0 0 auto;
+    height: 70vh;
+  }
+
+  .ev-record {
+    order: 1;
+    flex: 0 0 auto;
+    overflow: visible;
+  }
+
+  .ev-record-scroll {
+    overflow: visible;
+    padding: 16px;
+  }
+
+  /* in the flow, after the Mapping: a bar pinned over the scrolling view
+     covered the middle of the quote */
+  .ev-decide {
+    padding: 12px 16px 14px;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  }
+
+  .ev-quote {
+    font-size: 17px;
+  }
+
+  .ev-page-no {
+    min-width: 0;
+  }
+
+  .ev-meta-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+}
+
+/* ==== end of the Evidence screens ========================================= */
+
+
+/* ======================================================================== */
+/* ---- Start a Run: the setup around the Run's telemetry ----------------- */
+/* ======================================================================== */
+/* Four numbered steps on the left (they really are a sequence), the Run
+   panel on the right: what this Run will be, the last Run on the same setup,
+   and the one button. The telemetry and the raw log stay below, untouched. */
+
+/* Placeholders in the muted ink: at least 5.3:1 on every surface in both
+   themes, where the browser's own grey fell short. Firefox also fades them,
+   hence the opacity. */
+::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.panel.run-screen {
+  max-width: 1440px;
+}
+
+.run-screen .run-setup {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: var(--space-6) 40px;
+  align-items: start;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  margin-bottom: var(--space-6);
+}
+
+/* "Run panel" names the whole setup, the Engine control included */
+.run-panel-head {
+  grid-column: 1 / -1;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: calc(-1 * var(--space-3));
+}
+
+.setup-steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+.setup-step {
+  border: 0;
+  min-width: 0;
+}
+
+.setup-step .step-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0;
+  font-size: 19px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.setup-step .step-num {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  border-radius: 50%;
+  border: 2px solid var(--route);
+  color: var(--route);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-md);
+  font-weight: 600;
+}
+
+.setup-step .step-body {
+  margin-left: 44px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.setup-step .step-line {
+  color: var(--muted);
+  font-size: var(--text-sm);
+  margin-top: 2px;
+}
+
+.card-grid {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.card-grid.economies {
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+}
+
+.card-grid.pillars,
+.card-grid.engines {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+.card-grid.small {
+  margin-top: var(--space-3);
+}
+
+/* A choice as a card. The real radio or checkbox sits inside, invisible but
+   focusable, so the keyboard and screen readers get a native control. */
+.pick-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  min-width: 0;
+}
+
+.pick-card input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+.pick-card:hover {
+  border-color: var(--muted);
+}
+
+.pick-card.on {
+  border-color: var(--route);
+  box-shadow: inset 0 0 0 1px var(--route);
+  background: var(--route-soft);
+}
+
+.pick-card:has(input:focus-visible) {
+  outline: 2px solid var(--route);
+  outline-offset: 2px;
+}
+
+.setup-step:disabled .pick-card {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.pick-card .card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.pick-card .card-name {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.pick-card .card-code,
+.pick-card .card-meta {
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.pick-card[data-empty] .card-meta {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.pick-card.pillar {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.pick-card .pillar-num {
+  font-size: 22px;
+  font-weight: 600;
+  min-width: 28px;
+}
+
+.key-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.key-state.set {
+  color: var(--accept);
+}
+
+.key-state.missing {
+  color: var(--flag);
+}
+
+.more-btn {
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--route);
+  background: none;
+  border: 0;
+  padding: var(--space-1) 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.indicator-list {
+  list-style: none;
+  border-bottom: 1px solid var(--rule);
+}
+
+.indicator-list li {
+  border-top: 1px solid var(--rule);
+}
+
+.indicator-list label,
+.indicator-list.plain li {
+  display: grid;
+  grid-template-columns: 22px 44px minmax(0, 1fr);
+  gap: var(--space-2);
+  align-items: center;
+  padding: var(--space-2) 0;
+  cursor: pointer;
+}
+
+.indicator-list.plain li {
+  grid-template-columns: 44px minmax(0, 1fr);
+  cursor: default;
+}
+
+.indicator-list input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--route);
+}
+
+.indicator-list b {
+  font-weight: 600;
+}
+
+/* the Run panel: what this Run will be, then the button */
+.setup-summary {
+  position: sticky;
+  top: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  min-width: 0;
+}
+
+.setup-summary .panel-title {
+  margin: 0;
+}
+
+.summary-list {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  row-gap: var(--space-2);
+  column-gap: var(--space-3);
+}
+
+.summary-list dt {
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.summary-list dd {
+  overflow-wrap: anywhere;
+}
+
+.last-run {
+  padding: var(--space-3) 14px;
+  border-radius: var(--radius-md);
+  background: var(--paper);
+  font-size: var(--text-md);
+}
+
+.start-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.run-screen button.primary.start-btn {
+  min-height: 48px;
+  width: 100%;
+  font-size: var(--text-lg);
+}
+
+.start-actions .btn {
+  justify-content: center;
+  color: var(--route);
+}
+
+/* The question before money is spent: in the page, next to the button it
+   replaced, with the estimate and what it is based on. */
+.start-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--route);
+  background: var(--route-soft);
+}
+
+.start-confirm b {
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.start-confirm .confirm-actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-top: var(--space-1);
+}
+
+.start-confirm button.primary {
+  min-height: 44px;
+}
+
+.start-confirm .btn {
+  height: 44px;
+}
+
+.summary-corpus {
+  border-top: 1px solid var(--rule);
+  padding-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.summary-corpus-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.summary-corpus-head h3 {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.summary-corpus ul {
+  list-style: none;
+}
+
+.summary-corpus li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 6px 0;
+  border-top: 1px solid var(--rule);
+  font-size: var(--text-md);
+}
+
+.summary-corpus li .law {
+  font-size: 15px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.summary-corpus .k,
+.summary-corpus li.k {
+  color: var(--muted);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+
+@media (max-width: 1100px) {
+  .run-screen .run-setup {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .setup-summary {
+    position: static;
+  }
+}
+
+@media (max-width: 720px) {
+  .setup-step .step-body {
+    margin-left: 0;
+  }
+
+  /* touch: the small text controls get a finger-sized hit area */
+  .more-btn,
+  .summary-corpus-head .link-btn {
+    min-height: 40px;
+  }
+
+  .add-document .add-toggle {
+    height: 44px;
+  }
+
+  .card-grid.economies {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .card-grid.pillars,
+  .card-grid.engines {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .setup-summary {
+    padding: var(--space-4);
+  }
+}
+
+/* ======================================================================== */
+/* ---- Add document: the Corpus of the chosen Economy -------------------- */
+/* ======================================================================== */
+
+.run-screen .add-document {
+  margin: var(--space-5) 0;
+  padding: var(--space-5);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+.run-screen .add-document.prominent {
+  border-color: var(--route);
+}
+
+.add-document-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.add-document-head h2 {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.add-document-head .hint {
+  font-size: var(--text-sm);
+  margin-top: 2px;
+}
+
+.add-document .notice {
+  margin: var(--space-4) 0 0;
+  background: var(--paper);
+}
+
+.add-document .add-document-body {
+  margin-top: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.add-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.lane-tabs {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.lane-tab {
+  font: inherit;
+  font-weight: 500;
+  height: 40px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.lane-tab.on {
+  background: var(--route-soft);
+  border-color: var(--route);
+  color: var(--route);
+}
+
+.lane-tab:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.add-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4) var(--space-5);
+}
+
+.add-fields .field {
+  margin: 0;
+}
+
+.add-fields .field > label {
+  color: var(--ink);
+  font-size: var(--text-md);
+}
+
+.add-fields .field input[type='text'],
+.add-fields .field input[type='url'],
+.add-fields .field select {
+  min-height: 44px;
+  width: 100%;
+}
+
+.add-fields .field input[type='file'] {
+  border: 0;
+  padding-left: 0;
+  background: transparent;
+}
+
+.add-fields .check-field label {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding-top: var(--space-5);
+}
+
+.add-fields .check-field input {
+  width: 18px;
+  height: 18px;
+  min-height: 0;
+  margin-top: 2px;
+  accent-color: var(--route);
+}
+
+.add-form .actions-row {
+  margin: 0;
+}
+
+.add-document .corpus-list {
+  margin: 0;
+  border-top: 0;
+  padding-top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.corpus-scroll {
+  overflow-x: auto;
+}
+
+.add-document table.corpus {
+  border: 0;
+  background: transparent;
+  font-size: var(--text-md);
+}
+
+.add-document table.corpus th {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  padding: 6px 12px 6px 0;
+}
+
+.add-document table.corpus td {
+  padding: 10px 12px 10px 0;
+  border-bottom: 0;
+  border-top: 1px solid var(--rule);
+}
+
+.add-document table.corpus td.doc-title {
+  white-space: normal;
+  min-width: 240px;
+}
+
+.add-document table.corpus td.doc-title .law {
+  font-size: var(--text-lg);
+}
+
+@media (max-width: 720px) {
+  .run-screen .add-document {
+    padding: var(--space-4);
+  }
+
+  .add-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .add-fields .check-field label {
+    padding-top: 0;
+  }
+
+  .set-source-url {
+    flex-wrap: wrap;
+  }
+
+  .set-source-url input {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+/* ======================================================================== */
+/* ---- Run history -------------------------------------------------------- */
+/* ======================================================================== */
+
+.runs-screen .runs-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.runs-screen .runs-filters .field {
+  margin: 0;
+  min-width: 180px;
+}
+
+.runs-screen .runs-filters select {
+  min-height: 40px;
+}
+
+.runs-screen .runs-count {
+  margin-left: auto;
+  font-size: var(--text-sm);
+}
+
+.runs-screen .table-scroll {
+  /* holds the hidden column label inside the scroller, not at the far edge
+     of the page */
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+}
+
+.runs-screen table.runs {
+  border: 0;
+  background: transparent;
+  margin: 0;
+  font-size: var(--text-md);
+}
+
+.runs-screen table.runs th {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  padding: 12px 8px 10px;
+}
+
+/* the longest words wrap rather than pushing the actions off screen: the
+   whole table fits a 1280 px window with no sideways scroll */
+.runs-screen table.runs td[data-label='Kind'],
+.runs-screen table.runs td[data-label='Result'],
+.runs-screen table.runs td[data-label='Tokens'] {
+  white-space: normal;
+  max-width: 110px;
+}
+
+.runs-screen table.runs td {
+  padding: 12px 8px;
+  border-bottom: 0;
+  border-top: 1px solid var(--rule);
+}
+
+.runs-screen table.runs tr.row:focus-visible {
+  outline: 2px solid var(--route);
+  outline-offset: -2px;
+}
+
+.runs-screen .status-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.runs-screen td.status.completed {
+  color: var(--ink);
+}
+
+.runs-screen td.status.completed svg {
+  color: var(--route);
+}
+
+.runs-screen table.runs td.ellipsis {
+  max-width: 180px;
+}
+
+.runs-screen td.quiet-cell {
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.runs-screen .row-actions {
+  text-align: right;
+}
+
+.runs-screen .row-actions > * + * {
+  margin-left: var(--space-3);
+}
+
+.runs-screen .runs-foot {
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+  max-width: 90ch;
+}
+
+@media (max-width: 720px) {
+  /* each Run becomes a small card: the table's rows stack, each cell keeps
+     its column name beside it */
+  .runs-screen table.runs thead {
+    display: none;
+  }
+
+  .runs-screen table.runs,
+  .runs-screen table.runs tbody {
+    display: block;
+    width: 100%;
+  }
+
+  .runs-screen table.runs tr.row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 4px var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-top: 1px solid var(--rule);
+  }
+
+  .runs-screen table.runs tbody tr.row:first-child {
+    border-top: 0;
+  }
+
+  .runs-screen table.runs td {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    border: 0;
+    text-align: left;
+    white-space: normal;
+    max-width: none;
+  }
+
+  .runs-screen table.runs td[data-label]::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: var(--text-xs);
+  }
+
+  .runs-screen table.runs td.row-actions {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: var(--space-5);
+  }
+
+  .runs-screen .row-actions > * + * {
+    margin-left: 0;
+  }
+
+  .runs-screen .row-actions a,
+  .runs-screen .row-actions .link-btn {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+  }
+
+  .runs-screen .runs-filters .field {
+    min-width: 0;
+    flex: 1 1 140px;
+  }
+
+  .runs-screen .runs-count {
+    margin-left: 0;
+    flex-basis: 100%;
+  }
+}
+
+/* ======================================================================== */
+/* ---- Comparison --------------------------------------------------------- */
+/* ======================================================================== */
+
+.compare-screen .compare-controls {
+  padding: var(--space-4) 18px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-5);
+}
+
+.compare-screen .compare-controls select {
+  min-height: 40px;
+}
+
+.compare-screen .compare-controls button.primary {
+  min-height: 40px;
+}
+
+.compare-screen .compare-heads {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.compare-screen .compare-head {
+  padding: 18px 22px;
+  border-radius: var(--radius-lg);
+}
+
+.compare-screen .compare-head-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-3);
+  font-size: var(--text-lg);
+  margin-bottom: var(--space-1);
+}
+
+.compare-side-tag {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.compare-head-line {
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.compare-more {
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.compare-more summary {
+  cursor: pointer;
+  color: var(--route);
+}
+
+.compare-more .compare-meta {
+  margin-top: var(--space-2);
+}
+
+.compare-results-head {
+  padding: 18px 24px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-2) var(--space-5);
+}
+
+.compare-headline b {
+  font-weight: 600;
+}
+
+.compare-headline .hint-inline,
+.compare-sheet-line {
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.compare-sheet-line {
+  flex-basis: 100%;
+}
+
+.compare-downloads {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  font-size: var(--text-md);
+}
+
+.compare-screen .compare-row {
+  margin: 0;
+  border-top: 0;
+  border-radius: 0;
+  padding: 0;
+}
+
+.compare-screen .compare-row:last-of-type {
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+.compare-screen .compare-row-head {
+  padding: 18px 24px 8px;
+  border-bottom: 0;
+  gap: var(--space-3);
+}
+
+.compare-screen .compare-indicator {
+  font-family: var(--font-ui);
+  font-size: var(--text-lg);
+}
+
+.compare-screen .compare-indicator-name {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.compare-screen .badge {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  border: 0;
+}
+
+.compare-screen .badge.agree {
+  background: var(--accept-soft);
+}
+
+.compare-screen .badge.disagree,
+.compare-screen .badge.only_a,
+.compare-screen .badge.only_b {
+  color: var(--flag);
+  background: var(--flag-soft);
+}
+
+.compare-screen .badge.neither {
+  background: var(--paper);
+}
+
+.compare-screen .compare-sides {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-6);
+  padding: 8px 24px 22px;
+}
+
+.compare-screen .compare-side {
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.compare-screen .compare-side-label {
+  font-size: var(--text-sm);
+  font-weight: 400;
+  margin: 0;
+}
+
+.compare-screen .compare-doc {
+  font-size: var(--text-lg);
+  font-weight: 500;
+}
+
+.compare-screen .compare-loc {
+  font-size: var(--text-sm);
+  margin: 0;
+}
+
+.compare-screen .compare-quote {
+  font-size: var(--text-lg);
+  line-height: 1.55;
+  padding-left: 14px;
+  border-left: 2px solid var(--rule);
+}
+
+.compare-screen > .hint {
+  display: block;
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 720px) {
+  .compare-screen .compare-heads,
+  .compare-screen .compare-sides {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .compare-downloads a,
+  .compare-more summary {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+  }
+
+  .compare-screen .compare-sides {
+    gap: var(--space-4);
+    padding: 8px 16px 18px;
+  }
+
+  .compare-screen .compare-side {
+    border-bottom: 0;
+  }
+
+  .compare-results-head,
+  .compare-screen .compare-row-head {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+/* ======================================================================== */
+/* ---- Settings ----------------------------------------------------------- */
+/* ======================================================================== */
+
+.panel.settings-screen {
+  max-width: calc(1040px + 2 * var(--gutter));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.settings-card {
+  padding: 26px 28px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.settings-screen .clear-section {
+  margin: 0;
+  border-top: 1px solid var(--rule);
+  padding-top: 26px;
+}
+
+.settings-card-head h2 {
+  font-size: 19px;
+  font-weight: 500;
+}
+
+.settings-card-head .lead {
+  margin-top: 6px;
+  color: var(--muted);
+  max-width: 76ch;
+}
+
+.settings-card .field {
+  margin: 0;
+}
+
+.key-form {
+  display: grid;
+  grid-template-columns: minmax(0, 260px) minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  align-items: end;
+}
+
+.key-form select,
+.key-form input,
+.clear-form select {
+  min-height: 44px;
+  width: 100%;
+}
+
+.key-form button.primary {
+  min-height: 44px;
+}
+
+.key-note {
+  margin-top: -6px;
+}
+
+.key-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-md);
+}
+
+.key-table th {
+  text-align: left;
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--muted);
+  padding: 0 12px 8px 0;
+}
+
+.key-table td {
+  border-top: 1px solid var(--rule);
+  padding: 8px 12px 8px 0;
+}
+
+.key-table td.mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
+.key-table .key-action {
+  text-align: right;
+}
+
+.clear-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.clear-form .field:first-child {
+  min-width: 240px;
+}
+
+.settings-screen .clear-confirm {
+  border: 0;
+  border-radius: 10px;
+  background: var(--fail-soft);
+  padding: 18px 20px;
+  margin: 0;
+}
+
+.settings-screen .clear-confirm strong {
+  color: var(--fail);
+}
+
+.settings-screen .clear-counts {
+  margin: 0;
+}
+
+.settings-screen .clear-counts ul,
+.settings-screen .clear-confirm ul {
+  list-style: disc;
+  padding-left: 20px;
+  line-height: 1.7;
+}
+
+.settings-screen .clear-counts li,
+.settings-screen .clear-confirm li {
+  border-left: 0;
+  padding: 0;
+}
+
+.settings-screen button.danger.solid {
+  background: var(--fail);
+  color: var(--on-solid);
+}
+
+@media (max-width: 720px) {
+  .settings-card {
+    padding: 18px 16px;
+  }
+
+  .key-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .clear-form .field:first-child {
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+
+  .settings-screen .btn,
+  .settings-screen button.danger {
+    min-height: 44px;
+  }
+
+  .key-table th:nth-child(2),
+  .key-table td:nth-child(2) {
+    display: none;
+  }
+}
+
+/* ---- a failure in plain words, the raw text behind a toggle -------------- */
+
+.error-note p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.error-note details {
+  margin-top: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+
+.error-note summary {
+  cursor: pointer;
+}
+
+.error-note code {
+  display: block;
+  margin-top: var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.step-error {
+  margin-bottom: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--fail-soft);
+  font-size: var(--text-md);
+}
+
+.last-run.error-note {
+  background: var(--fail-soft);
+}
+
+/* Why the Export wrote nothing, just under the Export button. A long list
+   scrolls inside the box so the screen below stays in view. */
+.export-refusal {
+  flex: 0 0 auto;
+  margin: 0 var(--gutter) var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--fail-soft);
+  color: var(--ink);
+  max-height: 30vh;
+  overflow-y: auto;
+}
+
+.export-refusal ul {
+  margin: var(--space-1) 0 0;
+  padding-left: 1.2em;
+  font-size: var(--text-sm);
+}
+
+.export-refusal li {
+  overflow-wrap: anywhere;
+}
+
+/* A Discovery row: selectable with the keys, but it opens nothing. */
+table.runs tr.row.no-open {
+  cursor: default;
+}

@@ -1,0 +1,11 @@
+rank,document_id,title,source_url,relevance_score,matched_keywords
+1,doc_sg_sso_agc_gov_sg_Act_PDPA2012,PERSONAL DATA PROTECTION ACT 2012,https://sso.agc.gov.sg/Act/PDPA2012?ViewType=Pdf,0.853182,personal data; data protection; processing of personal data; retained for; law enforcement; national security; access to personal data; warrant; production of documents
+2,doc_sg_sso_agc_gov_sg_Act_CA2018,CYBERSECURITY ACT 2018,https://sso.agc.gov.sg/Act/CA2018?ViewType=Pdf,0.848391,cybersecurity; cyber security; critical information infrastructure; computer misuse; security incident; law enforcement; national security; warrant
+3,doc_sg_sso_agc_gov_sg_Act_CMA1993,COMPUTER MISUSE ACT 1993,https://sso.agc.gov.sg/Act/CMA1993?ViewType=Pdf,0.728755,personal information; cybersecurity; computer misuse; law enforcement; national security; warrant
+4,doc_sg_sso_agc_gov_sg_Act_ETA2010,ELECTRONIC TRANSACTIONS ACT 2010,https://sso.agc.gov.sg/Act/ETA2010?ViewType=Pdf,0.697946,personal data; data protection; production of documents
+5,doc_sg_sso_agc_gov_sg_Act_CPC2010,CRIMINAL PROCEDURE CODE 2010,https://sso.agc.gov.sg/Act/CPC2010?ViewType=Pdf,0.686874,privacy; cybersecurity; computer misuse; minimum period; law enforcement; national security; warrant; court order
+6,doc_sg_sso_agc_gov_sg_Act_EmA1968,EMPLOYMENT ACT 1968,https://sso.agc.gov.sg/Act/EmA1968?ViewType=Pdf,0.630683,retention period; minimum period; appoint an officer; warrant; court order
+7,doc_sg_sso_agc_gov_sg_Act_BA1970,BANKING ACT 1970,https://sso.agc.gov.sg/Act/BA1970?ViewType=Pdf,0.570951,personal data; data protection; privacy; court order
+8,doc_sg_sso_agc_gov_sg_Act_ITA1947,INCOME TAX ACT 1947,https://sso.agc.gov.sg/Act/ITA1947?ViewType=Pdf,0.533180,cybersecurity; computer misuse; minimum period; law enforcement; warrant
+9,doc_sg_sso_agc_gov_sg_Act_TA1999,TELECOMMUNICATIONS ACT 1999,https://sso.agc.gov.sg/Act/TA1999?ViewType=Pdf,0.504766,personal data; warrant
+10,doc_sg_sso_agc_gov_sg_Act_CoA1967,COMPANIES ACT 1967,https://sso.agc.gov.sg/Act/CoA1967?ViewType=Pdf,0.497111,retained for; appoint an officer; national security; warrant; court order; require production

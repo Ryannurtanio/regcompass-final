@@ -1,0 +1,51 @@
+{
+  "_comment": "Pillar 9 'Content Access' per-indicator vocabulary, DERIVED mechanically by scripts/make_pillar_keywords.py from the indicator name, scoring criteria and exception note in config/indicators.json. No model wrote any of it. A human review pass flips _reviewed.",
+  "_pillar_description": "Content Access: Blocking or filtering commercial web content; Online advertising requirements; Licensing requirements for online content providers and applications (social media platforms, new providers, VPN, cloud servics, etc.).",
+  "_derived": true,
+  "_source": "config/indicators.json (name + criteria + exception)",
+  "_reviewed": false,
+  "9.1": [
+    "content",
+    "blocking",
+    "filtering",
+    "child pornography",
+    "child",
+    "pornography",
+    "filtering commercial web content",
+    "except internationally agreed illegal",
+    "internationally agreed illegal content",
+    "filtering commercial web",
+    "commercial web content",
+    "blocking nor filtering",
+    "except internationally agreed",
+    "internationally agreed illegal"
+  ],
+  "9.3": [
+    "advertising",
+    "online advertising",
+    "online",
+    "requirements",
+    "restriction",
+    "online advertising requirements",
+    "advertising requirements",
+    "advertising should",
+    "should",
+    "misleading"
+  ],
+  "9.4": [
+    "providers",
+    "captured under pillar",
+    "captured under",
+    "under pillar",
+    "licensing",
+    "license",
+    "captured",
+    "under",
+    "pillar",
+    "online content providers",
+    "social media platforms",
+    "strict licence requirement",
+    "more than one",
+    "licensing requirements"
+  ]
+}

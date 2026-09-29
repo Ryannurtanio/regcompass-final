@@ -1,0 +1,626 @@
+﻿Economy,Law Name,Law Number / Ref,Last Amended,Indicator ID,Article / Section,Discovery Tag,Location Reference,Verbatim Snippet,Mapping Rationale,Source URL,Confidence,Notes,Language of Source,Novelty Scope,Controlling Evidence,Relationship To Group,Verbatim English
+Australia,Criminal Code Act 1995,"No. 12, 1995",2026,6.1,Part 5.3 s. 104.5A(2)(j),NEW,PDF: page 296,"that the person facilitate access (including by providing
+passwords or in any other way) to one or more of the
+following:
+(i) electronic equipment or technology;
+(ii) any data held within, or accessible from, any electronic
+equipment or technology;
+owned or controlled by the person, for the purposes of a
+police officer searching and seizing any such equipment or
+accessing such data (or both).",The provision requires a person subject to a control order to facilitate access to electronic equipment or technology and any data held within or accessible from such equipment for police officers conducting searches or seizures.,https://www.legislation.gov.au/C2026C00098/latest/text,0.68,,English,provision,true,sole_source,
+Australia,Criminal Code Act 1995,"No. 12, 1995",2026,6.2,Part 5.3 s. 104.5A(2)(j),NEW,PDF: page 296,"that the person facilitate access (including by providing
+passwords or in any other way) to one or more of the
+following:
+(i) electronic equipment or technology;
+(ii) any data held within, or accessible from, any electronic
+equipment or technology;
+owned or controlled by the person, for the purposes of a
+police officer searching and seizing any such equipment or
+accessing such data (or both).",The provision requires the person to facilitate access to electronic equipment or technology and any data held within or accessible from such equipment for police officers conducting searches or seizures.,https://www.legislation.gov.au/C2026C00098/latest/text,0.68,,English,provision,true,sole_source,
+Australia,Criminal Code Act 1995,"No. 12, 1995",2026,6.3,Part 5.3 s. 104.5A(1)(i),NEW,PDF: page 296,"that the person not access or use specified forms of
+telecommunication or other technology (including the
+internet);
+(j) that the person not possess or use specified articles or
+substances;
+(k) that the person not carry out specified activities;
+(l) that the person not engage in one or more of the following:","The provision requires a person subject to a control order to comply with conditions imposed by a specified authority, including restrictions on the use of specified forms of telecommunication or other technology, such as the internet, and may require facilitation of access to electronic equipment…",https://www.legislation.gov.au/C2026C00098/latest/text,0.62,,English,provision,true,sole_source,
+Australia,Criminal Code Act 1995,"No. 12, 1995",2026,6.4,Part 5.3 s. 104.5A(2)(j),NEW,PDF: page 296,"that the person facilitate access (including by providing
+passwords or in any other way) to one or more of the
+following:
+(i) electronic equipment or technology;
+(ii) any data held within, or accessible from, any electronic
+equipment or technology;
+owned or controlled by the person, for the purposes of a
+police officer searching and seizing any such equipment or
+accessing such data (or both).",The provision requires individuals subject to a control order to facilitate access to electronic equipment and data held within or accessible from such equipment for police officers conducting searches or seizures.,https://www.legislation.gov.au/C2026C00098/latest/text,0.68,,English,provision,true,sole_source,
+Australia,Criminal Code Act 1995,"No. 12, 1995",2026,7.1,No provision found,KNOWN,,No provision found,,https://www.legislation.gov.au/C2026C00098/latest/text,,"No provision found for indicator 7.1 (Lack of comprehensive legal framework for data protection). Searched Criminal Code Act 1995: 536 sections chunked, 145 gate-passed (section x indicator) candidates screened by the mapper; every candidate for this indicator returned insufficient evidence or none passed the gate. Reference basis: Criminal Code Act 1995.",English,,,,
+Australia,Criminal Code Act 1995,"No. 12, 1995",2026,7.2,Part 5.1 s. 82.7(a),KNOWN,PDF: page 210,"A person commits an offence if:
+(a) the person engages in conduct; and
+(b) the conduct has the result that an article or thing, or software,
+becomes vulnerable:
+(i) to misuse or impairment; or
+(ii) to being accessed or modified by a person not entitled to
+access or modify it; and
+(c) the article or thing, or software, is or is part of public
+infrastructure; and
+(d) the person engages in the conduct with the intention that
+prejudice to Australia’s national security will occur (whether
+at the time or at a future time).","A person commits an offence if they engage in conduct that makes public infrastructure vulnerable to misuse, impairment, or unauthorized access, with the intention of causing prejudice to Australia’s national security.",https://www.legislation.gov.au/C2026C00098/latest/text,0.67,,English,,false,complementary,
+Australia,Criminal Code Act 1995,"No. 12, 1995",2026,7.2,Part 5.1 s. 82.8(a),KNOWN,PDF: page 210,"A person commits an offence if:
+(a) the person engages in conduct; and
+180 Criminal Code Act 1995
+Compilation No. 173 Compilation date: 14/03/2026
+Authorised Version C2026C00098 registered 23/03/2026
+The Criminal Code Schedule
+The security of the Commonwealth Chapter 5
+Treason and related offences Part 5.1
+Sabotage Division 82
+Section 82.9
+(b) the conduct has the result that an article or thing, or software,
+becomes vulnerable:
+(i) to misuse or impairment; or
+(ii) to being accessed or modified by a person not entitled to
+access or modify it; and
+(c) the article or thing, or software, is or is part of public
+infrastructure; and
+(d) the person engages in the conduct reckless as to whether
+prejudice to Australia’s national security will occur (whether
+at the time or at a future time).","A person commits an offence if they engage in conduct that makes public infrastructure vulnerable to misuse, impairment, or unauthorized access, and do so recklessly as to national security prejudice.",https://www.legislation.gov.au/C2026C00098/latest/text,0.61,,English,,false,complementary,
+Australia,Criminal Code Act 1995,"No. 12, 1995",2026,7.2,Part 5.2 s. 91.2(1),KNOWN,PDF: page 230,"A person commits an offence if:
+(a) the person deals with information or an article; and
+(b) the person intends that the person’s conduct will prejudice
+Australia’s national security; and
+(c) the conduct results or will result in the information or article
+being communicated or made available to a foreign principal
+or a person acting on behalf of a foreign principal.",A person commits an offence if they deal with information or an article with the intention that their conduct will prejudice Australia’s national security and the conduct results or will result in the information or article being communicated or made available to a foreign principal or a person…,https://www.legislation.gov.au/C2026C00098/latest/text,0.74,,English,,false,complementary,
+Australia,Criminal Code Act 1995,"No. 12, 1995",2026,7.2,Part 5.2 s. 91.4(1),KNOWN,PDF: page 232,"(1) It is a defence to a prosecution for an offence by a person against
+this Subdivision that the person dealt with the information or
+article:
+(a) in accordance with a law of the Commonwealth; or","The provision allows a defence for a person who dealt with information or an article in accordance with a law of the Commonwealth, which implies that such actions are permitted under existing Commonwealth law, including potentially cybersecurity-related laws.",https://www.legislation.gov.au/C2026C00098/latest/text,0.72,,English,,false,complementary,
+Australia,Criminal Code Act 1995,"No. 12, 1995",2026,7.2,Part 5.6 s. 121.1(1),KNOWN,PDF: page 564,"(1) In this Part:
+cause harm to Australia’s interests means to:
+(a) interfere with or prejudice the prevention, detection,
+investigation, prosecution or punishment of a criminal
+offence against a law of the Commonwealth; or
+(b) interfere with or prejudice the performance of functions of
+the Australian Federal Police under:
+(i) paragraph 8(1)(be) of the Australian Federal Police Act
+1979 (protective and custodial functions); or
+(ii) the Proceeds of Crime Act 2002; or
+(c) harm or prejudice Australia’s international relations in
+relation to information that was communicated in confidence:
+(i) by, or on behalf of, the government of a foreign country,
+an authority of the government of a foreign country or
+an international organisation; and
+(ii) to the Government of the Commonwealth, to an
+authority of the Commonwealth, or to a person
+receiving the communication on behalf of the
+Commonwealth or an authority of the Commonwealth;
+or
+(f) harm or prejudice the health or safety of the Australian public
+or a section of the Australian public; or
+(g) harm or prejudice the security or defence of Australia.","The provision defines 'cause harm to Australia’s interests' to include harm or prejudice to the security or defence of Australia, which establishes a legal basis for protecting national security information, including through the classification and handling of sensitive data.",https://www.legislation.gov.au/C2026C00098/latest/text,0.79,,English,,false,complementary,
+Australia,Criminal Code Act 1995,"No. 12, 1995",2026,7.2,Part 5.6 s. 122.1(1),KNOWN,PDF: page 568,"A person commits an offence if:
+(a) the person communicates information; and
+(b) the information is inherently harmful information; and
+(c) the information was made or obtained by that person by
+reason of his or her being, or having been, a Commonwealth
+officer or otherwise engaged to perform work for a
+Commonwealth entity.","The provision prohibits a person from communicating inherently harmful information obtained due to their role as a Commonwealth officer or someone engaged to perform work for a Commonwealth entity, with penalties including up to 7 years in prison.",https://www.legislation.gov.au/C2026C00098/latest/text,0.75,,English,,false,superseded_by,
+Australia,Criminal Code Act 1995,"No. 12, 1995",2026,7.2,Part 5.6 s. 122.2(1),KNOWN,PDF: page 570,"(1) A person commits an offence if:
+(a) the person communicates information; and
+(b) either:
+(i) the communication causes harm to Australia’s interests;
+or
+(ii) the communication will or is likely to cause harm to
+Australia’s interests; and
+(c) the information was made or obtained by that person by
+reason of his or her being, or having been, a Commonwealth
+officer or otherwise engaged to perform work for a
+Commonwealth entity.",Prohibits Commonwealth officers or persons engaged to perform work for a Commonwealth entity from communicating information that causes or is likely to cause harm to Australia’s interests.,https://www.legislation.gov.au/C2026C00098/latest/text,0.74,,English,,true,supersedes,
+Australia,Criminal Code Act 1995,"No. 12, 1995",2026,7.3,Part 5.3 s. 104.5C(2),NEW,PDF: page 302,"the photograph or the impression must be destroyed as soon as
+practicable after the end of that 12-month period.",The provision requires that photographs or impressions of fingerprints taken under a control order must be destroyed as soon as practicable after a 12-month period if no control order has been in force and no related proceedings were ongoing or completed within that time.,https://www.legislation.gov.au/C2026C00098/latest/text,0.59,,English,provision,false,superseded_by,
+Australia,Criminal Code Act 1995,"No. 12, 1995",2026,7.3,Part 5.3 s. 105.10(2)(c),NEW,PDF: page 350,"(c) set out the outcomes and particulars of all previous
+applications for extensions, or further extensions, of the
+order.","The provision requires that an application for an extension of a preventative detention order must set out the particulars of all previous applications, creating a record-keeping obligation for AFP members.",https://www.legislation.gov.au/C2026C00098/latest/text,0.61,,English,provision,false,complementary,
+Australia,Criminal Code Act 1995,"No. 12, 1995",2026,7.3,Part 5.3 s. 105.44(3),NEW,PDF: page 397,"the material must be destroyed as soon as practicable after the end
+of that period.","The identification material taken under section 105.43 must be destroyed as soon as practicable after the end of a 12-month period if no proceedings related to the preventative detention order or the person's detention have been brought, continued, or completed within that time.",https://www.legislation.gov.au/C2026C00098/latest/text,0.57,,English,provision,true,supersedes,
+Australia,Criminal Code Act 1995,"No. 12, 1995",2026,7.4,No provision found,KNOWN,,No provision found,,https://www.legislation.gov.au/C2026C00098/latest/text,,"No provision found for indicator 7.4 (Data Protection Impact Assessment or Data Protection Officer requirements). Searched Criminal Code Act 1995: 536 sections chunked, 145 gate-passed (section x indicator) candidates screened by the mapper; every candidate for this indicator returned insufficient evidence or none passed the gate. Reference basis: Criminal Code Act 1995.",English,,,,
+Australia,Criminal Code Act 1995,"No. 12, 1995",2026,7.5,Part 5.3 s. 104.12A(1),NEW,PDF: page 312,"(1) At least 48 hours before the day specified in an interim control
+order as mentioned in paragraph 104.5(1)(e), the senior AFP
+member who requested the order must:
+(a) elect whether to confirm the order on the specified day; and
+(b) give a written notification to the issuing court that made the
+order of the member’s election.",The senior AFP member must elect to confirm a control order and provide written notification to the issuing court at least 48 hours before the specified day.,https://www.legislation.gov.au/C2026C00098/latest/text,0.71,,English,provision,false,complementary,
+Australia,Criminal Code Act 1995,"No. 12, 1995",2026,7.5,Part 5.3 s. 104.23(1),NEW,PDF: page 325,"(1) The Commissioner of the Australian Federal Police may cause an
+application to be made to an issuing court to vary, under
+section 104.24, a confirmed control order, by adding one or more
+conditions, in accordance with section 104.5A, to the order, if the
+Commissioner:
+(a) suspects on reasonable grounds that the varied order in the
+terms to be sought would substantially assist in preventing a
+terrorist act; or","The Australian Federal Police Commissioner may apply to a court to vary a control order by adding conditions without needing a prior judicial warrant, based on reasonable suspicion of terrorist-related activities.",https://www.legislation.gov.au/C2026C00098/latest/text,0.71,,English,provision,false,complementary,
+Australia,Criminal Code Act 1995,"No. 12, 1995",2026,7.5,Part 5.3 s. 104.28C(1),NEW,PDF: page 334,"An AFP member may disclose information (including personal
+information), to a person employed or engaged by a body covered
+by an arrangement under subsection 104.28D(1), for the purpose of
+facilitating:
+(a) the performance of functions and the exercise of powers
+relating to the electronic monitoring of persons who are
+304 Criminal Code Act 1995
+Compilation No. 173 Compilation date: 14/03/2026
+Authorised Version C2026C00098 registered 23/03/2026
+The Criminal Code Schedule
+The security of the Commonwealth Chapter 5
+Terrorism Part 5.3
+Control orders Division 104
+Section 104.28D","An AFP member is permitted to disclose personal information to certain persons employed or engaged by a body covered by an arrangement under subsection 104.28D(1) without requiring a court order or judicial warrant, for the purpose of facilitating electronic monitoring functions.",https://www.legislation.gov.au/C2026C00098/latest/text,0.76,,English,provision,false,complementary,
+Australia,Criminal Code Act 1995,"No. 12, 1995",2026,7.5,Part 5.3 s. 104.5A(2)(j),NEW,PDF: page 296,"that the person facilitate access (including by providing
+passwords or in any other way) to one or more of the
+following:
+(i) electronic equipment or technology;
+(ii) any data held within, or accessible from, any electronic
+equipment or technology;
+owned or controlled by the person, for the purposes of a
+police officer searching and seizing any such equipment or
+accessing such data (or both).",The provision allows a specified authority to seize electronic equipment and access data held within or accessible from such equipment without requiring a court order or judicial warrant.,https://www.legislation.gov.au/C2026C00098/latest/text,0.71,,English,provision,false,complementary,
+Australia,Criminal Code Act 1995,"No. 12, 1995",2026,7.5,Part 5.3 s. 105.11(1),NEW,PDF: page 351,"If an initial preventative detention order is in force in relation to a
+person in relation to a terrorist act, an AFP member may apply to
+an issuing authority in relation to continued preventative detention
+orders for a continued preventative detention order in relation to
+the person in relation to the terrorist act.","An AFP member may apply to an issuing authority for a continued preventative detention order without needing a court order or judicial warrant, allowing government access to personal data related to a person under detention.",https://www.legislation.gov.au/C2026C00098/latest/text,0.75,,English,provision,false,complementary,
+Australia,Criminal Code Act 1995,"No. 12, 1995",2026,7.5,Part 5.3 s. 105.52(3),NEW,PDF: page 401,"the court may order the Commissioner of the Australian Federal
+Police to give the court, and the parties to the proceedings, the
+information that was put before the person who issued the
+Commonwealth order when the application for the Commonwealth
+order was made.",The court may order the Commissioner of the Australian Federal Police to provide information that was presented to the person who issued the Commonwealth order when the application for the order was made.,https://www.legislation.gov.au/C2026C00098/latest/text,0.77,,English,provision,false,complementary,
+Australia,Criminal Code Act 1995,"No. 12, 1995",2026,7.5,Part 5.3 s. 105.53105A.5(1),NEW,PDF: page 403,"The AFP Minister, or a legal representative of the AFP Minister,
+(the applicant) may apply to a Supreme Court of a State or
+Territory for either of the following:
+(a) a continuing detention order in relation to a terrorist offender;
+(b) an extended supervision order in relation to a terrorist
+offender.","The AFP Minister may apply to a Supreme Court for a continuing detention order or an extended supervision order in relation to a terrorist offender, and the Court may make such an order if satisfied that the offender poses an unacceptable risk of committing a serious Part 5.3 or 5.3A offence.",https://www.legislation.gov.au/C2026C00098/latest/text,0.72,,English,provision,true,supersedes,
+Australia,Criminal Code Act 1995,"No. 12, 1995",2026,7.5,Part 5.3 s. 105.7(1),NEW,PDF: page 344,"An AFP member may apply to an issuing authority for an initial
+preventative detention order in relation to a person.",An AFP member may apply to an issuing authority for an initial preventative detention order without requiring a court decision or judicial warrant.,https://www.legislation.gov.au/C2026C00098/latest/text,0.63,,English,provision,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,6.1,Part X s. 129(1),KNOWN,PDF: page 46,"A data user shall not transfer any personal data of a data subject to a place outside Malaysia
+unless to such place as specified by the Minister, upon the recommendation of the Commissioner, by
+notification published in the Gazette.","Data users are prohibited from transferring personal data outside Malaysia unless the destination is specified by the Minister, based on recommendations from the Commissioner, and published in the Gazette.",https://lom.agc.gov.my/,0.79,Source URL is the official portal root; direct act URL pending the crawl module,English,,true,sole_source,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,6.2,Part II s. 35(1)(c),KNOWN,PDF: page 16,"take all practicable steps to supply the third party with a copy of the personal data as so corrected
+accompanied by a notice in writing stating the reasons for the correction.",A data user must supply a corrected copy of personal data to a third party if the data was disclosed to them within the past year and they are still using it for the original purpose.,https://lom.agc.gov.my/,0.65,Source URL is the official portal root; direct act URL pending the crawl module,English,,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,6.2,Part II s. 44(1),KNOWN,PDF: page 22,"A data user shall keep and maintain a record of any application, notice, request or any other
+information relating to personal data that has been or is being processed by him.",A data user must keep and maintain a record of personal data processing activities.,https://lom.agc.gov.my/,0.66,Source URL is the official portal root; direct act URL pending the crawl module,English,,true,supersedes,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,6.3,Part II s. 35(1),KNOWN,PDF: page 16,"where a data user is satisfied that the
+personal data to which a data correction request relates is inaccurate, incomplete, misleading or
+not up-to-date, he shall, not later than twenty-one days from the date of receipt of the data
+correction request—
+(a) make the necessary correction to the personal data;
+(b) supply the requestor with a copy of the personal data as corrected; and
+(c) subject to subsection (4), where—
+(i) the personal data has been disclosed to a third party during the twelve months
+immediately preceding the day on which the correction is made; and
+(ii) the data user has no reason to believe that the third party has ceased using the
+personal data for the purpose, including any directly related purpose, for which the personal
+data was disclosed to the third party,
+take all practicable steps to supply the third party with a copy of the personal data as so corrected
+accompanied by a notice in writing stating the reasons for the correction.","A data user must correct inaccurate or incomplete personal data and notify third parties who received the data within the past year, if they are still using it for the original purpose.",https://lom.agc.gov.my/,0.72,Source URL is the official portal root; direct act URL pending the crawl module,English,,true,sole_source,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,6.4,Part II s. 23(1),NEW,PDF: page 11,"A data user forum may prepare a code of practice—
+(a) on its own initiative; or
+(b) upon request by the Commissioner.","A data user forum may prepare a code of practice that includes conditions for data transfer, which must offer an adequate level of protection for personal data.",https://lom.agc.gov.my/,0.60,Source URL is the official portal root; direct act URL pending the crawl module,English,provision,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,6.4,Part II s. 32(1)(d),NEW,PDF: page 14,"the data user cannot comply with the data access request without disclosing personal data
+relating to another individual who can be identified from that information, unless—
+(i) that other individual has consented to the disclosure of the information to the requestor;
+or
+(ii) it is reasonable in all the circumstances to comply with the data access request without
+the consent of the other individual;",Data transfer to a requestor is permitted only if the affected individual consents to disclosure or if it is reasonable in all circumstances to disclose without consent.,https://lom.agc.gov.my/,0.75,Source URL is the official portal root; direct act URL pending the crawl module,English,provision,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,6.4,Part II s. 38(1),NEW,PDF: page 18,"A data subject may by notice in writing withdraw his consent to the processing of personal
+data in respect of which he is the data subject.","A data subject may withdraw consent to the processing of personal data, requiring the data user to cease processing upon receiving notice.",https://lom.agc.gov.my/,0.64,Source URL is the official portal root; direct act URL pending the crawl module,English,provision,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,6.4,Part II s. 39(a),NEW,PDF: page 18,(a) the data subject has given his consent to the disclosure;,"Personal data may be disclosed abroad only if the data subject consents, or under specific legal exceptions such as crime prevention, court order, or public interest justification.",https://lom.agc.gov.my/,0.54,Source URL is the official portal root; direct act URL pending the crawl module,English,provision,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,6.4,Part II s. 40(1),NEW,PDF: page 19,"a data user shall not process any sensitive personal
+data of a data subject except in accordance with the following conditions:
+(a) the data subject has given his explicit consent to the processing of the personal data;","The processing of sensitive personal data is prohibited unless the data subject gives explicit consent, or one of several specified conditions is met, including legal obligations, protection of vital interests, medical purposes, or other purposes approved by the Minister.",https://lom.agc.gov.my/,0.80,Source URL is the official portal root; direct act URL pending the crawl module,English,provision,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,6.4,Part II s. 42(1),NEW,PDF: page 20,"Subject to subsection (2), a data subject may, at any time by notice in writing to a data user,
+referred to as the “data subject notice”, require the data user at the end of such period as is
+reasonable in the circumstances, to—
+(a) cease the processing of or processing for a specified purpose or in a specified manner; or
+(b) not begin the processing of or processing for a specified purpose or in a specified manner,
+any personal data in respect of which he is the data subject if, based on reasons to be stated by
+him—
+(A) the processing of that personal data or the processing of personal data for that purpose or in
+that manner is causing or is likely to cause substantial damage or substantial distress to him or to
+another person; and
+(B) the damage or distress is or would be unwarranted.","A data subject can require a data user to cease or not begin processing personal data if it is causing or likely to cause substantial damage or distress, unless certain exceptions apply.",https://lom.agc.gov.my/,0.73,Source URL is the official portal root; direct act URL pending the crawl module,English,provision,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,6.4,Part II s. 6(1),KNOWN,PDF: page 5,"A data user shall not—
+(a) in the case of personal data other than sensitive personal data, process personal data
+about a data subject unless the data subject has given his consent to the processing of the
+personal data; or","Personal data may not be processed without the data subject's consent, except in specific permitted circumstances.",https://lom.agc.gov.my/,0.79,Source URL is the official portal root; direct act URL pending the crawl module,English,,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,6.4,Part II s. 8(1),NEW,PDF: page 7,"no personal data shall, without the consent of the data subject, be
+disclosed—
+(a) for any purpose other than—
+(i) the purpose for which the personal data was to be disclosed at the time of collection of
+the personal data; or
+(ii) a purpose directly related to the purpose referred to in subparagraph (i); or
+(b) to any party other than a third party of the class of third parties as specified in paragraph
+7(1)(e).",Personal data may not be disclosed to any party other than a specified class of third parties without the data subject's consent.,https://lom.agc.gov.my/,0.76,Source URL is the official portal root; direct act URL pending the crawl module,English,provision,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,6.4,Part II s. 9(1),KNOWN,PDF: page 7,"A data user shall, when processing personal data, take practical steps to protect the personal
+data from any loss, misuse, modification, unauthorized or accidental access or disclosure,
+alteration or destruction by having regard—
+(a) to the nature of the personal data and the harm that would result from such loss, misuse,
+modification, unauthorized or accidental access or disclosure, alteration or destruction;
+(b) to the place or location where the personal data is stored;
+(c) to any security measures incorporated into any equipment in which the personal data is
+stored;
+(d) to the measures taken for ensuring the reliability, integrity and competence of personnel
+having access to the personal data; and
+(e) to the measures taken for ensuring the secure transfer of the personal data.",The data user must take practical steps to ensure the secure transfer of personal data.,https://lom.agc.gov.my/,0.75,Source URL is the official portal root; direct act URL pending the crawl module,English,,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,6.4,Part IV s. 48(e),NEW,PDF: page 23,"(e) to determine in pursuance of section 129 whether any place outside Malaysia has in place
+a system for the protection of personal data that is substantially similar to that as provided for
+under this Act or that serves the same purposes as this Act;","The Commissioner may determine whether a foreign jurisdiction has a data protection system substantially similar to Malaysia's, which could serve as a basis for allowing data transfers abroad under certain conditions.",https://lom.agc.gov.my/,0.74,Source URL is the official portal root; direct act URL pending the crawl module,English,provision,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,6.4,Part X s. 129(1),KNOWN,PDF: page 46,"A data user shall not transfer any personal data of a data subject to a place outside Malaysia
+unless to such place as specified by the Minister, upon the recommendation of the Commissioner, by
+notification published in the Gazette.","A data user may not transfer personal data outside Malaysia unless the destination is specified by the Minister following the Commissioner's recommendation, or unless one of several exceptions in subsection (3) applies.",https://lom.agc.gov.my/,0.79,Source URL is the official portal root; direct act URL pending the crawl module,English,,true,supersedes,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,7.1,Part II s. 23(1),NEW,PDF: page 11,"A data user forum may prepare a code of practice—
+(a) on its own initiative; or
+(b) upon request by the Commissioner.",A data user forum may prepare a code of practice on its own initiative or upon request by the Commissioner.,https://lom.agc.gov.my/,0.64,Source URL is the official portal root; direct act URL pending the crawl module,English,provision,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,7.1,Part II s. 30(1),NEW,PDF: page 14,"An individual is entitled to be informed by a data user whether personal data of which that
+individual is the data subject is being processed by or on behalf of the data user.",An individual has the right to be informed by a data user whether their personal data is being processed.,https://lom.agc.gov.my/,0.89,Source URL is the official portal root; direct act URL pending the crawl module,English,provision,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,7.1,Part II s. 32(1),NEW,PDF: page 14,"A data user may refuse to comply with a data access request under section 30 if—
+(a) the data user is not supplied with such information as he may reasonably require—
+(i) in order to satisfy himself as to the identity of the requestor; or
+(ii) where the requestor claims to be a relevant person, in order to satisfy himself—
+(A) as to the identity of the data subject in relation to whom the requestor claims to be the relevant
+person; and
+(B) that the requestor is the relevant person in relation to the data subject;","A data user may refuse to comply with a data access request under certain conditions, such as insufficient identification, disproportionate burden, risk to another individual's privacy, or confidentiality obligations.",https://lom.agc.gov.my/,0.80,Source URL is the official portal root; direct act URL pending the crawl module,English,provision,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,7.1,Part II s. 34(1),NEW,PDF: page 16,"Where—
+(a) a copy of the personal data has been supplied by the data user in compliance with the data
+access request under section 30 and the requestor considers that the personal data is
+inaccurate, incomplete, misleading or not up-to-date; or
+(b) the data subject knows that his personal data being held by the data user is inaccurate,
+incomplete, misleading or not up-to-date,
+the requestor or data subject, as the case may be, may make a data correction request in writing
+to the data user that the data user makes the necessary correction to the personal data.","The data subject or requestor may request correction of inaccurate, incomplete, misleading, or outdated personal data held by a data user.",https://lom.agc.gov.my/,0.90,Source URL is the official portal root; direct act URL pending the crawl module,English,provision,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,7.1,Part II s. 36(1),NEW,PDF: page 17,"A data user may refuse to comply with a data correction request under section 34 if—
+(a) the data user is not supplied with such information as he may reasonably require—
+(i) in order to satisfy himself as to the identity of the requestor; or
+(ii) where the requestor claims to be a relevant person, in order to satisfy himself—
+(A) as to the identity of the data subject in relation to whom the requestor claims to be the relevant
+person; and
+(B) that the requestor is the relevant person in relation to the data subject;
+(b) the data user is not supplied with such information as he may reasonably require to
+ascertain in what way the personal data to which the data correction request relates is
+inaccurate, incomplete, misleading or not up-to-date;
+(c) the data user is not satisfied that the personal data to which the data correction request
+relates is inaccurate, incomplete, misleading or not up-to-date;
+(d) the data user is not satisfied that the correction which is the subject of the data correction
+request is accurate, complete, not misleading or up-to-date; or
+(e) subject to subsection (2), any other data user controls the processing of the personal data
+to which the data correction request relates in such a way as to prohibit the first-mentioned
+data user from complying, whether in whole or in part, with the data correction request.","A data user may refuse to comply with a data correction request if they are not provided with sufficient information to verify the requester's identity or the accuracy of the data, or if another data user prohibits compliance.",https://lom.agc.gov.my/,0.80,Source URL is the official portal root; direct act URL pending the crawl module,English,provision,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,7.1,Part II s. 38(1),NEW,PDF: page 18,"A data subject may by notice in writing withdraw his consent to the processing of personal
+data in respect of which he is the data subject.","A data subject may withdraw consent to the processing of their personal data, and the data user must cease processing upon receiving notice.",https://lom.agc.gov.my/,0.71,Source URL is the official portal root; direct act URL pending the crawl module,English,provision,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,7.1,Part II s. 42(1),NEW,PDF: page 20,"Subject to subsection (2), a data subject may, at any time by notice in writing to a data user,
+referred to as the “data subject notice”, require the data user at the end of such period as is
+reasonable in the circumstances, to—
+(a) cease the processing of or processing for a specified purpose or in a specified manner; or
+(b) not begin the processing of or processing for a specified purpose or in a specified manner,
+any personal data in respect of which he is the data subject if, based on reasons to be stated by
+him—
+(A) the processing of that personal data or the processing of personal data for that purpose or in
+that manner is causing or is likely to cause substantial damage or substantial distress to him or to
+another person; and
+(B) the damage or distress is or would be unwarranted.","A data subject may require a data user to cease or refrain from processing personal data if it is causing or likely to cause substantial damage or distress, with specified exceptions.",https://lom.agc.gov.my/,0.81,Source URL is the official portal root; direct act URL pending the crawl module,English,provision,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,7.1,Part II s. 5(1),KNOWN,PDF: page 5,"The processing of personal data by a data user shall be in compliance with the following
+Personal Data Protection Principles, namely—
+(a) the General Principle;
+(b) the Notice and Choice Principle;
+(c) the Disclosure Principle;
+(d) the Security Principle;
+(e) the Retention Principle;
+(f) the Data Integrity Principle; and
+(g) the Access Principle,
+as set out in sections 6, 7, 8, 9, 10, 11 and 12.","The processing of personal data by a data user must comply with specified data protection principles, including notice, choice, disclosure, security, retention, data integrity, and access.",https://lom.agc.gov.my/,0.90,Source URL is the official portal root; direct act URL pending the crawl module,English,,true,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,7.1,Part II s. 6(1),NEW,PDF: page 5,"A data user shall not—
+(a) in the case of personal data other than sensitive personal data, process personal data
+about a data subject unless the data subject has given his consent to the processing of the
+personal data; or","A data user must obtain the data subject's consent to process personal data, except in specific permitted circumstances.",https://lom.agc.gov.my/,0.86,Source URL is the official portal root; direct act URL pending the crawl module,English,provision,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,7.1,Part II s. 7(1),NEW,PDF: page 6,"A data user shall by written notice inform a data subject—
+(a) that personal data of the data subject is being processed by or on behalf of the data user,
+and shall provide a description of the personal data to that data subject;
+(b) the purposes for which the personal data is being or is to be collected and further
+processed;
+(c) of any information available to the data user as to the source of that personal data;
+(d) of the data subject’s right to request access to and to request correction of the personal
+data and how to contact the data user with any inquiries or complaints in respect of the
+personal data;
+(e) of the class of third parties to whom the data user discloses or may disclose the personal
+data;
+(f) of the choices and means the data user offers the data subject for limiting the processing of
+personal data, including personal data relating to other persons who may be identified from
+that personal data;
+(g) whether it is obligatory or voluntary for the data subject to supply the personal data; and
+(h) where it is obligatory for the data subject to supply the personal data, the consequences for
+the data subject if he fails to supply the personal data.","The data user must provide written notice to the data subject about the processing of their personal data, including the purposes, sources, rights to access and correct data, third-party disclosures, and options to limit processing.",https://lom.agc.gov.my/,0.87,Source URL is the official portal root; direct act URL pending the crawl module,English,provision,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,7.1,Part II s. 9(1),NEW,PDF: page 7,"A data user shall, when processing personal data, take practical steps to protect the personal
+data from any loss, misuse, modification, unauthorized or accidental access or disclosure,
+alteration or destruction by having regard—
+(a) to the nature of the personal data and the harm that would result from such loss, misuse,
+modification, unauthorized or accidental access or disclosure, alteration or destruction;
+(b) to the place or location where the personal data is stored;
+(c) to any security measures incorporated into any equipment in which the personal data is
+stored;
+(d) to the measures taken for ensuring the reliability, integrity and competence of personnel
+having access to the personal data; and
+(e) to the measures taken for ensuring the secure transfer of the personal data.","A data user must take practical steps to protect personal data from loss, misuse, modification, unauthorized or accidental access or disclosure, alteration, or destruction, considering factors such as the nature of the data, storage location, security measures in equipment, personnel reliability,…",https://lom.agc.gov.my/,0.89,Source URL is the official portal root; direct act URL pending the crawl module,English,provision,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,7.1,Part VIII s. 101(1),NEW,PDF: page 36,"The Commissioner may carry out an inspection of—
+(a) any personal data system used by data users for the purpose of ascertaining information to
+assist the Commissioner in making recommendations to the relevant data user relating to the
+promotion of compliance with the provisions of this Act, in particular the Personal Data
+Protection Principles, by the relevant data user; or","The Commissioner may inspect personal data systems used by data users to assess compliance with the Act, including the Personal Data Protection Principles.",https://lom.agc.gov.my/,0.88,Source URL is the official portal root; direct act URL pending the crawl module,English,provision,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,7.1,Part X s. 129(1),NEW,PDF: page 46,"A data user shall not transfer any personal data of a data subject to a place outside Malaysia
+unless to such place as specified by the Minister, upon the recommendation of the Commissioner, by
+notification published in the Gazette.","A data user must not transfer personal data outside Malaysia unless the destination is specified by the Minister following the Commissioner's recommendation, and the destination has laws substantially similar to the Act or ensures an adequate level of protection.",https://lom.agc.gov.my/,0.77,Source URL is the official portal root; direct act URL pending the crawl module,English,provision,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,7.1,Part XI s. 146(1),NEW,PDF: page 52,"Subject to subsection (2), any person who at the date of coming into operation of this Act either
+alone or jointly or in common with other persons processes any personal data or has control over or
+authorizes the processing of any personal data, shall within three months from the date of coming into
+operation of this Act be registered as a data user in accordance with the provisions of this Act.",Any person who processes personal data as of the Act's coming into operation must register as a data user within three months.,https://lom.agc.gov.my/,0.87,Source URL is the official portal root; direct act URL pending the crawl module,English,provision,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,7.2,Part II s. 44(1),NEW,PDF: page 22,"A data user shall keep and maintain a record of any application, notice, request or any other
+information relating to personal data that has been or is being processed by him.","A data user must keep and maintain a record of any application, notice, request, or other information relating to personal data that has been or is being processed by them.",https://lom.agc.gov.my/,0.75,Source URL is the official portal root; direct act URL pending the crawl module,English,provision,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,7.2,Part II s. 5(1),NEW,PDF: page 5,"The processing of personal data by a data user shall be in compliance with the following
+Personal Data Protection Principles, namely—
+(a) the General Principle;
+(b) the Notice and Choice Principle;
+(c) the Disclosure Principle;
+(d) the Security Principle;
+(e) the Retention Principle;
+(f) the Data Integrity Principle; and
+(g) the Access Principle,
+as set out in sections 6, 7, 8, 9, 10, 11 and 12.","The processing of personal data by a data user must comply with the Security Principle, which requires safeguards for personal data.",https://lom.agc.gov.my/,0.90,Source URL is the official portal root; direct act URL pending the crawl module,English,provision,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,7.2,Part II s. 9(1),NEW,PDF: page 7,"A data user shall, when processing personal data, take practical steps to protect the personal
+data from any loss, misuse, modification, unauthorized or accidental access or disclosure,
+alteration or destruction by having regard—
+(a) to the nature of the personal data and the harm that would result from such loss, misuse,
+modification, unauthorized or accidental access or disclosure, alteration or destruction;
+(b) to the place or location where the personal data is stored;
+(c) to any security measures incorporated into any equipment in which the personal data is
+stored;
+(d) to the measures taken for ensuring the reliability, integrity and competence of personnel
+having access to the personal data; and
+(e) to the measures taken for ensuring the secure transfer of the personal data.","A data user must take practical steps to protect personal data from loss, misuse, modification, unauthorized or accidental access or disclosure, alteration, or destruction.",https://lom.agc.gov.my/,0.89,Source URL is the official portal root; direct act URL pending the crawl module,English,provision,true,supersedes,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,7.3,Part II s. 42(1),KNOWN,PDF: page 20,"Subject to subsection (2), a data subject may, at any time by notice in writing to a data user,
+referred to as the “data subject notice”, require the data user at the end of such period as is
+reasonable in the circumstances, to—
+(a) cease the processing of or processing for a specified purpose or in a specified manner; or
+(b) not begin the processing of or processing for a specified purpose or in a specified manner,
+any personal data in respect of which he is the data subject if, based on reasons to be stated by
+him—
+(A) the processing of that personal data or the processing of personal data for that purpose or in
+that manner is causing or is likely to cause substantial damage or substantial distress to him or to
+another person; and
+(B) the damage or distress is or would be unwarranted.","A data user must cease processing personal data or refrain from beginning processing for a specified purpose or manner within a reasonable period after receiving a data subject notice, if the processing is causing or likely to cause substantial damage or distress.",https://lom.agc.gov.my/,0.81,Source URL is the official portal root; direct act URL pending the crawl module,English,,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,7.3,Part II s. 43(1),KNOWN,PDF: page 21,"A data subject may, at any time by notice in writing to a data user, require the data user at the
+end of such period as is reasonable in the circumstances to cease or not to begin processing his
+personal data for purposes of direct marketing.","The data subject may require the data user to cease processing personal data for direct marketing after a reasonable period, and the data user must comply with this requirement.",https://lom.agc.gov.my/,0.83,Source URL is the official portal root; direct act URL pending the crawl module,English,,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,7.3,Part II s. 44(1),KNOWN,PDF: page 22,"A data user shall keep and maintain a record of any application, notice, request or any other
+information relating to personal data that has been or is being processed by him.","A data user must keep and maintain a record of any application, notice, request, or other information relating to personal data that has been or is being processed.",https://lom.agc.gov.my/,0.75,Source URL is the official portal root; direct act URL pending the crawl module,English,,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,7.3,Part II s. 5(1),KNOWN,PDF: page 5,"The processing of personal data by a data user shall be in compliance with the following
+Personal Data Protection Principles, namely—
+(a) the General Principle;
+(b) the Notice and Choice Principle;
+(c) the Disclosure Principle;
+(d) the Security Principle;
+(e) the Retention Principle;
+(f) the Data Integrity Principle; and
+(g) the Access Principle,
+as set out in sections 6, 7, 8, 9, 10, 11 and 12.",Data users must comply with the Retention Principle when processing personal data.,https://lom.agc.gov.my/,0.90,Source URL is the official portal root; direct act URL pending the crawl module,English,,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,7.3,Part IX s. 125(3),KNOWN,PDF: page 45,"If there is no prosecution with regard to any computer, book, account, computerized data or other document,
+signboard, card, letter, pamphlet, leaflet, notice, equipment, instrument or article seized under this Act, such
+computer, book, account, computerized data or other document, signboard, card, letter, pamphlet, leaflet, notice,
+equipment, instrument or article shall be taken and deemed to be forfeited at the expiration of a period of one
+calendar month from the date of service of a notice to the last-known address of the person from whom the
+computer, book, account, computerized data or other document, signboard, card, letter, pamphlet, leaflet, notice,
+equipment, instrument or article was seized indicating that there is no prosecution in respect of such computer,
+book, account, computerized data or other document, signboard, card, letter, pamphlet, leaflet, notice,
+equipment, instrument or article, unless before the expiration of that period a claim thereto is made in the
+manner set out in subsections (4), (5) and (6).","The provision requires that seized computerized data be retained for at least one calendar month unless a claim is made, establishing a minimum data retention period.",https://lom.agc.gov.my/,0.73,Source URL is the official portal root; direct act URL pending the crawl module,English,,true,supersedes,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,7.3,Part VIII s. 108(1),KNOWN,PDF: page 38,"directing the relevant data user to take such steps as are specified in the enforcement notice
+to remedy the contravention or, as the case may be, the matters occasioning it within such period
+as is specified in the enforcement notice; and","The provision requires data users to take specified steps to remedy a contravention of the Act within a specified period, which may include data retention obligations as part of compliance.",https://lom.agc.gov.my/,0.78,Source URL is the official portal root; direct act URL pending the crawl module,English,,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,7.4,No provision found,KNOWN,,No provision found,,https://lom.agc.gov.my/,,"No provision found for indicator 7.4 (Data Protection Impact Assessment or Data Protection Officer requirements). Searched Personal Data Protection Act 2010: 146 sections chunked, 166 gate-passed (section x indicator) candidates screened by the mapper; every candidate for this indicator returned insufficient evidence or none passed the gate. Reference basis: Personal Data Protection Act 2010.",English,,,,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,7.5,Part II s. 32(1)(h),NEW,PDF: page 14,(h) such access to personal data is regulated by another law.,The government may access personal data without judicial authorization if it is prohibited by another law or a court order.,https://lom.agc.gov.my/,0.56,Source URL is the official portal root; direct act URL pending the crawl module,English,provision,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,7.5,Part II s. 39(b)(i),NEW,PDF: page 18,"the disclosure —
+(i) is necessary for the purpose of preventing or detecting a crime, or for the purpose of
+investigations;","Government authorities may disclose personal data without judicial authorization if they reasonably believe they have legal authority to do so, or if disclosure is necessary for crime prevention or detection, or justified as being in the public interest by the Minister.",https://lom.agc.gov.my/,0.76,Source URL is the official portal root; direct act URL pending the crawl module,English,provision,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,7.5,Part III s. 45(2)(a),KNOWN,PDF: page 22,"(2) Subject to section 46, personal data—
+(a) processed for—
+(i) the prevention or detection of crime or for the purpose of investigations;
+(ii) the apprehension or prosecution of offenders; or
+(iii) the assessment or collection of any tax or duty or any other imposition of a similar
+nature,
+shall be exempted from the General Principle, Notice and Choice Principle, Disclosure
+Principle and Access Principle and other related provisions of this Act;","The provision allows government access to personal data without requiring a court order or judicial warrant for purposes such as crime prevention, detection, prosecution, tax collection, court-related activities, regulatory functions, and research, provided certain conditions are met.",https://lom.agc.gov.my/,0.86,Source URL is the official portal root; direct act URL pending the crawl module,English,,true,supersedes,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,7.5,Part IX s. 115(1),NEW,PDF: page 41,"An authorized officer conducting a search under sections 113 and 114 shall be given access to
+computerized data whether stored in a computer or otherwise.",An authorized officer may access computerized data during a search without requiring a court order or judicial warrant.,https://lom.agc.gov.my/,0.80,Source URL is the official portal root; direct act URL pending the crawl module,English,provision,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,7.5,Part IX s. 118(1),NEW,PDF: page 42,"If any computer, book, account, computerized data or other document, signboard, card, letter,
+pamphlet, leaflet, notice, equipment, instrument or article has been seized under this Act, the
+authorized officer who effected the seizure may, after referring to the Public Prosecutor, release the
+computer, book, account, computerized data or other document, signboard, card, letter, pamphlet,
+leaflet, notice, equipment, instrument or article to the person as he determines to be lawfully entitled
+to it, if the computer, book, account, computerized data or other document, signboard, card, letter,
+pamphlet, leaflet, notice, equipment, instrument or article is not liable to forfeiture under this Act, and
+is not otherwise required for the purpose of any proceedings under this Act or for the purpose of any
+prosecution under any other written law, and in such event neither the authorized officer effecting the
+seizure, nor the Federal Government, Commissioner or any person acting on behalf of the Federal
+Government or Commissioner shall be liable to any proceedings by any person if the seizure and the
+release of the computer, book, account, computerized data or other document, signboard, card, letter,
+pamphlet, leaflet, notice, equipment, instrument or article had been effected in good faith.","The authorized officer may release seized computerized data without judicial authorization, provided certain conditions are met.",https://lom.agc.gov.my/,0.71,Source URL is the official portal root; direct act URL pending the crawl module,English,provision,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,7.5,Part IX s. 121(a),KNOWN,PDF: page 43,"(a) to require the production of any computer, book, account, computerized data or other
+document kept by the data user or any other person and to inspect, examine and to download from
+them, make copies of them or take extracts from them;","An authorized officer may require the production of computerized data and inspect, examine, download, copy, or extract data from it without needing a court order or judicial warrant.",https://lom.agc.gov.my/,0.75,Source URL is the official portal root; direct act URL pending the crawl module,English,,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,7.5,Part IX s. 125(1),NEW,PDF: page 45,"Any computer, book, account, computerized data or other document, signboard, card, letter, pamphlet,
+leaflet, notice, equipment, instrument or article seized shall be liable to forfeiture.",Government authorities may forfeit seized personal data and related items without requiring a court order or judicial warrant.,https://lom.agc.gov.my/,0.67,Source URL is the official portal root; direct act URL pending the crawl module,English,provision,false,complementary,
+Malaysia,Personal Data Protection Act 2010,Act 709,2010,7.5,Part X s. 130(1),NEW,PDF: page 47,"A person shall not knowingly or recklessly, without the consent of the data user—
+(a) collect or disclose personal data that is held by the data user; or
+(b) procure the disclosure to another person of personal data that is held by the data user.","The provision prohibits the collection, disclosure, or procurement of disclosure of personal data without the data user's consent, unless an exception applies.",https://lom.agc.gov.my/,0.87,Source URL is the official portal root; direct act URL pending the crawl module,English,provision,false,superseded_by,
+Singapore,Telecommunications Act 1999,,2021,6.1,Part 4 s. 30(1),NEW,PDF: page 42,"(k) the collection, use and disclosure by telecommunication licensees of
+information about subscribers of telecommunication services, without the
+subscribers’ consent, including information about the subscribers’ personal
+data, telecommunication subscription and usage;","Telecommunication licensees must comply with codes of practice or standards of performance regarding the collection, use, and disclosure of subscriber information, including personal data, without subscriber consent.",https://sso.agc.gov.sg/Act/TA1999,0.62,,English,provision,false,complementary,
+Singapore,Telecommunications Act 1999,,2021,6.1,Part 7 s. 77(2),NEW,PDF: page 95,"if it appears to the Minister to be requisite or
+expedient to do so —
+(a) on the occurrence of any public emergency, in the public interest or in the
+interests of public security, national defence, or relations with the
+government of another country; or
+(b) in order —
+(i) to discharge or facilitate the discharge of an obligation binding
+on the Government by virtue of its being a member of an
+international organisation or a party to an international
+agreement;
+(ii) to attain or facilitate the attainment of any other object the
+attainment of which is in the opinion of the Minister requisite or
+expedient in view of the Government being a member of an
+international organisation or a party to an international
+agreement; or
+(iii) to enable the Government to become a member of an
+international organisation or a party to an international
+agreement,
+the Minister may, after consultation with the Authority or any telecommunication
+licensee, give such directions to the Authority or that licensee as are necessary in the
+circumstances of the case.","The Minister may give directions to the Authority or a telecommunication licensee requiring the prohibition or regulation of telecommunications use, including data use, in cases of public emergency, public interest, public security, national defence, or international obligations.",https://sso.agc.gov.sg/Act/TA1999,0.65,,English,provision,true,supersedes,
+Singapore,Telecommunications Act 1999,,2021,6.2,Part 4 s. 30(5),NEW,PDF: page 42,"Subject to subsection (6), every telecommunication licensee to whom any code of
+practice or standard of performance issued or approved under subsection (1) applies must
+comply with that code of practice or standard of performance.","Telecommunication licensees must comply with codes of practice or standards of performance issued or approved by the Authority regarding the collection, use, and disclosure of subscriber information, including personal data, without subscriber consent.",https://sso.agc.gov.sg/Act/TA1999,0.61,,English,provision,true,sole_source,
+Singapore,Telecommunications Act 1999,,2021,6.3,Part 3 s. 23(2)(a),NEW,PDF: page 32,"(a) require the developer or owner of any land or building to provide, maintain
+or give access to, at the developer’s or owner’s expense, such space or
+facility within or on the land or building, for the installation, operation or
+maintenance of any installation, plant or system used for either or both of
+the following purposes:
+(i) the provision of any telecommunication service or
+radio-communication service to that land or building;
+(ii) the provision of any telecommunication service or
+radio-communication service to any other land or building; and","The provision requires developers or owners of land or buildings to provide, maintain, or give access to space or facilities within or on their property for telecommunications installations at their own expense, which may include data centres used for data-using services.",https://sso.agc.gov.sg/Act/TA1999,0.70,,English,provision,false,complementary,
+Singapore,Telecommunications Act 1999,,2021,6.3,Part 3 s. 25(1)(b),NEW,PDF: page 36,"require any telecommunication licensee to install, within such period as
+may be specified in the direction, such installation, plant or system in that
+space or facility as the Authority considers necessary for the provision, or
+the enhancement of quality, of the telecommunication service to that land
+or building or to the occupier of that land or building.","A telecommunication licensee must install installation, plant or system in specified space or facility within or on a land or building to provide or enhance the quality of a telecommunication service, at the direction of the Authority.",https://sso.agc.gov.sg/Act/TA1999,0.68,,English,provision,false,complementary,
+Singapore,Telecommunications Act 1999,,2021,6.3,Part 7 s. 77(1),NEW,PDF: page 95,"The Minister may, after consultation with the Authority or any
+telecommunication licensee, give to the Authority or licensee (as the case may be) such
+directions as the Minister thinks fit as to the exercise by the Authority or that licensee of
+its functions under this Act.","The Minister may give directions to the Authority or a telecommunication licensee regarding the exercise of their functions under the Act, including provisions for the control of telecommunications systems and equipment, which could include requirements for local data centres or servers in…",https://sso.agc.gov.sg/Act/TA1999,0.65,,English,provision,true,supersedes,
+Singapore,Telecommunications Act 1999,,2021,6.4,Part 4 s. 30(1),NEW,PDF: page 42,"the collection, use and disclosure by telecommunication licensees of
+information about subscribers of telecommunication services, without the
+subscribers’ consent, including information about the subscribers’ personal
+data, telecommunication subscription and usage;","Telecommunication licensees must comply with codes of practice or standards of performance regarding the collection, use, and disclosure of subscriber information, including personal data, without subscriber consent.",https://sso.agc.gov.sg/Act/TA1999,0.62,,English,provision,false,complementary,
+Singapore,Telecommunications Act 1999,,2021,6.4,Part 5A s. 41(2),NEW,PDF: page 68,"The Authority may, in the circumstances specified in subsection (1), issue all or
+any of the following directions:
+(a) direct the specified person, or any associate of the specified person, to
+transfer or dispose of all or any part of the specified shares, specified units
+or specified equity interests (as the case may be) within such time and
+subject to such conditions as the Authority specifies;","The Authority may require a person to transfer or dispose of shares, units, or equity interests in a designated telecommunication licensee, business trust, or trust, or relinquish effective control over them, if the person has not complied with a condition imposed when approval was granted.",https://sso.agc.gov.sg/Act/TA1999,0.69,,English,provision,true,supersedes,
+Singapore,Telecommunications Act 1999,,2021,7.1,Part 4 s. 30(1)(k),NEW,PDF: page 42,"the collection, use and disclosure by telecommunication licensees of
+information about subscribers of telecommunication services, without the
+subscribers’ consent, including information about the subscribers’ personal
+data, telecommunication subscription and usage;","Telecommunication licensees are restricted in their collection, use, and disclosure of subscribers' personal data without consent.",https://sso.agc.gov.sg/Act/TA1999,0.62,,English,provision,true,sole_source,
+Singapore,Telecommunications Act 1999,,2021,7.2,Part 4 s. 30(1),NEW,PDF: page 42,"k) the collection, use and disclosure by telecommunication licensees of
+information about subscribers of telecommunication services, without the
+subscribers’ consent, including information about the subscribers’ personal
+data, telecommunication subscription and usage;","The Authority may issue codes of practice or standards of performance relating to the collection, use, and disclosure of subscriber information, including personal data, by telecommunications licensees without consent.",https://sso.agc.gov.sg/Act/TA1999,0.62,,English,provision,true,complementary,
+Singapore,Telecommunications Act 1999,,2021,7.2,Part 6 s. 68(1),NEW,PDF: page 91,"Any person who wilfully removes, destroys or damages any installation or
+plant used for telecommunications shall be guilty of an offence and shall be liable on
+conviction to a fine not exceeding $50,000 or to imprisonment for a term not exceeding
+3 years or to both.","Any person who wilfully removes, destroys, or damages a telecommunications installation or plant commits an offence and is liable to a fine not exceeding $50,000 or imprisonment for up to 3 years or both.",https://sso.agc.gov.sg/Act/TA1999,0.70,,English,provision,false,complementary,
+Singapore,Telecommunications Act 1999,,2021,7.2,Part 8 s. 78(1),NEW,PDF: page 97,"The Authority or any officer authorised by the Authority in that behalf
+(called in this section the authorised officer) may, for the purposes of conducting an
+investigation or for discharging the Authority’s functions under this Act, by order require
+any person to produce to the Authority any document, or to provide the Authority with
+any information, which the Authority considers to be related to any matter relevant to the
+investigation or for discharging its functions under this Act.",The Authority or an authorised officer may require any person to produce documents or provide information relevant to an investigation or the Authority's functions under the Act.,https://sso.agc.gov.sg/Act/TA1999,0.77,,English,provision,false,complementary,
+Singapore,Telecommunications Act 1999,,2021,7.3,Part 4 s. 30(5),KNOWN,PDF: page 42,"Subject to subsection (6), every telecommunication licensee to whom any code of
+practice or standard of performance issued or approved under subsection (1) applies must
+comply with that code of practice or standard of performance.","Telecommunication licensees must comply with codes of practice or standards of performance issued or approved by the Authority, including those concerning the collection, use, and disclosure of subscriber information, without consent.",https://sso.agc.gov.sg/Act/TA1999,0.61,,English,,true,complementary,
+Singapore,Telecommunications Act 1999,,2021,7.3,Part 5C s. 52(c),KNOWN,PDF: page 83,"the records that the operator must keep and the period of retention of such
+records;",The operator of a dispute resolution scheme must keep records and retain them for a specified period.,https://sso.agc.gov.sg/Act/TA1999,0.54,,English,,false,complementary,
+Singapore,Telecommunications Act 1999,,2021,7.3,Part 6 s. 65(a),KNOWN,PDF: page 90,"(a) fraudulently retains or wilfully divulges, makes away with or detains a
+message or record of a message which ought to have been delivered to
+some other person; or","The provision requires public telecommunication licensees to deliver up messages or records of messages and prohibits fraudulent retention, wilful divulgence, or detention of such messages or records.",https://sso.agc.gov.sg/Act/TA1999,0.57,,English,,false,complementary,
+Singapore,Telecommunications Act 1999,,2021,7.4,Part 4 s. 30(5),NEW,PDF: page 42,"Subject to subsection (6), every telecommunication licensee to whom any code of
+practice or standard of performance issued or approved under subsection (1) applies must
+comply with that code of practice or standard of performance.","Telecommunication licensees must comply with codes of practice or standards of performance issued or approved by the Authority, including those relating to the collection, use, and disclosure of subscriber information, including personal data, without consent.",https://sso.agc.gov.sg/Act/TA1999,0.61,,English,provision,true,sole_source,
+Singapore,Telecommunications Act 1999,,2021,7.5,Part 4 s. 30(1)(k),NEW,PDF: page 42,"(k) the collection, use and disclosure by telecommunication licensees of
+information about subscribers of telecommunication services, without the
+subscribers’ consent, including information about the subscribers’ personal
+data, telecommunication subscription and usage;","The Authority may issue codes of practice that require telecommunication licensees to collect, use, and disclose subscriber personal data without consent.",https://sso.agc.gov.sg/Act/TA1999,0.62,,English,provision,false,complementary,
+Singapore,Telecommunications Act 1999,,2021,7.5,Part 6 s. 57(1),NEW,PDF: page 85,"enter and inspect any place in which the telecommunication equipment is
+located or the telecommunication system or service is established,
+installed, maintained, operated or provided, and may seize any
+telecommunication system or equipment found therein which appears to be
+used for or in connection with telecommunications; and",Police officers and authorized employees may enter and inspect places and seize telecommunication equipment without judicial authorization if they have reasonable grounds to believe the equipment is used in contravention of the Act or regulations.,https://sso.agc.gov.sg/Act/TA1999,0.65,,English,provision,false,complementary,
+Singapore,Telecommunications Act 1999,,2021,7.5,Part 6 s. 62(1),NEW,PDF: page 88,"except in obedience to an order under the hand of the Minister or the
+direction of a court, wilfully omits to transmit or intercepts or acquaints
+himself or herself with or detains any message (or part of it) or deliberately
+causes a call or connection to be disconnected or not to be connected,","Government officials can access personal data (messages or records) without a court order, provided they act under an order from the Minister.",https://sso.agc.gov.sg/Act/TA1999,0.73,,English,provision,false,complementary,
+Singapore,Telecommunications Act 1999,,2021,7.5,Part 7 s. 73(1),NEW,PDF: page 94,"Nothing in section 72 is deemed to abrogate the right of the Government at
+any time to determine its relations with any country or with any international agency or
+organisation.","The Government may determine its relations with any country or international agency or organization at any time, without requiring judicial authorization.",https://sso.agc.gov.sg/Act/TA1999,0.65,,English,provision,false,complementary,
+Singapore,Telecommunications Act 1999,,2021,7.5,Part 7 s. 77(2),NEW,PDF: page 95,"if it appears to the Minister to be requisite or
+expedient to do so —
+(a) on the occurrence of any public emergency, in the public interest or in the
+interests of public security, national defence, or relations with the
+government of another country; or
+(b) in order —
+(i) to discharge or facilitate the discharge of an obligation binding
+on the Government by virtue of its being a member of an
+international organisation or a party to an international
+agreement;
+(ii) to attain or facilitate the attainment of any other object the
+attainment of which is in the opinion of the Minister requisite or
+expedient in view of the Government being a member of an
+international organisation or a party to an international
+agreement; or
+(iii) to enable the Government to become a member of an
+international organisation or a party to an international
+agreement,
+the Minister may, after consultation with the Authority or any telecommunication
+licensee, give such directions to the Authority or that licensee as are necessary in the
+circumstances of the case.","The Minister may direct the Authority or a telecommunications licensee to take actions related to telecommunications systems and equipment, including their control and usage for official purposes, without requiring judicial authorization.",https://sso.agc.gov.sg/Act/TA1999,0.70,,English,provision,false,complementary,
+Singapore,Telecommunications Act 1999,,2021,7.5,Part 8 s. 78(1),NEW,PDF: page 97,"The Authority or any officer authorised by the Authority in that behalf
+(called in this section the authorised officer) may, for the purposes of conducting an
+investigation or for discharging the Authority’s functions under this Act, by order require
+any person to produce to the Authority any document, or to provide the Authority with
+any information, which the Authority considers to be related to any matter relevant to the
+investigation or for discharging its functions under this Act.","The Authority may require any person to produce documents or provide information without needing a court order or judicial warrant, allowing government access to personal data under its own authority.",https://sso.agc.gov.sg/Act/TA1999,0.77,,English,provision,true,supersedes,
+Singapore,Telecommunications Act 1999,,2021,7.5,Part 8 s. 80(1),NEW,PDF: page 100,"The Chief Executive or any employee of the Authority deputed by the Chief
+Executive to act under this section or any police officer may arrest without warrant —
+(a) any person found committing or attempting to commit or employing or
+aiding any person to commit a seizable offence under this Act; or
+(b) any person against whom a reasonable suspicion exists that the person has
+been guilty of a seizable offence under this Act,
+and may search any person so arrested, except that a woman must not be searched except
+by a woman.","The provision permits the Chief Executive, employees of the Authority deputed by the Chief Executive, or police officers to arrest without warrant and search persons suspected of committing or attempting to commit seizable offences under the Act, including searching any person so arrested.",https://sso.agc.gov.sg/Act/TA1999,0.69,,English,provision,false,complementary,
+Singapore,Telecommunications Act 1999,,2021,7.5,Part 8 s. 81(1),NEW,PDF: page 100,"Whenever it appears to any police officer or the Chief Executive or any
+Singapore Statutes Online Current version as at 01 Jun 2026 PDF created date on: 01 Jun 2026
+employee of the Authority authorised to act for the Chief Executive under this section
+that an offence under section 53 or 64 is being committed or is about to be committed or
+attempted, or that any article is concealed or deposited or contained in or on any vessel,
+aircraft, vehicle or premises in contravention of either of those sections, the police officer
+or the Chief Executive or the employee of the Authority may, if he or she has reasonable
+grounds for believing that by reason of the delay in obtaining a search warrant the article
+is likely to be removed —
+(a) stop and examine the vessel, aircraft or vehicle or enter the premises and
+there search for and take possession of any article and of any book or
+document which is reasonably believed to have a bearing on the case; and
+(b) arrest any person being in the vessel, aircraft, vehicle or premises in whose
+possession the article may be found or whom the police officer or the Chief
+Executive or the employee of the Authority may reasonably suspect to
+have concealed or deposited the article and may search any person so
+arrested, except that a woman must not be searched except by a woman.","The provision permits police officers, the Chief Executive, or authorized employees to search vessels, aircraft, vehicles, or premises and arrest individuals without a warrant if there are reasonable grounds to believe an offence under section 53 or 64 is being committed and delay in obtaining a…",https://sso.agc.gov.sg/Act/TA1999,0.56,,English,provision,false,complementary,
+Singapore,Telecommunications Act 1999,,2021,7.5,Part 9 s. 91(1),NEW,PDF: page 106,"The Minister may issue a written order to any person that acquires the assets
+or business of, or equity interests in, a telecommunication licensee, designated business
+trust or designated trust (called in this section the relevant person), that
+telecommunication licensee, the trustee-manager of that designated business trust or the
+trustee of that designated trust (as the case may be), or both the relevant person and that
+telecommunication licensee, trustee-manager or trustee (as the case may be), if the
+Minister is satisfied that —
+(a) the relevant person is not a fit and proper person; and
+(b) it is not in the national interest to allow the relevant person to continue to
+own the assets or business of, or to hold the equity interests in, that
+telecommunication licensee, designated business trust or designated trust
+(as the case may be).","The Minister may issue a written order to require the transfer or disposal of assets, business, and equity interests in a telecommunications licensee, designated business trust, or designated trust without requiring a court order or judicial warrant.",https://sso.agc.gov.sg/Act/TA1999,0.69,,English,provision,false,complementary,

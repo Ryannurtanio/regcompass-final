@@ -1,0 +1,139 @@
+name: CI
+
+on:
+  push:
+    # dev carries Phase 2; m3-translation carries the M3 side lane; final-round
+    # carries the final-round build (these branch entries ride the branch
+    # itself and never reach dev/main until a merge)
+    branches: [main, dev, m3-translation, final-round]
+    # A release tag runs every job below and then the release job, which is
+    # the only one that publishes anything.
+    tags: [final-round, "v*"]
+  pull_request:
+
+jobs:
+  gitleaks:
+    name: Secret scan (full history)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  test:
+    name: Tests + license floor (Python 3.12)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.8.17"
+      # The M2 OCR lane needs the tesseract binary. Ubuntu's apt version
+      # (5.3.x) differs from the dev pin (brew 5.5.2); goldens are generated
+      # only on the dev machine, CI just re-runs the gates (CER < 5% with
+      # ~1% measured headroom) against the vendored tessdata_best.
+      - name: Install tesseract (OCR engine)
+        run: sudo apt-get update && sudo apt-get install -y tesseract-ocr
+      - name: Sync (all extras + dev)
+        run: uv sync --all-extras --group dev
+      - name: Tests
+        run: uv run pytest -q
+      - name: License floor (Apache-2.0-compatible only)
+        run: make licenses
+
+  docker:
+    name: Image builds and answers its health check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # A broken compose file fails a judge's one command, so validate it
+      # before spending minutes on the build.
+      - name: Validate the compose file
+        run: docker compose config -q
+      - name: Build the image
+        run: docker build -t regcompass:ci .
+      - name: The console script exists inside the image
+        run: docker run --rm regcompass:ci regcompass --help
+      # The compose smoke test without the multi-gigabyte Ollama pull: the app
+      # container alone, checked through the same keyless endpoint the image's
+      # HEALTHCHECK uses. Ollama is needed for a Run, not for the app to serve.
+      - name: The container answers on /api/status
+        run: |
+          docker run -d --name regcompass-ci -p 8000:8000 regcompass:ci
+          ok=0
+          for _ in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8000/api/status > /dev/null; then ok=1; break; fi
+            sleep 5
+          done
+          docker logs regcompass-ci
+          docker rm -f regcompass-ci
+          test "$ok" = 1
+      - name: Image size
+        run: docker image ls regcompass:ci
+
+  # A pushed release tag, and only that: the image goes to the GitHub Container
+  # Registry under the tag's name and a GitHub Release is opened on the tag.
+  # It waits for the scan, the tests and the image smoke test, so nothing that
+  # fails them is ever published. The prepared-data archive is NOT built here:
+  # it is packed from the maintainer's own database (scripts/pack_prepared_data.py)
+  # and attached to this Release by hand, as docs/RELEASE_DATA.md describes.
+  release:
+    name: Publish the image and open the Release (tags only)
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [gitleaks, test, docker]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # create the Release
+      packages: write   # push to ghcr.io with the workflow's own token
+    steps:
+      - uses: actions/checkout@v4
+      # The registry refuses upper case, and an owner name can carry it.
+      - name: Image name
+        id: image
+        run: echo "name=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push the image
+        id: push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.image.outputs.name }}:${{ github.ref_name }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ github.ref_name }}
+      # Opened only if the maintainer has not opened it already, so a re-run
+      # of this job never fails on, or rewrites, notes written by hand.
+      - name: Open the GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+          IMAGE: ${{ steps.image.outputs.name }}
+          DIGEST: ${{ steps.push.outputs.digest }}
+        run: |
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            echo "Release $TAG already exists; left as it is"
+            exit 0
+          fi
+          {
+            echo "Commit: ${GITHUB_SHA}"
+            echo
+            echo "Image: \`${IMAGE}:${TAG}\`"
+            echo
+            echo "Image digest: \`${IMAGE}@${DIGEST}\`"
+            echo
+            echo "The prepared database (pre-run Runs, their Corpus and source files) is"
+            echo "attached to this Release as a separate archive with its SHA-256; see"
+            echo "docs/RELEASE_DATA.md for the one command that loads it."
+          } > release-notes.md
+          gh release create "$TAG" --verify-tag --title "RegCompass $TAG" --notes-file release-notes.md

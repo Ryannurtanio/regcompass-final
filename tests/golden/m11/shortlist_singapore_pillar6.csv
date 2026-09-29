@@ -1,0 +1,11 @@
+rank,document_id,title,source_url,relevance_score,matched_keywords
+1,doc_sg_sso_agc_gov_sg_Act_PDPA2012,PERSONAL DATA PROTECTION ACT 2012,https://sso.agc.gov.sg/Act/PDPA2012?ViewType=Pdf,0.720253,transfer of personal data; outside Singapore; transfer any personal data; territory outside; safeguards
+2,doc_sg_sso_agc_gov_sg_Act_CPC2010,CRIMINAL PROCEDURE CODE 2010,https://sso.agc.gov.sg/Act/CPC2010?ViewType=Pdf,0.543676,outside Singapore; copy of the data
+3,doc_sg_sso_agc_gov_sg_Act_BA1970,BANKING ACT 1970,https://sso.agc.gov.sg/Act/BA1970?ViewType=Pdf,0.538216,outside Singapore; territory outside; adequacy; conditions for transfer
+4,doc_sg_sso_agc_gov_sg_Act_CMA1993,COMPUTER MISUSE ACT 1993,https://sso.agc.gov.sg/Act/CMA1993?ViewType=Pdf,0.499552,outside Singapore
+5,doc_sg_sso_agc_gov_sg_Act_ETA2010,ELECTRONIC TRANSACTIONS ACT 2010,https://sso.agc.gov.sg/Act/ETA2010?ViewType=Pdf,0.489978,outside Singapore; territory outside
+6,doc_sg_sso_agc_gov_sg_Act_CoA1967,COMPANIES ACT 1967,https://sso.agc.gov.sg/Act/CoA1967?ViewType=Pdf,0.481720,outside Singapore; territory outside; safeguards
+7,doc_sg_sso_agc_gov_sg_Act_CA2018,CYBERSECURITY ACT 2018,https://sso.agc.gov.sg/Act/CA2018?ViewType=Pdf,0.473723,outside Singapore; territory outside
+8,doc_sg_sso_agc_gov_sg_Act_ITA1947,INCOME TAX ACT 1947,https://sso.agc.gov.sg/Act/ITA1947?ViewType=Pdf,0.472354,outside Singapore; territory outside; adequacy; conditions for transfer; approval of the commissioner
+9,doc_sg_sso_agc_gov_sg_Act_EmA1968,EMPLOYMENT ACT 1968,https://sso.agc.gov.sg/Act/EmA1968?ViewType=Pdf,0.423930,outside Singapore; territory outside; prior consent
+10,doc_sg_sso_agc_gov_sg_Act_TA1999,TELECOMMUNICATIONS ACT 1999,https://sso.agc.gov.sg/Act/TA1999?ViewType=Pdf,0.403520,

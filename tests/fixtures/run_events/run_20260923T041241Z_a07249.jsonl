@@ -1,0 +1,193 @@
+{"type": "run_started", "seq": 0, "ts": "2026-09-23T04:12:41.445726+00:00", "run_id": "run_20260923T041241Z_a07249", "economy": "SG", "pillars": [7], "indicators": null, "engine": "engine-a", "documents": [{"document_id": "doc_sg_sso_agc_gov_sg_Act_BA1970", "title": "BANKING ACT 1970", "language": null, "n_pages": 257}, {"document_id": "doc_sg_sso_agc_gov_sg_Act_CA2018", "title": "CYBERSECURITY ACT 2018", "language": null, "n_pages": 119}, {"document_id": "doc_sg_sso_agc_gov_sg_Act_CMA1993", "title": "COMPUTER MISUSE ACT 1993", "language": null, "n_pages": 30}, {"document_id": "doc_sg_sso_agc_gov_sg_Act_CPC2010", "title": "CRIMINAL PROCEDURE CODE 2010", "language": null, "n_pages": 591}, {"document_id": "doc_sg_sso_agc_gov_sg_Act_CoA1967", "title": "COMPANIES ACT 1967", "language": null, "n_pages": 619}, {"document_id": "doc_sg_sso_agc_gov_sg_Act_ETA2010", "title": "ELECTRONIC TRANSACTIONS ACT 2010", "language": null, "n_pages": 59}, {"document_id": "doc_sg_sso_agc_gov_sg_Act_EmA1968", "title": "EMPLOYMENT ACT 1968", "language": null, "n_pages": 139}, {"document_id": "doc_sg_sso_agc_gov_sg_Act_ITA1947", "title": "INCOME TAX ACT 1947", "language": null, "n_pages": 1321}, {"document_id": "doc_sg_sso_agc_gov_sg_Act_PDPA2012", "title": "PERSONAL DATA PROTECTION ACT 2012", "language": null, "n_pages": 124}, {"document_id": "doc_sg_sso_agc_gov_sg_Act_TA1999", "title": "TELECOMMUNICATIONS ACT 1999", "language": null, "n_pages": 155}], "recorded_from": "log", "not_recorded": ["gate_scores", "step_times"]}
+{"type": "step_started", "seq": 1, "ts": "2026-09-23T04:12:41.445726+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_BA1970", "step": "read"}
+{"type": "step_finished", "seq": 2, "ts": "2026-09-23T04:12:41.945726+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_BA1970", "step": "read", "counts": {"pages": 257, "chars": 432007}}
+{"type": "step_started", "seq": 3, "ts": "2026-09-23T04:12:41.945726+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_BA1970", "step": "scan_check"}
+{"type": "step_finished", "seq": 4, "ts": "2026-09-23T04:12:42.045726+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_BA1970", "step": "scan_check", "counts": {"ocr_applied": 0}}
+{"type": "step_started", "seq": 5, "ts": "2026-09-23T04:12:42.045726+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_BA1970", "step": "cut"}
+{"type": "step_finished", "seq": 6, "ts": "2026-09-23T04:12:42.045726+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_BA1970", "step": "cut", "counts": {"pieces": 188}}
+{"type": "step_started", "seq": 7, "ts": "2026-09-23T04:12:42.045726+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_BA1970", "step": "gate"}
+{"type": "step_finished", "seq": 8, "ts": "2026-09-23T04:12:58.445726+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_BA1970", "step": "gate", "counts": {"pieces": 188, "pairs": 920, "candidates": 76}}
+{"type": "step_started", "seq": 9, "ts": "2026-09-23T04:12:58.445726+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_BA1970", "step": "map"}
+{"type": "map_progress", "seq": 10, "ts": "2026-09-23T04:13:20.608081+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_BA1970", "done": 25, "total": 76}
+{"type": "map_progress", "seq": 11, "ts": "2026-09-23T04:13:42.770437+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_BA1970", "done": 50, "total": 76}
+{"type": "map_progress", "seq": 12, "ts": "2026-09-23T04:14:04.932792+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_BA1970", "done": 75, "total": 76}
+{"type": "map_progress", "seq": 13, "ts": "2026-09-23T04:14:05.819287+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_BA1970", "done": 76, "total": 76}
+{"type": "step_finished", "seq": 14, "ts": "2026-09-23T04:14:05.819287+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_BA1970", "step": "map", "counts": {"done": 76, "total": 76}}
+{"type": "step_started", "seq": 15, "ts": "2026-09-23T04:14:05.819287+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_BA1970", "step": "prove"}
+{"type": "step_finished", "seq": 16, "ts": "2026-09-23T04:14:06.019287+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_BA1970", "step": "prove", "counts": {"proven": 11, "no_evidence": 62, "dropped": 3}}
+{"type": "step_started", "seq": 17, "ts": "2026-09-23T04:14:06.019287+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_BA1970", "step": "gloss"}
+{"type": "step_finished", "seq": 18, "ts": "2026-09-23T04:14:06.119287+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_BA1970", "step": "gloss", "counts": {"glossed": 0}}
+{"type": "document_finished", "seq": 19, "ts": "2026-09-23T04:14:06.119287+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_BA1970", "mappings": 11}
+{"type": "step_started", "seq": 20, "ts": "2026-09-23T04:14:06.119287+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CA2018", "step": "read"}
+{"type": "step_finished", "seq": 21, "ts": "2026-09-23T04:14:06.619287+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CA2018", "step": "read", "counts": {"pages": 119, "chars": 208598}}
+{"type": "step_started", "seq": 22, "ts": "2026-09-23T04:14:06.619287+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CA2018", "step": "scan_check"}
+{"type": "step_finished", "seq": 23, "ts": "2026-09-23T04:14:06.719287+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CA2018", "step": "scan_check", "counts": {"ocr_applied": 0}}
+{"type": "step_started", "seq": 24, "ts": "2026-09-23T04:14:06.719287+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CA2018", "step": "cut"}
+{"type": "step_finished", "seq": 25, "ts": "2026-09-23T04:14:06.719287+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CA2018", "step": "cut", "counts": {"pieces": 79}}
+{"type": "step_started", "seq": 26, "ts": "2026-09-23T04:14:06.719287+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CA2018", "step": "gate"}
+{"type": "step_finished", "seq": 27, "ts": "2026-09-23T04:14:15.919287+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CA2018", "step": "gate", "counts": {"pieces": 79, "pairs": 370, "candidates": 100}}
+{"type": "step_started", "seq": 28, "ts": "2026-09-23T04:14:15.919287+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CA2018", "step": "map"}
+{"type": "map_progress", "seq": 29, "ts": "2026-09-23T04:14:38.081642+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CA2018", "done": 25, "total": 100}
+{"type": "map_progress", "seq": 30, "ts": "2026-09-23T04:15:00.243998+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CA2018", "done": 50, "total": 100}
+{"type": "map_progress", "seq": 31, "ts": "2026-09-23T04:15:22.406354+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CA2018", "done": 75, "total": 100}
+{"type": "map_progress", "seq": 32, "ts": "2026-09-23T04:15:44.568710+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CA2018", "done": 100, "total": 100}
+{"type": "step_finished", "seq": 33, "ts": "2026-09-23T04:15:44.568710+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CA2018", "step": "map", "counts": {"done": 100, "total": 100}}
+{"type": "step_started", "seq": 34, "ts": "2026-09-23T04:15:44.568710+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CA2018", "step": "prove"}
+{"type": "step_finished", "seq": 35, "ts": "2026-09-23T04:15:44.768710+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CA2018", "step": "prove", "counts": {"proven": 30, "no_evidence": 68, "dropped": 2}}
+{"type": "step_started", "seq": 36, "ts": "2026-09-23T04:15:44.768710+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CA2018", "step": "gloss"}
+{"type": "step_finished", "seq": 37, "ts": "2026-09-23T04:15:44.868710+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CA2018", "step": "gloss", "counts": {"glossed": 0}}
+{"type": "document_finished", "seq": 38, "ts": "2026-09-23T04:15:44.868710+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CA2018", "mappings": 30}
+{"type": "step_started", "seq": 39, "ts": "2026-09-23T04:15:44.868710+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CMA1993", "step": "read"}
+{"type": "step_finished", "seq": 40, "ts": "2026-09-23T04:15:45.368710+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CMA1993", "step": "read", "counts": {"pages": 30, "chars": 44837}}
+{"type": "step_started", "seq": 41, "ts": "2026-09-23T04:15:45.368710+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CMA1993", "step": "scan_check"}
+{"type": "step_finished", "seq": 42, "ts": "2026-09-23T04:15:45.468710+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CMA1993", "step": "scan_check", "counts": {"ocr_applied": 0}}
+{"type": "step_started", "seq": 43, "ts": "2026-09-23T04:15:45.468710+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CMA1993", "step": "cut"}
+{"type": "step_finished", "seq": 44, "ts": "2026-09-23T04:15:45.468710+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CMA1993", "step": "cut", "counts": {"pieces": 27}}
+{"type": "step_started", "seq": 45, "ts": "2026-09-23T04:15:45.468710+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CMA1993", "step": "gate"}
+{"type": "step_finished", "seq": 46, "ts": "2026-09-23T04:15:49.568710+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CMA1993", "step": "gate", "counts": {"pieces": 27, "pairs": 110, "candidates": 80}}
+{"type": "step_started", "seq": 47, "ts": "2026-09-23T04:15:49.568710+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CMA1993", "step": "map"}
+{"type": "map_progress", "seq": 48, "ts": "2026-09-23T04:16:11.731065+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CMA1993", "done": 25, "total": 80}
+{"type": "map_progress", "seq": 49, "ts": "2026-09-23T04:16:33.893421+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CMA1993", "done": 50, "total": 80}
+{"type": "map_progress", "seq": 50, "ts": "2026-09-23T04:16:56.055776+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CMA1993", "done": 75, "total": 80}
+{"type": "map_progress", "seq": 51, "ts": "2026-09-23T04:17:00.488248+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CMA1993", "done": 80, "total": 80}
+{"type": "step_finished", "seq": 52, "ts": "2026-09-23T04:17:00.488248+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CMA1993", "step": "map", "counts": {"done": 80, "total": 80}}
+{"type": "step_started", "seq": 53, "ts": "2026-09-23T04:17:00.488248+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CMA1993", "step": "prove"}
+{"type": "step_finished", "seq": 54, "ts": "2026-09-23T04:17:00.688248+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CMA1993", "step": "prove", "counts": {"proven": 12, "no_evidence": 67, "dropped": 1}}
+{"type": "step_started", "seq": 55, "ts": "2026-09-23T04:17:00.688248+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CMA1993", "step": "gloss"}
+{"type": "step_finished", "seq": 56, "ts": "2026-09-23T04:17:00.788248+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CMA1993", "step": "gloss", "counts": {"glossed": 0}}
+{"type": "document_finished", "seq": 57, "ts": "2026-09-23T04:17:00.788248+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CMA1993", "mappings": 12}
+{"type": "step_started", "seq": 58, "ts": "2026-09-23T04:17:00.788248+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CPC2010", "step": "read"}
+{"type": "step_finished", "seq": 59, "ts": "2026-09-23T04:17:01.288248+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CPC2010", "step": "read", "counts": {"pages": 591, "chars": 955960}}
+{"type": "step_started", "seq": 60, "ts": "2026-09-23T04:17:01.288248+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CPC2010", "step": "scan_check"}
+{"type": "step_finished", "seq": 61, "ts": "2026-09-23T04:17:01.388248+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CPC2010", "step": "scan_check", "counts": {"ocr_applied": 0}}
+{"type": "step_started", "seq": 62, "ts": "2026-09-23T04:17:01.388248+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CPC2010", "step": "cut"}
+{"type": "step_finished", "seq": 63, "ts": "2026-09-23T04:17:01.488248+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CPC2010", "step": "cut", "counts": {"pieces": 457}}
+{"type": "step_started", "seq": 64, "ts": "2026-09-23T04:17:01.488248+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CPC2010", "step": "gate"}
+{"type": "step_finished", "seq": 65, "ts": "2026-09-23T04:18:00.288248+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CPC2010", "step": "gate", "counts": {"pieces": 457, "pairs": 2260, "candidates": 94}}
+{"type": "step_started", "seq": 66, "ts": "2026-09-23T04:18:00.288248+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CPC2010", "step": "map"}
+{"type": "map_progress", "seq": 67, "ts": "2026-09-23T04:18:22.450603+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CPC2010", "done": 25, "total": 94}
+{"type": "map_progress", "seq": 68, "ts": "2026-09-23T04:18:44.612959+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CPC2010", "done": 50, "total": 94}
+{"type": "map_progress", "seq": 69, "ts": "2026-09-23T04:19:06.775314+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CPC2010", "done": 75, "total": 94}
+{"type": "map_progress", "seq": 70, "ts": "2026-09-23T04:19:23.618705+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CPC2010", "done": 94, "total": 94}
+{"type": "step_finished", "seq": 71, "ts": "2026-09-23T04:19:23.618705+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CPC2010", "step": "map", "counts": {"done": 94, "total": 94}}
+{"type": "step_started", "seq": 72, "ts": "2026-09-23T04:19:23.618705+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CPC2010", "step": "prove"}
+{"type": "step_finished", "seq": 73, "ts": "2026-09-23T04:19:23.818705+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CPC2010", "step": "prove", "counts": {"proven": 10, "no_evidence": 84, "dropped": 0}}
+{"type": "step_started", "seq": 74, "ts": "2026-09-23T04:19:23.818705+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CPC2010", "step": "gloss"}
+{"type": "step_finished", "seq": 75, "ts": "2026-09-23T04:19:23.918705+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CPC2010", "step": "gloss", "counts": {"glossed": 0}}
+{"type": "document_finished", "seq": 76, "ts": "2026-09-23T04:19:23.918705+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CPC2010", "mappings": 10}
+{"type": "step_started", "seq": 77, "ts": "2026-09-23T04:19:23.918705+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CoA1967", "step": "read"}
+{"type": "step_finished", "seq": 78, "ts": "2026-09-23T04:19:24.418705+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CoA1967", "step": "read", "counts": {"pages": 619, "chars": 1079859}}
+{"type": "step_started", "seq": 79, "ts": "2026-09-23T04:19:24.418705+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CoA1967", "step": "scan_check"}
+{"type": "step_finished", "seq": 80, "ts": "2026-09-23T04:19:24.518705+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CoA1967", "step": "scan_check", "counts": {"ocr_applied": 0}}
+{"type": "step_started", "seq": 81, "ts": "2026-09-23T04:19:24.518705+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CoA1967", "step": "cut"}
+{"type": "step_finished", "seq": 82, "ts": "2026-09-23T04:19:24.618705+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CoA1967", "step": "cut", "counts": {"pieces": 492}}
+{"type": "step_started", "seq": 83, "ts": "2026-09-23T04:19:24.618705+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CoA1967", "step": "gate"}
+{"type": "step_finished", "seq": 84, "ts": "2026-09-23T04:20:53.818705+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CoA1967", "step": "gate", "counts": {"pieces": 492, "pairs": 2435, "candidates": 86}}
+{"type": "step_started", "seq": 85, "ts": "2026-09-23T04:20:53.818705+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CoA1967", "step": "map"}
+{"type": "map_progress", "seq": 86, "ts": "2026-09-23T04:21:15.981060+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CoA1967", "done": 25, "total": 86}
+{"type": "map_progress", "seq": 87, "ts": "2026-09-23T04:21:38.143416+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CoA1967", "done": 50, "total": 86}
+{"type": "map_progress", "seq": 88, "ts": "2026-09-23T04:22:00.305771+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CoA1967", "done": 75, "total": 86}
+{"type": "map_progress", "seq": 89, "ts": "2026-09-23T04:22:10.057208+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CoA1967", "done": 86, "total": 86}
+{"type": "step_finished", "seq": 90, "ts": "2026-09-23T04:22:10.057208+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CoA1967", "step": "map", "counts": {"done": 86, "total": 86}}
+{"type": "step_started", "seq": 91, "ts": "2026-09-23T04:22:10.057208+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CoA1967", "step": "prove"}
+{"type": "step_finished", "seq": 92, "ts": "2026-09-23T04:22:10.257208+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CoA1967", "step": "prove", "counts": {"proven": 12, "no_evidence": 73, "dropped": 1}}
+{"type": "step_started", "seq": 93, "ts": "2026-09-23T04:22:10.257208+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CoA1967", "step": "gloss"}
+{"type": "step_finished", "seq": 94, "ts": "2026-09-23T04:22:10.357208+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CoA1967", "step": "gloss", "counts": {"glossed": 0}}
+{"type": "document_finished", "seq": 95, "ts": "2026-09-23T04:22:10.357208+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_CoA1967", "mappings": 12}
+{"type": "step_started", "seq": 96, "ts": "2026-09-23T04:22:10.357208+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ETA2010", "step": "read"}
+{"type": "step_finished", "seq": 97, "ts": "2026-09-23T04:22:10.857208+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ETA2010", "step": "read", "counts": {"pages": 59, "chars": 97138}}
+{"type": "step_started", "seq": 98, "ts": "2026-09-23T04:22:10.857208+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ETA2010", "step": "scan_check"}
+{"type": "step_finished", "seq": 99, "ts": "2026-09-23T04:22:10.957208+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ETA2010", "step": "scan_check", "counts": {"ocr_applied": 0}}
+{"type": "step_started", "seq": 100, "ts": "2026-09-23T04:22:10.957208+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ETA2010", "step": "cut"}
+{"type": "step_finished", "seq": 101, "ts": "2026-09-23T04:22:10.957208+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ETA2010", "step": "cut", "counts": {"pieces": 88}}
+{"type": "step_started", "seq": 102, "ts": "2026-09-23T04:22:10.957208+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ETA2010", "step": "gate"}
+{"type": "step_finished", "seq": 103, "ts": "2026-09-23T04:22:14.757208+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ETA2010", "step": "gate", "counts": {"pieces": 88, "pairs": 415, "candidates": 95}}
+{"type": "step_started", "seq": 104, "ts": "2026-09-23T04:22:14.757208+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ETA2010", "step": "map"}
+{"type": "map_progress", "seq": 105, "ts": "2026-09-23T04:22:36.919563+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ETA2010", "done": 25, "total": 95}
+{"type": "map_progress", "seq": 106, "ts": "2026-09-23T04:22:59.081919+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ETA2010", "done": 50, "total": 95}
+{"type": "map_progress", "seq": 107, "ts": "2026-09-23T04:23:21.244274+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ETA2010", "done": 75, "total": 95}
+{"type": "map_progress", "seq": 108, "ts": "2026-09-23T04:23:38.974159+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ETA2010", "done": 95, "total": 95}
+{"type": "step_finished", "seq": 109, "ts": "2026-09-23T04:23:38.974159+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ETA2010", "step": "map", "counts": {"done": 95, "total": 95}}
+{"type": "step_started", "seq": 110, "ts": "2026-09-23T04:23:38.974159+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ETA2010", "step": "prove"}
+{"type": "step_finished", "seq": 111, "ts": "2026-09-23T04:23:39.174159+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ETA2010", "step": "prove", "counts": {"proven": 14, "no_evidence": 79, "dropped": 2}}
+{"type": "step_started", "seq": 112, "ts": "2026-09-23T04:23:39.174159+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ETA2010", "step": "gloss"}
+{"type": "step_finished", "seq": 113, "ts": "2026-09-23T04:23:39.274159+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ETA2010", "step": "gloss", "counts": {"glossed": 0}}
+{"type": "document_finished", "seq": 114, "ts": "2026-09-23T04:23:39.274159+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ETA2010", "mappings": 14}
+{"type": "step_started", "seq": 115, "ts": "2026-09-23T04:23:39.274159+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_EmA1968", "step": "read"}
+{"type": "step_finished", "seq": 116, "ts": "2026-09-23T04:23:39.774159+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_EmA1968", "step": "read", "counts": {"pages": 139, "chars": 224030}}
+{"type": "step_started", "seq": 117, "ts": "2026-09-23T04:23:39.774159+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_EmA1968", "step": "scan_check"}
+{"type": "step_finished", "seq": 118, "ts": "2026-09-23T04:23:39.874159+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_EmA1968", "step": "scan_check", "counts": {"ocr_applied": 0}}
+{"type": "step_started", "seq": 119, "ts": "2026-09-23T04:23:39.874159+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_EmA1968", "step": "cut"}
+{"type": "step_finished", "seq": 120, "ts": "2026-09-23T04:23:39.874159+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_EmA1968", "step": "cut", "counts": {"pieces": 176}}
+{"type": "step_started", "seq": 121, "ts": "2026-09-23T04:23:39.874159+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_EmA1968", "step": "gate"}
+{"type": "step_finished", "seq": 122, "ts": "2026-09-23T04:23:48.074159+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_EmA1968", "step": "gate", "counts": {"pieces": 176, "pairs": 855, "candidates": 78}}
+{"type": "step_started", "seq": 123, "ts": "2026-09-23T04:23:48.074159+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_EmA1968", "step": "map"}
+{"type": "map_progress", "seq": 124, "ts": "2026-09-23T04:24:10.236514+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_EmA1968", "done": 25, "total": 78}
+{"type": "map_progress", "seq": 125, "ts": "2026-09-23T04:24:32.398870+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_EmA1968", "done": 50, "total": 78}
+{"type": "map_progress", "seq": 126, "ts": "2026-09-23T04:24:54.561226+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_EmA1968", "done": 75, "total": 78}
+{"type": "map_progress", "seq": 127, "ts": "2026-09-23T04:24:57.220709+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_EmA1968", "done": 78, "total": 78}
+{"type": "step_finished", "seq": 128, "ts": "2026-09-23T04:24:57.220709+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_EmA1968", "step": "map", "counts": {"done": 78, "total": 78}}
+{"type": "step_started", "seq": 129, "ts": "2026-09-23T04:24:57.220709+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_EmA1968", "step": "prove"}
+{"type": "step_finished", "seq": 130, "ts": "2026-09-23T04:24:57.420709+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_EmA1968", "step": "prove", "counts": {"proven": 5, "no_evidence": 73, "dropped": 0}}
+{"type": "step_started", "seq": 131, "ts": "2026-09-23T04:24:57.420709+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_EmA1968", "step": "gloss"}
+{"type": "step_finished", "seq": 132, "ts": "2026-09-23T04:24:57.520709+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_EmA1968", "step": "gloss", "counts": {"glossed": 0}}
+{"type": "document_finished", "seq": 133, "ts": "2026-09-23T04:24:57.520709+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_EmA1968", "mappings": 5}
+{"type": "step_started", "seq": 134, "ts": "2026-09-23T04:24:57.520709+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ITA1947", "step": "read"}
+{"type": "step_finished", "seq": 135, "ts": "2026-09-23T04:24:58.020709+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ITA1947", "step": "read", "counts": {"pages": 1321, "chars": 2266455}}
+{"type": "step_started", "seq": 136, "ts": "2026-09-23T04:24:58.020709+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ITA1947", "step": "scan_check"}
+{"type": "step_finished", "seq": 137, "ts": "2026-09-23T04:24:58.120709+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ITA1947", "step": "scan_check", "counts": {"ocr_applied": 0}}
+{"type": "step_started", "seq": 138, "ts": "2026-09-23T04:24:58.120709+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ITA1947", "step": "cut"}
+{"type": "step_finished", "seq": 139, "ts": "2026-09-23T04:24:58.320709+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ITA1947", "step": "cut", "counts": {"pieces": 354}}
+{"type": "step_started", "seq": 140, "ts": "2026-09-23T04:24:58.320709+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ITA1947", "step": "gate"}
+{"type": "step_finished", "seq": 141, "ts": "2026-09-23T04:25:37.120709+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ITA1947", "step": "gate", "counts": {"pieces": 354, "pairs": 1745, "candidates": 67}}
+{"type": "step_started", "seq": 142, "ts": "2026-09-23T04:25:37.120709+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ITA1947", "step": "map"}
+{"type": "map_progress", "seq": 143, "ts": "2026-09-23T04:25:59.283064+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ITA1947", "done": 25, "total": 67}
+{"type": "map_progress", "seq": 144, "ts": "2026-09-23T04:26:21.445420+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ITA1947", "done": 50, "total": 67}
+{"type": "map_progress", "seq": 145, "ts": "2026-09-23T04:26:36.515822+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ITA1947", "done": 67, "total": 67}
+{"type": "step_finished", "seq": 146, "ts": "2026-09-23T04:26:36.515822+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ITA1947", "step": "map", "counts": {"done": 67, "total": 67}}
+{"type": "step_started", "seq": 147, "ts": "2026-09-23T04:26:36.515822+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ITA1947", "step": "prove"}
+{"type": "step_finished", "seq": 148, "ts": "2026-09-23T04:26:36.715822+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ITA1947", "step": "prove", "counts": {"proven": 13, "no_evidence": 54, "dropped": 0}}
+{"type": "step_started", "seq": 149, "ts": "2026-09-23T04:26:36.715822+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ITA1947", "step": "gloss"}
+{"type": "step_finished", "seq": 150, "ts": "2026-09-23T04:26:36.815822+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ITA1947", "step": "gloss", "counts": {"glossed": 0}}
+{"type": "document_finished", "seq": 151, "ts": "2026-09-23T04:26:36.815822+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_ITA1947", "mappings": 13}
+{"type": "step_started", "seq": 152, "ts": "2026-09-23T04:26:36.815822+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_PDPA2012", "step": "read"}
+{"type": "step_finished", "seq": 153, "ts": "2026-09-23T04:26:37.315822+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_PDPA2012", "step": "read", "counts": {"pages": 124, "chars": 202331}}
+{"type": "step_started", "seq": 154, "ts": "2026-09-23T04:26:37.315822+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_PDPA2012", "step": "scan_check"}
+{"type": "step_finished", "seq": 155, "ts": "2026-09-23T04:26:37.415822+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_PDPA2012", "step": "scan_check", "counts": {"ocr_applied": 0}}
+{"type": "step_started", "seq": 156, "ts": "2026-09-23T04:26:37.415822+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_PDPA2012", "step": "cut"}
+{"type": "step_finished", "seq": 157, "ts": "2026-09-23T04:26:37.415822+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_PDPA2012", "step": "cut", "counts": {"pieces": 108}}
+{"type": "step_started", "seq": 158, "ts": "2026-09-23T04:26:37.415822+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_PDPA2012", "step": "gate"}
+{"type": "step_finished", "seq": 159, "ts": "2026-09-23T04:26:53.715822+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_PDPA2012", "step": "gate", "counts": {"pieces": 108, "pairs": 520, "candidates": 97}}
+{"type": "step_started", "seq": 160, "ts": "2026-09-23T04:26:53.715822+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_PDPA2012", "step": "map"}
+{"type": "map_progress", "seq": 161, "ts": "2026-09-23T04:27:15.878177+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_PDPA2012", "done": 25, "total": 97}
+{"type": "map_progress", "seq": 162, "ts": "2026-09-23T04:27:38.040533+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_PDPA2012", "done": 50, "total": 97}
+{"type": "map_progress", "seq": 163, "ts": "2026-09-23T04:28:00.202889+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_PDPA2012", "done": 75, "total": 97}
+{"type": "map_progress", "seq": 164, "ts": "2026-09-23T04:28:19.705762+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_PDPA2012", "done": 97, "total": 97}
+{"type": "step_finished", "seq": 165, "ts": "2026-09-23T04:28:19.705762+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_PDPA2012", "step": "map", "counts": {"done": 97, "total": 97}}
+{"type": "step_started", "seq": 166, "ts": "2026-09-23T04:28:19.705762+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_PDPA2012", "step": "prove"}
+{"type": "step_finished", "seq": 167, "ts": "2026-09-23T04:28:19.905762+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_PDPA2012", "step": "prove", "counts": {"proven": 33, "no_evidence": 64, "dropped": 0}}
+{"type": "step_started", "seq": 168, "ts": "2026-09-23T04:28:19.905762+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_PDPA2012", "step": "gloss"}
+{"type": "step_finished", "seq": 169, "ts": "2026-09-23T04:28:20.005762+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_PDPA2012", "step": "gloss", "counts": {"glossed": 0}}
+{"type": "document_finished", "seq": 170, "ts": "2026-09-23T04:28:20.005762+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_PDPA2012", "mappings": 33}
+{"type": "step_started", "seq": 171, "ts": "2026-09-23T04:28:20.005762+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_TA1999", "step": "read"}
+{"type": "step_finished", "seq": 172, "ts": "2026-09-23T04:28:20.505762+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_TA1999", "step": "read", "counts": {"pages": 155, "chars": 250990}}
+{"type": "step_started", "seq": 173, "ts": "2026-09-23T04:28:20.505762+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_TA1999", "step": "scan_check"}
+{"type": "step_finished", "seq": 174, "ts": "2026-09-23T04:28:20.605762+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_TA1999", "step": "scan_check", "counts": {"ocr_applied": 0}}
+{"type": "step_started", "seq": 175, "ts": "2026-09-23T04:28:20.605762+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_TA1999", "step": "cut"}
+{"type": "step_finished", "seq": 176, "ts": "2026-09-23T04:28:20.605762+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_TA1999", "step": "cut", "counts": {"pieces": 103}}
+{"type": "step_started", "seq": 177, "ts": "2026-09-23T04:28:20.605762+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_TA1999", "step": "gate"}
+{"type": "step_finished", "seq": 178, "ts": "2026-09-23T04:28:28.405762+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_TA1999", "step": "gate", "counts": {"pieces": 103, "pairs": 490, "candidates": 97}}
+{"type": "step_started", "seq": 179, "ts": "2026-09-23T04:28:28.405762+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_TA1999", "step": "map"}
+{"type": "map_progress", "seq": 180, "ts": "2026-09-23T04:28:50.568118+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_TA1999", "done": 25, "total": 97}
+{"type": "map_progress", "seq": 181, "ts": "2026-09-23T04:29:12.730475+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_TA1999", "done": 50, "total": 97}
+{"type": "map_progress", "seq": 182, "ts": "2026-09-23T04:29:34.892832+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_TA1999", "done": 75, "total": 97}
+{"type": "map_progress", "seq": 183, "ts": "2026-09-23T04:29:54.395707+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_TA1999", "done": 97, "total": 97}
+{"type": "step_finished", "seq": 184, "ts": "2026-09-23T04:29:54.395707+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_TA1999", "step": "map", "counts": {"done": 97, "total": 97}}
+{"type": "step_started", "seq": 185, "ts": "2026-09-23T04:29:54.395707+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_TA1999", "step": "prove"}
+{"type": "step_finished", "seq": 186, "ts": "2026-09-23T04:29:54.595707+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_TA1999", "step": "prove", "counts": {"proven": 8, "no_evidence": 89, "dropped": 0}}
+{"type": "step_started", "seq": 187, "ts": "2026-09-23T04:29:54.595707+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_TA1999", "step": "gloss"}
+{"type": "step_finished", "seq": 188, "ts": "2026-09-23T04:29:54.695707+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_TA1999", "step": "gloss", "counts": {"glossed": 0}}
+{"type": "document_finished", "seq": 189, "ts": "2026-09-23T04:29:54.695707+00:00", "document_id": "doc_sg_sso_agc_gov_sg_Act_TA1999", "mappings": 8}
+{"type": "step_started", "seq": 190, "ts": "2026-09-23T04:29:54.695707+00:00", "document_id": null, "step": "reconcile"}
+{"type": "step_finished", "seq": 191, "ts": "2026-09-23T04:30:56.495707+00:00", "document_id": null, "step": "reconcile", "counts": {"passed": 148, "records": 148, "groups": 5}}
+{"type": "run_finished", "seq": 192, "ts": "2026-09-23T04:30:56.495707+00:00", "status": "completed", "totals": {"documents": 10, "pieces": 2072, "pairs": 10120, "candidates": 870, "proven": 148, "no_evidence": 713, "dropped": 9, "glossed": 0, "groups": 5}, "cost_usd": 0.5821902000000001, "provider_cost_usd": 0.6646783700000007, "engine_calls": 913}

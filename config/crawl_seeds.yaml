@@ -1,0 +1,180 @@
+# M10 crawl seeds: SOURCE FAMILIES per economy. The crawl is
+# seeded from the source families likely to carry Pillar 6/7 evidence (data
+# protection, telecom, cybersecurity, electronic transactions), NEVER by feeding
+# indicator questions to a search engine.
+#
+# SG `acts` are SSO short codes -> https://sso.agc.gov.sg/Act/{code} (the act
+# HTML page IS the document; exact response bytes stored).
+# AU `queries` are exact register title names resolved through the register's
+# own public OData API (api.prod.legislation.gov.au/v1) to the authorised PDF
+# volumes of the latest compilation.
+# MY `queries` are exact phrases for the portal's fess search proxy
+# (lom.agc.gov.my/fess-proxy.php) resolved to direct PDF URLs under
+# /ilims/upload/portal/akta/.
+#
+# rate_limit_seconds is the per-host politeness FLOOR. At run time the crawler
+# fetches each portal's robots.txt (through the same fetch strategy - a plain
+# fetch gets a CloudFront 403 on SG) and enforces max(floor, published
+# crawl-delay), so robots can raise politeness but never lower it. Published
+# asks, verified 6 Jul 2026: SG crawl-delay 6, AU 10, MY no retrievable
+# robots.txt (HTTP 500; since 16 Sep 2026 a 5xx is read as "unavailable" and
+# REFUSES the crawl rather than meaning "no rules", so re-check Malaysia's
+# status before relying on a Malaysian crawl). (An earlier
+# note here wrongly said SG publishes none: the checking tool was 403-blocked
+# and absence of evidence was recorded as absence. The shipped 5 Jul corpus
+# crawl ran SG at our 5s floor against the published 6s.)
+#
+# Expanded 5 Jul 2026 (M11 iteration 0): the Round 1 Database cites instruments
+# from source families the first pass missed (corporate record-keeping, banking,
+# tax, employment, criminal procedure, health records, critical infrastructure,
+# data sharing, intelligence/surveillance). Every addition below was probed live
+# on 5 Jul 2026 before being seeded (SG codes HTTP 200; AU names exactly one
+# exact-match register title; MY phrases return the target act with a PDF link).
+# Known portal gaps (recorded in config/round1_corpus_map.json, not seeded):
+# MY Income Tax Act 1967 (Act 53) has no entry with a PDF in the lom search
+# index (only amendment acts surface, verified 5 Jul 2026).
+seeds:
+  SG:
+    rate_limit_seconds: 6  # matches the published crawl-delay (belt to the runtime robots check)
+    families:
+      data_protection:
+        acts: [PDPA2012]
+      telecommunications:
+        acts: [TA1999]
+      cybersecurity:
+        acts: [CA2018, CMA1993]
+      electronic_transactions:
+        acts: [ETA2010]
+      corporate_law:
+        acts: [CoA1967]
+      banking:
+        acts: [BA1970]
+      tax:
+        acts: [ITA1947]
+      employment:
+        acts: [EmA1968]
+      criminal_procedure:
+        acts: [CPC2010]
+  AU:
+    rate_limit_seconds: 10
+    families:
+      data_protection:
+        queries: ["Privacy Act 1988"]
+      criminal_law:
+        queries: ["Criminal Code Act 1995"]
+      telecommunications:
+        queries:
+          - "Telecommunications Act 1997"
+          - "Telecommunications (Interception and Access) Act 1979"
+          - "Telecommunications Regulations 2021"
+          - "Telecommunications and Other Legislation Amendment (Assistance and Access) Act 2018"
+          - "Telecommunications Legislation Amendment (International Production Orders) Act 2021"
+      online_safety:
+        queries: ["Online Safety Act 2021"]
+      health_records:
+        queries: ["My Health Records Act 2012"]
+      critical_infrastructure:
+        queries: ["Security of Critical Infrastructure Act 2018"]
+      data_sharing:
+        queries: ["Data Availability and Transparency Act 2022"]
+      intelligence:
+        queries: ["Australian Security Intelligence Organisation Act 1979"]
+      surveillance:
+        queries: ["Surveillance Legislation Amendment (Identify and Disrupt) Act 2021"]
+  IN:
+    # India Code (DSpace 7) item titles, matched EXACTLY (the leading article,
+    # a trailing full stop and runs of whitespace are normalised away, nothing
+    # else). The Portal indexes every section of an act as its own item, so a
+    # loose match would crawl a section instead of the act.
+    # Verified on the wire 16 Sep 2026: the Digital Personal Data Protection
+    # Act, the Information Technology Act and the Telecommunications Act all
+    # answer under these exact titles. The remaining three are seeded in the
+    # Portal's own style but NOT yet confirmed; each one that does not match is
+    # reported as a miss ("no exact India Code title match"), never resolved to
+    # the nearest hit.
+    rate_limit_seconds: 2  # nothing published; our own floor
+    families:
+      data_protection:
+        queries: ["The Digital Personal Data Protection Act, 2023"]
+      electronic_transactions:
+        queries: ["The Information Technology Act, 2000"]
+      cybersecurity:
+        queries: ["The Information Technology (Amendment) Act, 2008"]
+      telecommunications:
+        queries: ["The Telecommunications Act, 2023"]
+      consumer_protection:
+        queries: ["The Consumer Protection Act, 2019"]
+      electronic_commerce:
+        queries: ["The Consumer Protection (E-Commerce) Rules, 2020"]
+  ID:
+    # Indonesian `acts` are the tail of the Portal's own download path,
+    # "{file id}/{file name}.pdf" ->
+    # https://peraturan.bpk.go.id/Download/{file id}/{file name}.pdf
+    # The file id is NOT the id in the /Details/ page URL, so these cannot be
+    # computed; each one was read off a search listing recorded on 16 Sep 2026
+    # and committed under tests/fixtures/portals/id/. A test asserts that every
+    # reference below still appears in one of those listings.
+    # File names are reproduced EXACTLY, double spaces included (the 2016
+    # amendment really is served as "UU Nomor  19 Tahun 2016.pdf").
+    # The Portal publishes no crawl-delay, so our own 5s floor is the promise.
+    rate_limit_seconds: 5
+    families:
+      data_protection:
+        acts: ["224884/UU Nomor 27 Tahun 2022.pdf"]  # UU 27/2022 Pelindungan Data Pribadi
+      electronic_transactions:
+        acts:
+          - "26683/UU Nomor 11 Tahun 2008.pdf"   # UU 11/2008 ITE
+          - "26676/UU Nomor  19 Tahun 2016.pdf"  # UU 19/2016, first amendment
+          - "332870/UU Nomor 1 Tahun 2024.pdf"   # UU 1/2024, second amendment
+      consumer_protection:
+        acts: ["33784/UU Nomor 8 Tahun 1999.pdf"]  # UU 8/1999 Perlindungan Konsumen
+      telecommunications:
+        acts: ["33857/UU Nomor 36 Tahun 1999.pdf"]  # UU 36/1999 Telekomunikasi
+      electronic_systems:
+        acts: ["112816/PP Nomor 71 Tahun 2019.pdf"]  # PP 71/2019 Penyelenggaraan
+        # Sistem dan Transaksi Elektronik (jenis=10, a Government Regulation)
+    # NOT yet seeded, for want of request budget rather than by choice:
+    # Law 7/2014 on Trade, and Law 6/2023, which amends the Telecommunications
+    # Law. Each needs one recorded listing to read its download reference off.
+  MY:
+    rate_limit_seconds: 5
+    families:
+      data_protection:
+        queries: ["personal data protection"]
+      communications:
+        queries: ["communications and multimedia"]
+      cybersecurity:
+        queries: ["computer crimes", "cyber security"]
+      electronic_commerce:
+        queries: ["electronic commerce"]
+      tax:
+        queries: ["services tax act 2018"]
+      criminal_procedure:
+        queries: ["criminal procedure code"]
+      security_offences:
+        queries: ["security offences (special measures)"]
+  # LA `queries` are LAO WORDS for the Official Gazette's own title filter
+  # (Document[title] on /index.php?r=site/index), which matches anywhere in an
+  # instrument's title. One word per source family where one is enough, chosen
+  # as the stable stem of the family's vocabulary: ເອເລັກ (elec-) reaches
+  # electronic transactions, electronic signature and electronic data
+  # protection, ໄຊເບີ (cyber) the cyber security law, ຄອມພິວເຕີ (computer) the
+  # cyber crime law, ຜູ້ຊົມໃຊ້ (consumer) consumer protection, ໂທລະຄົມ (telecom)
+  # the telecommunications instruments. Verified against the Portal 16 Sep 2026:
+  # 17, 1, 4, 5 and 11 matching instruments respectively.
+  # max_pages bounds the listing walk (10 results a page).
+  LA:
+    rate_limit_seconds: 2
+    max_pages: 10
+    families:
+      electronic_transactions:
+        queries: ["ເອເລັກ"]
+      cybersecurity:
+        # Two words, because the Portal's own titles use two vocabularies: the
+        # 2025 Law on Cyber Security is ໄຊເບີ (cyber), while the cyber crime law
+        # is ອາຊະຍາກຳທາງລະບົບຄອມພິວເຕີ (computer-system crime).
+        queries: ["ໄຊເບີ", "ຄອມພິວເຕີ"]
+      consumer_protection:
+        queries: ["ຜູ້ຊົມໃຊ້"]
+      telecommunications:
+        queries: ["ໂທລະຄົມ"]

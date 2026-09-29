@@ -1,0 +1,18 @@
+# Gitleaks config: default rules + a narrowly-scoped allowlist.
+#
+# The HTML-lane fixture is the EXACT fetched bytes of a public sso.agc.gov.sg
+# page (M1 contract: byte fidelity is the point). The page embeds the SITE'S
+# OWN client-side values served to every anonymous visitor: a LinkedIn OAuth
+# client id, a Google API client id (public by design), and a per-session CSRF
+# token that is dead outside the fetch session. Reviewed 5 Jul 2026: none is a
+# credential of ours and none grants access to anything. Allowlist is scoped to
+# exactly this file; every other path stays fully scanned.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Public client-side tokens embedded in the committed SSO HTML fixture (exact fetched bytes)"
+paths = [
+    '''tests/fixtures/html/sso_agc_gov_sg_Act_TA1999\.html''',
+]

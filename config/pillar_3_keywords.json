@@ -1,0 +1,72 @@
+{
+  "_comment": "Pillar 3 'Foreign Direct Investment' per-indicator vocabulary, DERIVED mechanically by scripts/make_pillar_keywords.py from the indicator name, scoring criteria and exception note in config/indicators.json. No model wrote any of it. A human review pass flips _reviewed.",
+  "_pillar_description": "Foreign Direct Investment: Foreign equity limits in sectors relevant to digital trade; Joint venture requirements; Nationality or residency requirements for board of directors or managers; Screening of investment and acquisitions.",
+  "_derived": true,
+  "_source": "config/indicators.json (name + criteria + exception)",
+  "_reviewed": false,
+  "3.1": [
+    "sector",
+    "one sector",
+    "one",
+    "stake",
+    "allowed",
+    "covered under pillar",
+    "foreign equity",
+    "digital trade",
+    "minority stake",
+    "covered under",
+    "under pillar",
+    "foreign",
+    "equity",
+    "relevant"
+  ],
+  "3.2": [
+    "joint venture requirements",
+    "joint venture",
+    "venture requirements",
+    "joint",
+    "venture",
+    "requirements"
+  ],
+  "3.3": [
+    "residency requirements",
+    "nationality",
+    "residency",
+    "requirements",
+    "board",
+    "directors",
+    "managers"
+  ],
+  "3.4": [
+    "screening",
+    "screening mechanism",
+    "investment",
+    "mechanism",
+    "screening mechanism has been",
+    "mechanism has been used",
+    "more investment screening mechanisms",
+    "screening mechanism has",
+    "mechanism has been",
+    "has been used",
+    "more investment screening",
+    "investment screening mechanisms",
+    "mechanism has",
+    "has been"
+  ],
+  "3.5": [
+    "commercial presence requirements",
+    "offer cross-border services",
+    "commercial presence",
+    "presence requirements",
+    "offer cross-border",
+    "cross-border services",
+    "sectors relevant",
+    "digital trade",
+    "commercial",
+    "presence",
+    "requirements",
+    "offer",
+    "cross-border",
+    "services"
+  ]
+}

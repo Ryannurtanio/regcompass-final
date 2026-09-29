@@ -1,0 +1,49 @@
+# Engines: every model-calling stage of the pipeline uses ONE selected Engine.
+# num_retries MUST stay 0 (silent SDK transport retries corrupt attempt counting).
+# api_key_env names an environment variable (loaded from .env, gitignored);
+# the key itself never appears in any committed file.
+# concurrency is how many Mapping calls a Run may have in flight on that Engine:
+# 4 on a hosted Engine (the sealed live test does not fit the window one call at
+# a time), 1 on the fake Engine and on any locally served Engine, which is one
+# machine and gains nothing from a queue. Records are assembled in pair order
+# whatever the value, so the export is byte-identical either way.
+default_engine: engine-b
+engines:
+  engine-a:
+    display_name: "Engine A: GPT-5.6 Luna"
+    litellm_model: openrouter/openai/gpt-5.6-luna
+    provider: openrouter
+    api_key_env: OPENROUTER_API_KEY
+    usd_per_million_input_tokens: 0.20
+    usd_per_million_output_tokens: 1.20
+    open_weights: false
+    structured_output: json_schema
+    concurrency: 4
+    num_retries: 0
+  engine-b:
+    display_name: "Engine B: Qwen3-30B-A3B-Instruct-2507"
+    litellm_model: openrouter/qwen/qwen3-30b-a3b-instruct-2507
+    provider: openrouter
+    api_key_env: OPENROUTER_API_KEY
+    usd_per_million_input_tokens: 0.05
+    usd_per_million_output_tokens: 0.19
+    open_weights: true
+    structured_output: json_schema
+    concurrency: 4
+    num_retries: 0
+  fake:
+    display_name: "Fake Engine (offline: tests and demos, scripted answers)"
+    litellm_model: fake/scripted
+    provider: fake
+    api_key_env: null
+    usd_per_million_input_tokens: 0
+    usd_per_million_output_tokens: 0
+    open_weights: true
+    structured_output: json_schema
+    concurrency: 1
+    num_retries: 0
+embedder:
+  name: embedder-bge-m3
+  litellm_model: ollama/bge-m3
+  api_key_env: null
+  num_retries: 0

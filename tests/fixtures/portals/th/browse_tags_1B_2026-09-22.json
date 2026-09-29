@@ -1,0 +1,187 @@
+{
+  "respHeader" : {
+    "reqId" : "1790043392570",
+    "reqChannel" : "WEB",
+    "reqDtm" : "2026-09-22 10:16:32.570",
+    "serviceName" : "getPublicTags",
+    "reqBy" : "unknow",
+    "respRefId" : "20260922091632-3586e6d0-2b16-44b0-9a73-c0539da1b2e8",
+    "errorCode" : "SUCCESS",
+    "errorDesc" : "สำเร็จ"
+  },
+  "respBody" : {
+    "data" : [ {
+      "value" : "1",
+      "label" : "กษัตริย์",
+      "totalItms" : 17
+    }, {
+      "value" : "2",
+      "label" : "การเงิน การคลัง และวิธีการงบประมาณ",
+      "totalItms" : 532
+    }, {
+      "value" : "3",
+      "label" : "การเมืองการปกครอง",
+      "totalItms" : 6
+    }, {
+      "value" : "4",
+      "label" : "ขนส่งและคมนาคม",
+      "totalItms" : 583
+    }, {
+      "value" : "5",
+      "label" : "คณะกรรมการกฤษฎีกา",
+      "totalItms" : 39
+    }, {
+      "value" : "6",
+      "label" : "คนต่างด้าว",
+      "totalItms" : 6
+    }, {
+      "value" : "7",
+      "label" : "ครอบครัว และมรดก",
+      "totalItms" : 6
+    }, {
+      "value" : "8",
+      "label" : "ความมั่นคง และการรักษาความสงบเรียบร้อย",
+      "totalItms" : 103
+    }, {
+      "value" : "9",
+      "label" : "ความเท่าเทียมระหว่างเพศ",
+      "totalItms" : 1
+    }, {
+      "value" : "10",
+      "label" : "คุ้มครองผู้บริโภค",
+      "totalItms" : 63
+    }, {
+      "value" : "11",
+      "label" : "คุ้มครองสัตว์",
+      "totalItms" : 23
+    }, {
+      "value" : "12",
+      "label" : "จัดซื้อจัดจ้างภาครัฐ",
+      "totalItms" : 10
+    }, {
+      "value" : "13",
+      "label" : "ทรัพยากรธรรมชาติ พลังงาน และสิ่งแวดล้อม",
+      "totalItms" : 956
+    }, {
+      "value" : "14",
+      "label" : "ทรัพย์สินทางปัญญา",
+      "totalItms" : 17
+    }, {
+      "value" : "15",
+      "label" : "ที่ดิน",
+      "totalItms" : 532
+    }, {
+      "value" : "16",
+      "label" : "ที่อยู่อาศัย และการพัฒนาเมือง",
+      "totalItms" : 74
+    }, {
+      "value" : "17",
+      "label" : "ทุจริต และประพฤติมิชอบ",
+      "totalItms" : 10
+    }, {
+      "value" : "18",
+      "label" : "ธง ตราแผ่นดิน และเครื่องหมายราชการ",
+      "totalItms" : 10
+    }, {
+      "value" : "19",
+      "label" : "ธนาคาร สถาบันการเงิน และตลาดหลักทรัพย์",
+      "totalItms" : 370
+    }, {
+      "value" : "20",
+      "label" : "ธุรกิจ และพาณิชยกรรม",
+      "totalItms" : 234
+    }, {
+      "value" : "21",
+      "label" : "พนัน",
+      "totalItms" : 4
+    }, {
+      "value" : "22",
+      "label" : "ภาษีอากร และค่าธรรมเนียม",
+      "totalItms" : 191
+    }, {
+      "value" : "23",
+      "label" : "รัฐวิสาหกิจ",
+      "totalItms" : 149
+    }, {
+      "value" : "24",
+      "label" : "วัฒนธรรม กีฬา และการท่องเที่ยว",
+      "totalItms" : 70
+    }, {
+      "value" : "25",
+      "label" : "วิชาชีพ",
+      "totalItms" : 43
+    }, {
+      "value" : "26",
+      "label" : "วิทยาศาสตร์ และเทคโนโลยี",
+      "totalItms" : 90
+    }, {
+      "value" : "27",
+      "label" : "ศาล และกระบวนการยุติธรรม",
+      "totalItms" : 277
+    }, {
+      "value" : "28",
+      "label" : "ศาสนา",
+      "totalItms" : 8
+    }, {
+      "value" : "29",
+      "label" : "ศึกษา",
+      "totalItms" : 281
+    }, {
+      "value" : "30",
+      "label" : "สนธิสัญญา และความสัมพันธ์ระหว่างประเทศ",
+      "totalItms" : 74
+    }, {
+      "value" : "31",
+      "label" : "สมาคมและมูลนิธิ",
+      "totalItms" : 19
+    }, {
+      "value" : "32",
+      "label" : "สวัสดิการสังคม",
+      "totalItms" : 267
+    }, {
+      "value" : "33",
+      "label" : "สัญชาติ",
+      "totalItms" : 16
+    }, {
+      "value" : "34",
+      "label" : "สาธารณสุข",
+      "totalItms" : 138
+    }, {
+      "value" : "35",
+      "label" : "องค์การระหว่างประเทศ",
+      "totalItms" : 34
+    }, {
+      "value" : "36",
+      "label" : "อาวุธ",
+      "totalItms" : 16
+    }, {
+      "value" : "37",
+      "label" : "อุตสาหกรรม",
+      "totalItms" : 246
+    }, {
+      "value" : "38",
+      "label" : "เกษตร และสหกรณ์",
+      "totalItms" : 532
+    }, {
+      "value" : "39",
+      "label" : "เครื่องราชอิสริยาภรณ์",
+      "totalItms" : 50
+    }, {
+      "value" : "40",
+      "label" : "เครื่องแบบ เสื้อครุย",
+      "totalItms" : 19
+    }, {
+      "value" : "41",
+      "label" : "เอกสิทธิ์และความคุ้มกัน",
+      "totalItms" : 41
+    }, {
+      "value" : "42",
+      "label" : "แรงงาน",
+      "totalItms" : 116
+    }, {
+      "value" : "43",
+      "label" : "โทรคมนาคม และการสื่อสาร",
+      "totalItms" : 21
+    } ]
+  }
+}

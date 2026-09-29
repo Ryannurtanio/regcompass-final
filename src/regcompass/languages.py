@@ -1,0 +1,201 @@
+"""What a Document's Language decides: the OCR language data and the Gate tier.
+
+The organizer records one Language per Document from a fixed list
+(`contracts.ORGANIZER_LANGUAGES`). Two mechanical choices hang off it and
+nothing else in the pipeline branches on language:
+
+  * **OCR**: which vendored traineddata files tesseract loads. Every non-English
+    string keeps `eng` as a secondary language because official gazettes carry
+    English headers, act numbers and Latin digits beside the national script.
+  * **The Gate's keyword tier**: `gate.legal_tokens` is an English tokenizer
+    (`[a-z][a-z0-9-]+`) with an English stopword list, and the Indicator keyword
+    vocabularies are English phrases. Against a Lao or Thai page it produces no
+    tokens at all, and against an Indonesian page it produces tokens that score
+    zero. Since the Gate merges its two tiers with AND, leaving the keyword tier
+    switched on for such a Document excludes every chunk and the Run yields
+    nothing. Those Documents are shortlisted by meaning alone.
+
+Malay and Portuguese both collapse to "Other" on the organizer's list, so the
+tesseract map cannot key on the Language alone: it takes the Economy as a
+second key. "Other" in Malaysia means Malay, which is why MY keeps the
+`eng+msa` string it has always used, and Malaysia stays on the English keyword
+path because its acts are English-bodied with Malay provisions beside them.
+
+Script-specific tokenizers and keyword translation stay out of scope (the Q18
+decision); this module only decides which existing lane a Document takes.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+# The tesseract language string per organizer Language, for the traineddata
+# vendored under vendor/tessdata. A Language absent from this map has no
+# vendored data and falls back to DEFAULT_TESSERACT with a note; adding one is
+# a traineddata file, a row here, and a row in the README artifact table.
+TESSERACT_BY_LANGUAGE: dict[str, str] = {
+    "English": "eng",
+    "Bahasa Indonesia": "ind+eng",
+    "Thai": "tha+eng",
+    "Lao": "lao+eng",
+    "Russian": "rus+eng",
+}
+
+DEFAULT_TESSERACT = "eng"
+
+# Malaysia's own string, unchanged since M11: its acts are English with Malay
+# provisions, and the repro stream is pinned to these exact bytes.
+MALAYSIA_ECONOMY = "MY"
+MALAYSIA_TESSERACT = "eng+msa"
+_MALAYSIA_DEFAULT_LANGUAGES = (None, "English", "Other")
+
+# Languages written in the Latin alphabet. `ocr.dictionary_hit_rate` counts hits
+# against an English legal wordlist, so it only means something for these.
+LATIN_SCRIPT_LANGUAGES = frozenset({"English", "Bahasa Indonesia", "Vietnamese", "Other"})
+
+# Languages whose script the OCR escalation can actually read. `RapidOCR()` with
+# its default models covers Latin text and Chinese; it has no Lao, Thai,
+# Devanagari or Cyrillic model, and re-running one of those through it can only
+# make the stream worse. This is a SEPARATE question from the dictionary proxy:
+# a Chinese scan has no English dictionary hit rate but escalating it is exactly
+# the right move, since tesseract is reading it without Chinese traineddata.
+RAPIDOCR_LANGUAGES = LATIN_SCRIPT_LANGUAGES | {"Chinese"}
+
+# The Languages whose Documents keep the Gate's English keyword tier. Everything
+# else on the organizer's list goes meaning-only, so a Language added to the
+# list later defaults to the lane that cannot silently return nothing.
+KEYWORD_TIER_LANGUAGES = frozenset({"English", "Other"})
+
+# Share of a Document's letters that may be non-Latin before the keyword tier is
+# dropped whatever the Language says. A page of English act text quoting a few
+# words of national script stays under it; a scanned Lao statute is over 0.9.
+NON_LATIN_SHARE_MAX = 0.2
+
+# Deterministic cap on the script test: the leading characters of the stream are
+# enough to tell a Lao statute from an English one, and a 200k-character scan of
+# a 200-page act on every Document is waste.
+_SCRIPT_SAMPLE_CHARS = 200_000
+
+
+def tesseract_languages(language: str | None, economy: str | None = None) -> str:
+    """The `-l` string for tesseract for one Document.
+
+    `language` is the Document's Language as the organizer spells it (None when
+    a Document predates the column). `economy` disambiguates "Other"."""
+    if economy == MALAYSIA_ECONOMY and language in _MALAYSIA_DEFAULT_LANGUAGES:
+        return MALAYSIA_TESSERACT
+    if language is None:
+        return DEFAULT_TESSERACT
+    return TESSERACT_BY_LANGUAGE.get(language, DEFAULT_TESSERACT)
+
+
+def tesseract_language_note(language: str | None, economy: str | None = None) -> str | None:
+    """A one-line reason when a Language has no vendored traineddata and OCR
+    falls back to English, or None when the mapping is exact. The caller puts it
+    on the Run's progress stream so a fallback is never silent."""
+    if language is None or language in TESSERACT_BY_LANGUAGE:
+        return None
+    if economy == MALAYSIA_ECONOMY and language in _MALAYSIA_DEFAULT_LANGUAGES:
+        return None
+    return (
+        f"Language {language!r} has no vendored tesseract data;"
+        f" OCR falls back to {DEFAULT_TESSERACT}"
+    )
+
+
+def is_latin_script_language(language: str | None) -> bool:
+    """Whether the English dictionary-hit proxy means anything for this
+    Language. None (Language not recorded) is treated as Latin, which is what
+    every Document did before the column was threaded through."""
+    return language is None or language in LATIN_SCRIPT_LANGUAGES
+
+
+def is_english_language(language: str | None) -> bool:
+    """Whether this Document's recorded Language IS English, on the organizers'
+    spelling plus the two ISO codes a database row can carry. None is not an
+    answer either way: a Document with no Language recorded makes no claim, and
+    the caller decides from the text instead of assuming English and skipping
+    the Gloss a non-English quote needs."""
+    return (language or "").strip().lower() in {"english", "en", "eng"}
+
+
+def has_vendored_tessdata(language: str | None, economy: str | None = None) -> bool:
+    """Whether tesseract will read this Document with data for its own script,
+    rather than falling back to English because nothing was vendored for it."""
+    return tesseract_language_note(language, economy) is None
+
+
+@dataclass(frozen=True)
+class OcrPolicy:
+    """What the OCR quality ladder may do for one Document's script. The three
+    answers travel together because they are one decision made three ways, and
+    they are NOT the same answer: a Chinese scan skips the English dictionary
+    proxy, still escalates to RapidOCR (which reads Chinese), and is flagged for
+    a human because no Chinese traineddata is vendored."""
+
+    dictionary_proxy: bool  # the English wordlist hit rate is meaningful
+    rapidocr_escalation: bool  # RapidOCR has a model for this script
+    manual_review_reason: str | None  # set = force manual_review, with the why
+
+
+def ocr_policy(language: str | None, economy: str | None = None) -> OcrPolicy:
+    """The OCR quality ladder for one Document's Language."""
+    reason = None
+    if not has_vendored_tessdata(language, economy):
+        reason = (
+            f"no tesseract language data is vendored for Language {language!r},"
+            f" so the page was read as {DEFAULT_TESSERACT}: the text is not"
+            " trustworthy without a human check"
+        )
+    return OcrPolicy(
+        dictionary_proxy=is_latin_script_language(language),
+        rapidocr_escalation=language is None or language in RAPIDOCR_LANGUAGES,
+        manual_review_reason=reason,
+    )
+
+
+def non_latin_share(text: str) -> float:
+    """Share of the text's letters written outside the Latin alphabet.
+
+    Punctuation, digits and whitespace are ignored: a statute is mostly
+    numbering either way. Latin Extended (accents) and Latin Extended Additional
+    (Vietnamese) count as Latin, so a Vietnamese Document is not mistaken for a
+    non-Latin one by this test alone."""
+    latin = non_latin = 0
+    for ch in text[:_SCRIPT_SAMPLE_CHARS]:
+        if not ch.isalpha():
+            continue
+        if ch.isascii() or "À" <= ch <= "ɏ" or "Ḁ" <= ch <= "ỿ":
+            latin += 1
+        else:
+            non_latin += 1
+    total = latin + non_latin
+    return non_latin / total if total else 0.0
+
+
+def keyword_tier_applies(
+    language: str | None,
+    text: str | None = None,
+    non_latin_share_max: float = NON_LATIN_SHARE_MAX,
+) -> bool:
+    """Whether the Gate's English keyword tier can read this Document.
+
+    The Language decides first, the text second: a Document labelled English
+    whose stream is Lao (a portal default that nobody corrected) still takes the
+    meaning-only lane, because the label is a claim and the bytes are evidence.
+
+    The test does not run the other way, and deliberately: an Indonesian
+    Document is Latin-script and would pass a script test while the English
+    keyword vocabulary still scores it zero. So Lao PDR's official English PDFs,
+    carrying the Economy's default Language of Lao, take the meaning-only lane
+    too. That is a trade, not a free win: the two rules rank by different
+    things, so a chunk that ranks in an Indicator's bm25 top-k but outside the
+    Pillar's cosine top-k passes the two-tier Gate and fails this one. The
+    budget is identical either way (the same gate_bm25_top_k caps both), and
+    meaning-only never returns nothing, which is what the two-tier rule does on
+    a script it cannot tokenize."""
+    if language is not None and language not in KEYWORD_TIER_LANGUAGES:
+        return False
+    if text and non_latin_share(text) > non_latin_share_max:
+        return False
+    return True

@@ -1,0 +1,257 @@
+
+=== 2026-09-23T04:12:39Z SG P7 engine-a
+$ <repo>/.venv/bin/regcompass run --economy SG --pillar 7 --engine engine-a --db <repo>/data/regcompass.db --data-dir <repo>/data
+regcompass 0.1.0 | run economy=SG pillars=(7,) engine=engine-a
+M0 corpus | SG: 10 Document(s) in the Corpus; a Run reads them and makes no
+request
+M1 extract | doc_sg_sso_agc_gov_sg_Act_BA1970: reused the stored extraction
+(pdfplumber-0.11.10, 432,007 chars, ocr=False); the Corpus had already read this
+Document
+M2 ocr | doc_sg_sso_agc_gov_sg_Act_BA1970: skipped, no OCR needed: this Document
+carries its own readable text layer
+M4 chunk | doc_sg_sso_agc_gov_sg_Act_BA1970: 188 chunks, style=sg_num_dot,
+fallback=False (0.0s)
+M5 gate | doc_sg_sso_agc_gov_sg_Act_BA1970: 76 gate-passed of 920 (chunk,
+indicator) pairs, pillars (7,) (bge-m3 + bm25, 16.4s)
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_BA1970: mapping 76 pairs through
+Engine engine-a, concurrency 4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_BA1970: 25/76 pairs, concurrency
+4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_BA1970: 50/76 pairs, concurrency
+4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_BA1970: 75/76 pairs, concurrency
+4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_BA1970: 76/76 pairs, concurrency
+4
+M6/M7 | doc_sg_sso_agc_gov_sg_Act_BA1970: 11 passed, 62 no-evidence, 3 dropped
+so far
+M3 gloss | doc_sg_sso_agc_gov_sg_Act_BA1970: skipped, no verified quote needs an
+English rendering
+M1 extract | doc_sg_sso_agc_gov_sg_Act_CA2018: reused the stored extraction
+(pdfplumber-0.11.10, 208,598 chars, ocr=False); the Corpus had already read this
+Document
+M2 ocr | doc_sg_sso_agc_gov_sg_Act_CA2018: skipped, no OCR needed: this Document
+carries its own readable text layer
+M4 chunk | doc_sg_sso_agc_gov_sg_Act_CA2018: 79 chunks, style=sg_num_dot,
+fallback=False (0.0s)
+M5 gate | doc_sg_sso_agc_gov_sg_Act_CA2018: 100 gate-passed of 370 (chunk,
+indicator) pairs, pillars (7,) (bge-m3 + bm25, 9.2s)
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_CA2018: mapping 100 pairs through
+Engine engine-a, concurrency 4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_CA2018: 25/100 pairs, concurrency
+4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_CA2018: 50/100 pairs, concurrency
+4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_CA2018: 75/100 pairs, concurrency
+4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_CA2018: 100/100 pairs,
+concurrency 4
+M6/M7 | doc_sg_sso_agc_gov_sg_Act_CA2018: 41 passed, 130 no-evidence, 5 dropped
+so far
+M3 gloss | doc_sg_sso_agc_gov_sg_Act_CA2018: skipped, no verified quote needs an
+English rendering
+M1 extract | doc_sg_sso_agc_gov_sg_Act_CMA1993: reused the stored extraction
+(pdfplumber-0.11.10, 44,837 chars, ocr=False); the Corpus had already read this
+Document
+M2 ocr | doc_sg_sso_agc_gov_sg_Act_CMA1993: skipped, no OCR needed: this
+Document carries its own readable text layer
+M4 chunk | doc_sg_sso_agc_gov_sg_Act_CMA1993: 27 chunks, style=sg_num_dot,
+fallback=False (0.0s)
+M5 gate | doc_sg_sso_agc_gov_sg_Act_CMA1993: 80 gate-passed of 110 (chunk,
+indicator) pairs, pillars (7,) (bge-m3 + bm25, 4.1s)
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_CMA1993: mapping 80 pairs through
+Engine engine-a, concurrency 4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_CMA1993: 25/80 pairs, concurrency
+4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_CMA1993: 50/80 pairs, concurrency
+4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_CMA1993: 75/80 pairs, concurrency
+4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_CMA1993: 80/80 pairs, concurrency
+4
+M6/M7 | doc_sg_sso_agc_gov_sg_Act_CMA1993: 53 passed, 197 no-evidence, 6 dropped
+so far
+M3 gloss | doc_sg_sso_agc_gov_sg_Act_CMA1993: skipped, no verified quote needs
+an English rendering
+M1 extract | doc_sg_sso_agc_gov_sg_Act_CPC2010: reused the stored extraction
+(pdfplumber-0.11.10, 955,960 chars, ocr=False); the Corpus had already read this
+Document
+M2 ocr | doc_sg_sso_agc_gov_sg_Act_CPC2010: skipped, no OCR needed: this
+Document carries its own readable text layer
+M4 chunk | doc_sg_sso_agc_gov_sg_Act_CPC2010: 457 chunks, style=sg_num_dot,
+fallback=False (0.1s)
+M5 gate | doc_sg_sso_agc_gov_sg_Act_CPC2010: 94 gate-passed of 2260 (chunk,
+indicator) pairs, pillars (7,) (bge-m3 + bm25, 58.8s)
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_CPC2010: mapping 94 pairs through
+Engine engine-a, concurrency 4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_CPC2010: 25/94 pairs, concurrency
+4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_CPC2010: 50/94 pairs, concurrency
+4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_CPC2010: 75/94 pairs, concurrency
+4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_CPC2010: 94/94 pairs, concurrency
+4
+M6/M7 | doc_sg_sso_agc_gov_sg_Act_CPC2010: 63 passed, 281 no-evidence, 6 dropped
+so far
+M3 gloss | doc_sg_sso_agc_gov_sg_Act_CPC2010: skipped, no verified quote needs
+an English rendering
+M1 extract | doc_sg_sso_agc_gov_sg_Act_CoA1967: reused the stored extraction
+(pdfplumber-0.11.10, 1,079,859 chars, ocr=False); the Corpus had already read
+this Document
+M2 ocr | doc_sg_sso_agc_gov_sg_Act_CoA1967: skipped, no OCR needed: this
+Document carries its own readable text layer
+M4 chunk | doc_sg_sso_agc_gov_sg_Act_CoA1967: 492 chunks, style=sg_num_dot,
+fallback=False (0.1s)
+M5 gate | doc_sg_sso_agc_gov_sg_Act_CoA1967: 86 gate-passed of 2435 (chunk,
+indicator) pairs, pillars (7,) (bge-m3 + bm25, 89.2s)
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_CoA1967: mapping 86 pairs through
+Engine engine-a, concurrency 4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_CoA1967: 25/86 pairs, concurrency
+4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_CoA1967: 50/86 pairs, concurrency
+4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_CoA1967: 75/86 pairs, concurrency
+4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_CoA1967: 86/86 pairs, concurrency
+4
+M6/M7 | doc_sg_sso_agc_gov_sg_Act_CoA1967: 75 passed, 354 no-evidence, 7 dropped
+so far
+M3 gloss | doc_sg_sso_agc_gov_sg_Act_CoA1967: skipped, no verified quote needs
+an English rendering
+M1 extract | doc_sg_sso_agc_gov_sg_Act_ETA2010: reused the stored extraction
+(pdfplumber-0.11.10, 97,138 chars, ocr=False); the Corpus had already read this
+Document
+M2 ocr | doc_sg_sso_agc_gov_sg_Act_ETA2010: skipped, no OCR needed: this
+Document carries its own readable text layer
+M4 chunk | doc_sg_sso_agc_gov_sg_Act_ETA2010: 88 chunks, style=sg_num_dot,
+fallback=False (0.0s)
+M5 gate | doc_sg_sso_agc_gov_sg_Act_ETA2010: 95 gate-passed of 415 (chunk,
+indicator) pairs, pillars (7,) (bge-m3 + bm25, 3.8s)
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_ETA2010: mapping 95 pairs through
+Engine engine-a, concurrency 4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_ETA2010: 25/95 pairs, concurrency
+4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_ETA2010: 50/95 pairs, concurrency
+4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_ETA2010: 75/95 pairs, concurrency
+4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_ETA2010: 95/95 pairs, concurrency
+4
+M6/M7 | doc_sg_sso_agc_gov_sg_Act_ETA2010: 89 passed, 433 no-evidence, 9 dropped
+so far
+M3 gloss | doc_sg_sso_agc_gov_sg_Act_ETA2010: skipped, no verified quote needs
+an English rendering
+M1 extract | doc_sg_sso_agc_gov_sg_Act_EmA1968: reused the stored extraction
+(pdfplumber-0.11.10, 224,030 chars, ocr=False); the Corpus had already read this
+Document
+M2 ocr | doc_sg_sso_agc_gov_sg_Act_EmA1968: skipped, no OCR needed: this
+Document carries its own readable text layer
+M4 chunk | doc_sg_sso_agc_gov_sg_Act_EmA1968: 176 chunks, style=sg_num_dot,
+fallback=False (0.0s)
+M5 gate | doc_sg_sso_agc_gov_sg_Act_EmA1968: 78 gate-passed of 855 (chunk,
+indicator) pairs, pillars (7,) (bge-m3 + bm25, 8.2s)
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_EmA1968: mapping 78 pairs through
+Engine engine-a, concurrency 4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_EmA1968: 25/78 pairs, concurrency
+4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_EmA1968: 50/78 pairs, concurrency
+4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_EmA1968: 75/78 pairs, concurrency
+4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_EmA1968: 78/78 pairs, concurrency
+4
+M6/M7 | doc_sg_sso_agc_gov_sg_Act_EmA1968: 94 passed, 506 no-evidence, 9 dropped
+so far
+M3 gloss | doc_sg_sso_agc_gov_sg_Act_EmA1968: skipped, no verified quote needs
+an English rendering
+M1 extract | doc_sg_sso_agc_gov_sg_Act_ITA1947: reused the stored extraction
+(pdfplumber-0.11.10, 2,266,455 chars, ocr=False); the Corpus had already read
+this Document
+M2 ocr | doc_sg_sso_agc_gov_sg_Act_ITA1947: skipped, no OCR needed: this
+Document carries its own readable text layer
+M4 chunk | doc_sg_sso_agc_gov_sg_Act_ITA1947: 354 chunks, style=sg_num_dot,
+fallback=False (0.2s)
+M5 gate | doc_sg_sso_agc_gov_sg_Act_ITA1947: 67 gate-passed of 1745 (chunk,
+indicator) pairs, pillars (7,) (bge-m3 + bm25, 38.8s)
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_ITA1947: mapping 67 pairs through
+Engine engine-a, concurrency 4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_ITA1947: 25/67 pairs, concurrency
+4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_ITA1947: 50/67 pairs, concurrency
+4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_ITA1947: 67/67 pairs, concurrency
+4
+M6/M7 | doc_sg_sso_agc_gov_sg_Act_ITA1947: 107 passed, 560 no-evidence, 9
+dropped so far
+M3 gloss | doc_sg_sso_agc_gov_sg_Act_ITA1947: skipped, no verified quote needs
+an English rendering
+M1 extract | doc_sg_sso_agc_gov_sg_Act_PDPA2012: reused the stored extraction
+(pdfplumber-0.11.10, 202,331 chars, ocr=False); the Corpus had already read this
+Document
+M2 ocr | doc_sg_sso_agc_gov_sg_Act_PDPA2012: skipped, no OCR needed: this
+Document carries its own readable text layer
+M4 chunk | doc_sg_sso_agc_gov_sg_Act_PDPA2012: 108 chunks, style=sg_num_dot,
+fallback=False (0.0s)
+M5 gate | doc_sg_sso_agc_gov_sg_Act_PDPA2012: 97 gate-passed of 520 (chunk,
+indicator) pairs, pillars (7,) (bge-m3 + bm25, 16.3s)
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_PDPA2012: mapping 97 pairs
+through Engine engine-a, concurrency 4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_PDPA2012: 25/97 pairs,
+concurrency 4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_PDPA2012: 50/97 pairs,
+concurrency 4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_PDPA2012: 75/97 pairs,
+concurrency 4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_PDPA2012: 97/97 pairs,
+concurrency 4
+M6/M7 | doc_sg_sso_agc_gov_sg_Act_PDPA2012: 140 passed, 624 no-evidence, 9
+dropped so far
+M3 gloss | doc_sg_sso_agc_gov_sg_Act_PDPA2012: skipped, no verified quote needs
+an English rendering
+M1 extract | doc_sg_sso_agc_gov_sg_Act_TA1999: reused the stored extraction
+(pdfplumber-0.11.10, 250,990 chars, ocr=False); the Corpus had already read this
+Document
+M2 ocr | doc_sg_sso_agc_gov_sg_Act_TA1999: skipped, no OCR needed: this Document
+carries its own readable text layer
+M4 chunk | doc_sg_sso_agc_gov_sg_Act_TA1999: 103 chunks, style=sg_num_dot,
+fallback=False (0.0s)
+M5 gate | doc_sg_sso_agc_gov_sg_Act_TA1999: 97 gate-passed of 490 (chunk,
+indicator) pairs, pillars (7,) (bge-m3 + bm25, 7.8s)
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_TA1999: mapping 97 pairs through
+Engine engine-a, concurrency 4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_TA1999: 25/97 pairs, concurrency
+4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_TA1999: 50/97 pairs, concurrency
+4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_TA1999: 75/97 pairs, concurrency
+4
+M6 map + M7 verify | doc_sg_sso_agc_gov_sg_Act_TA1999: 97/97 pairs, concurrency
+4
+M6/M7 | doc_sg_sso_agc_gov_sg_Act_TA1999: 148 passed, 713 no-evidence, 9 dropped
+so far
+M3 gloss | doc_sg_sso_agc_gov_sg_Act_TA1999: skipped, no verified quote needs an
+English rendering
+M8 reconcile | SG: legal-hierarchy ladder over 148 passed records of Run
+run_20260923T041241Z_a07249
+M8 reconcile | SG: 148 records into 5 groups (61.8s)
+
+SG: 10 documents, 870 gated pairs -> 148 verified, 713 no-evidence, 9 dropped, 5 groups reconciled
+
+Run Record
+  id                 run_20260923T041241Z_a07249
+  Economy            SG
+  Pillars            7
+  Engine             engine-a
+  status             completed
+  started            2026-09-23T04:12:41.445726Z
+  ended              2026-09-23T04:30:56.495707Z
+  duration           1095.0s
+  Documents fetched  0
+  concurrency        4 Mapping call(s) in flight
+  tokens             1,758,633 prompt, 192,053 completion
+  cost               US$0.582190
+  provider cost      US$0.664678
+
+records in <repo>/data/regcompass.db; next: regcompass export --db <repo>/data/regcompass.db
+this Run Record: regcompass runs show run_20260923T041241Z_a07249 --db <repo>/data/regcompass.db

@@ -1,0 +1,242 @@
+{
+  "respHeader" : {
+    "reqId" : "1790043428138",
+    "reqChannel" : "WEB",
+    "reqDtm" : "2026-09-22 10:17:08.138",
+    "serviceName" : "getPublicFoldersByTag",
+    "reqBy" : "unknow",
+    "respRefId" : "20260922091708-40775e79-81c2-4e87-801f-bd8040c8372f",
+    "errorCode" : "SUCCESS",
+    "errorDesc" : "สำเร็จ"
+  },
+  "respBody" : {
+    "data" : [ {
+      "indexId" : 627,
+      "indexName" : "พระราชบัญญัติการบริหารงานและการให้บริการภาครัฐผ่านระบบดิจิทัล พ.ศ. 2562",
+      "totalItems" : 1,
+      "data" : [ {
+        "lawCategoryId" : "1B",
+        "lawCategoryName" : "พระราชบัญญัติ",
+        "timelineItems" : 1
+      } ]
+    }, {
+      "indexId" : 188,
+      "indexName" : "พระราชบัญญัติการพัฒนาดิจิทัลเพื่อเศรษฐกิจและสังคม พ.ศ. ๒๕๖๐",
+      "totalItems" : 1,
+      "data" : [ {
+        "lawCategoryId" : "1B",
+        "lawCategoryName" : "พระราชบัญญัติ",
+        "timelineItems" : 1
+      } ]
+    }, {
+      "indexId" : 199,
+      "indexName" : "พระราชบัญญัติการรักษาความมั่นคงปลอดภัยไซเบอร์ พ.ศ. ๒๕๖๒",
+      "totalItems" : 1,
+      "data" : [ {
+        "lawCategoryId" : "1B",
+        "lawCategoryName" : "พระราชบัญญัติ",
+        "timelineItems" : 1
+      } ]
+    }, {
+      "indexId" : 196,
+      "indexName" : "พระราชบัญญัติการส่งเสริมวิทยาศาสตร์ การวิจัยและนวัตกรรม พ.ศ. ๒๕๖๒",
+      "totalItems" : 1,
+      "data" : [ {
+        "lawCategoryId" : "1B",
+        "lawCategoryName" : "พระราชบัญญัติ",
+        "timelineItems" : 2
+      } ]
+    }, {
+      "indexId" : 629,
+      "indexName" : "พระราชบัญญัติความมั่นคงด้านวัคซีนแห่งชาติ พ.ศ. 2561",
+      "totalItems" : 1,
+      "data" : [ {
+        "lawCategoryId" : "1B",
+        "lawCategoryName" : "พระราชบัญญัติ",
+        "timelineItems" : 1
+      } ]
+    }, {
+      "indexId" : 977,
+      "indexName" : "พระราชบัญญัติพลังงานนิวเคลียร์เพื่อสันติ พ.ศ. 2559",
+      "totalItems" : 58,
+      "data" : [ {
+        "lawCategoryId" : "2B",
+        "lawCategoryName" : "กฎกระทรวง",
+        "timelineItems" : 57
+      }, {
+        "lawCategoryId" : "1B",
+        "lawCategoryName" : "พระราชบัญญัติ",
+        "timelineItems" : 2
+      } ]
+    }, {
+      "indexId" : 974,
+      "indexName" : "พระราชบัญญัติพัฒนาระบบมาตรวิทยาแห่งชาติ พ.ศ. 2540",
+      "totalItems" : 1,
+      "data" : [ {
+        "lawCategoryId" : "1B",
+        "lawCategoryName" : "พระราชบัญญัติ",
+        "timelineItems" : 2
+      } ]
+    }, {
+      "indexId" : 973,
+      "indexName" : "พระราชบัญญัติพัฒนาวิทยาศาสตร์และเทคโนโลยี พ.ศ. 2534",
+      "totalItems" : 1,
+      "data" : [ {
+        "lawCategoryId" : "1B",
+        "lawCategoryName" : "พระราชบัญญัติ",
+        "timelineItems" : 1
+      } ]
+    }, {
+      "indexId" : 367,
+      "indexName" : "พระราชบัญญัติราชวิทยาลัยจุฬาภรณ์ พ.ศ. 2559",
+      "totalItems" : 1,
+      "data" : [ {
+        "lawCategoryId" : "1B",
+        "lawCategoryName" : "พระราชบัญญัติ",
+        "timelineItems" : 3
+      } ]
+    }, {
+      "indexId" : 499,
+      "indexName" : "พระราชบัญญัติว่าด้วยการกระทำความผิดเกี่ยวกับคอมพิวเตอร์ พ.ศ. 2550",
+      "totalItems" : 1,
+      "data" : [ {
+        "lawCategoryId" : "1B",
+        "lawCategoryName" : "พระราชบัญญัติ",
+        "timelineItems" : 2
+      } ]
+    }, {
+      "indexId" : 598,
+      "indexName" : "พระราชบัญญัติว่าด้วยธุรกรรมทางอิเล็กทรอนิกส์ พ.ศ. 2544",
+      "totalItems" : 3,
+      "data" : [ {
+        "lawCategoryId" : "2A",
+        "lawCategoryName" : "พระราชกฤษฎีกา",
+        "timelineItems" : 2
+      }, {
+        "lawCategoryId" : "1B",
+        "lawCategoryName" : "พระราชบัญญัติ",
+        "timelineItems" : 4
+      } ]
+    }, {
+      "indexId" : 1555,
+      "indexName" : "พระราชบัญญัติสถาบันวิจัยวิทยาศาสตร์ประยุกต์แห่งประเทศไทย พ.ศ. 2506 (ยกเลิก)   ",
+      "totalItems" : 1,
+      "data" : [ {
+        "lawCategoryId" : "1B",
+        "lawCategoryName" : "พระราชบัญญัติ",
+        "timelineItems" : 1
+      } ]
+    }, {
+      "indexId" : 394,
+      "indexName" : "พระราชบัญญัติสถาบันวิจัยวิทยาศาสตร์และเทคโนโลยีแห่งประเทศไทย พ.ศ. 2522",
+      "totalItems" : 1,
+      "data" : [ {
+        "lawCategoryId" : "1B",
+        "lawCategoryName" : "พระราชบัญญัติ",
+        "timelineItems" : 2
+      } ]
+    }, {
+      "indexId" : 416,
+      "indexName" : "พระราชบัญญัติสถาบันส่งเสริมการสอนวิทยาศาสตร์และเทคโนโลยี พ.ศ. 2541",
+      "totalItems" : 1,
+      "data" : [ {
+        "lawCategoryId" : "1B",
+        "lawCategoryName" : "พระราชบัญญัติ",
+        "timelineItems" : 2
+      } ]
+    }, {
+      "indexId" : 672,
+      "indexName" : "พระราชบัญญัติสถาบันเทคโนโลยีจิตรลดา พ.ศ. 2561\n",
+      "totalItems" : 1,
+      "data" : [ {
+        "lawCategoryId" : "1B",
+        "lawCategoryName" : "พระราชบัญญัติ",
+        "timelineItems" : 1
+      } ]
+    }, {
+      "indexId" : 655,
+      "indexName" : "พระราชบัญญัติสถาบันเทคโนโลยีปทุมวัน พ.ศ. 2547",
+      "totalItems" : 1,
+      "data" : [ {
+        "lawCategoryId" : "1B",
+        "lawCategoryName" : "พระราชบัญญัติ",
+        "timelineItems" : 1
+      } ]
+    }, {
+      "indexId" : 663,
+      "indexName" : "พระราชบัญญัติสถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง พ.ศ. 2551\n",
+      "totalItems" : 1,
+      "data" : [ {
+        "lawCategoryId" : "1B",
+        "lawCategoryName" : "พระราชบัญญัติ",
+        "timelineItems" : 1
+      } ]
+    }, {
+      "indexId" : 435,
+      "indexName" : "พระราชบัญญัติสภานโยบายการอุดมศึกษา วิทยาศาสตร์ วิจัยและนวัตกรรมแห่งชาติ พ.ศ. 2562",
+      "totalItems" : 1,
+      "data" : [ {
+        "lawCategoryId" : "1B",
+        "lawCategoryName" : "พระราชบัญญัติ",
+        "timelineItems" : 2
+      } ]
+    }, {
+      "indexId" : 1081,
+      "indexName" : "พระราชบัญญัติสภาวิจัยแห่งชาติ พ.ศ. 2502",
+      "totalItems" : 1,
+      "data" : [ {
+        "lawCategoryId" : "1B",
+        "lawCategoryName" : "พระราชบัญญัติ",
+        "timelineItems" : 2
+      } ]
+    }, {
+      "indexId" : 430,
+      "indexName" : "พระราชบัญญัติสัตว์เพื่องานทางวิทยาศาสตร์ พ.ศ. 2558",
+      "totalItems" : 7,
+      "data" : [ {
+        "lawCategoryId" : "2B",
+        "lawCategoryName" : "กฎกระทรวง",
+        "timelineItems" : 6
+      }, {
+        "lawCategoryId" : "1B",
+        "lawCategoryName" : "พระราชบัญญัติ",
+        "timelineItems" : 1
+      } ]
+    }, {
+      "indexId" : 388,
+      "indexName" : "พระราชบัญญัติส่งเสริมการใช้ประโยชน์ผลงานวิจัยและนวัตกรรม พ.ศ. 2564",
+      "totalItems" : 1,
+      "data" : [ {
+        "lawCategoryId" : "1B",
+        "lawCategoryName" : "พระราชบัญญัติ",
+        "timelineItems" : 1
+      } ]
+    }, {
+      "indexId" : 659,
+      "indexName" : "พระราชบัญญัติส่งเสริมวิชาชีพวิทยาศาสตร์และเทคโนโลยี พ.ศ. 2551\n",
+      "totalItems" : 3,
+      "data" : [ {
+        "lawCategoryId" : "2B",
+        "lawCategoryName" : "กฎกระทรวง",
+        "timelineItems" : 1
+      }, {
+        "lawCategoryId" : "2A",
+        "lawCategoryName" : "พระราชกฤษฎีกา",
+        "timelineItems" : 2
+      }, {
+        "lawCategoryId" : "1B",
+        "lawCategoryName" : "พระราชบัญญัติ",
+        "timelineItems" : 1
+      } ]
+    }, {
+      "indexId" : 919,
+      "indexName" : "พระราชบัญญัติเทคโนโลยีป้องกันประเทศ พ.ศ. 2562",
+      "totalItems" : 1,
+      "data" : [ {
+        "lawCategoryId" : "1B",
+        "lawCategoryName" : "พระราชบัญญัติ",
+        "timelineItems" : 1
+      } ]
+    } ]
+  }
+}

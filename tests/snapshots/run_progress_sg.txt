@@ -1,0 +1,37 @@
+M0 corpus | SG: 1 Document(s) in the Corpus; a Run reads them and makes no request
+M1 extract | doc_sg_telecommunications_act_1999: pdfplumber-0.11.10, 248,097 chars, ocr=False (Ns)
+M2 ocr | doc_sg_telecommunications_act_1999: skipped, no OCR needed: this Document carries its own readable text layer
+M4 chunk | doc_sg_telecommunications_act_1999: 102 chunks, style=sg_num_dot, fallback=False (Ns)
+M5 gate | doc_sg_telecommunications_act_1999: 180 gate-passed of 882 (chunk, indicator) pairs, pillars (6, 7) (bge-m3 + bm25, Ns)
+M6 map + M7 verify | doc_sg_telecommunications_act_1999: mapping 180 pairs through Engine fake, concurrency 1
+M6 map + M7 verify | doc_sg_telecommunications_act_1999: 25/180 pairs, concurrency 1
+M6 map + M7 verify | doc_sg_telecommunications_act_1999: 50/180 pairs, concurrency 1
+M6 map + M7 verify | doc_sg_telecommunications_act_1999: 75/180 pairs, concurrency 1
+M6 map + M7 verify | doc_sg_telecommunications_act_1999: 100/180 pairs, concurrency 1
+M6 map + M7 verify | doc_sg_telecommunications_act_1999: 125/180 pairs, concurrency 1
+M6 map + M7 verify | doc_sg_telecommunications_act_1999: 150/180 pairs, concurrency 1
+M6 map + M7 verify | doc_sg_telecommunications_act_1999: 175/180 pairs, concurrency 1
+M6 map + M7 verify | doc_sg_telecommunications_act_1999: 180/180 pairs, concurrency 1
+M6/M7 | doc_sg_telecommunications_act_1999: 140 passed, 20 no-evidence, 20 dropped so far
+M3 gloss | doc_sg_telecommunications_act_1999: skipped, nothing to translate: this Document is in English
+M8 reconcile | SG: legal-hierarchy ladder over 140 passed records of Run run_ID
+M8 reconcile | SG: 140 records into 7 groups (Ns)
+-- second Run --
+M0 corpus | SG: 1 Document(s) in the Corpus; a Run reads them and makes no request
+M1 extract | doc_sg_telecommunications_act_1999: reused the stored extraction (pdfplumber-0.11.10, 248,097 chars, ocr=False); the Corpus had already read this Document
+M2 ocr | doc_sg_telecommunications_act_1999: skipped, no OCR needed: this Document carries its own readable text layer
+M4 chunk | doc_sg_telecommunications_act_1999: 102 chunks, style=sg_num_dot, fallback=False (Ns)
+M5 gate | doc_sg_telecommunications_act_1999: 180 gate-passed of 882 (chunk, indicator) pairs, pillars (6, 7) (bge-m3 + bm25, Ns)
+M6 map + M7 verify | doc_sg_telecommunications_act_1999: mapping 180 pairs through Engine fake, concurrency 1
+M6 map + M7 verify | doc_sg_telecommunications_act_1999: 25/180 pairs, concurrency 1
+M6 map + M7 verify | doc_sg_telecommunications_act_1999: 50/180 pairs, concurrency 1
+M6 map + M7 verify | doc_sg_telecommunications_act_1999: 75/180 pairs, concurrency 1
+M6 map + M7 verify | doc_sg_telecommunications_act_1999: 100/180 pairs, concurrency 1
+M6 map + M7 verify | doc_sg_telecommunications_act_1999: 125/180 pairs, concurrency 1
+M6 map + M7 verify | doc_sg_telecommunications_act_1999: 150/180 pairs, concurrency 1
+M6 map + M7 verify | doc_sg_telecommunications_act_1999: 175/180 pairs, concurrency 1
+M6 map + M7 verify | doc_sg_telecommunications_act_1999: 180/180 pairs, concurrency 1
+M6/M7 | doc_sg_telecommunications_act_1999: 140 passed, 20 no-evidence, 20 dropped so far
+M3 gloss | doc_sg_telecommunications_act_1999: skipped, nothing to translate: this Document is in English
+M8 reconcile | SG: legal-hierarchy ladder over 140 passed records of Run run_ID
+M8 reconcile | SG: 140 records into 7 groups (Ns)

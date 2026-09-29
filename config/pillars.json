@@ -1,0 +1,131 @@
+{
+  "_generated_by": "scripts/make_indicators.py",
+  "_comment": "Pillar number -> official pillar name and the indicator IDs under it, read off the Indicator Reference banner rows. The pillar DESCRIPTION the Gate embeds lives in config/pillar_N_keywords.json.",
+  "_default_pillars_note": "default_pillars is what a Run covers when the reviewer names no Pillar. Pillars 6 and 7 are the mandatory pair (the organizer's workbook header), and defaulting to all 12 would turn every unqualified Run into a 61-Indicator sweep nobody asked for.",
+  "default_pillars": [
+    6,
+    7
+  ],
+  "1": {
+    "name": "Tariffs and Trade Defence",
+    "indicator_ids": [
+      "1.4"
+    ]
+  },
+  "2": {
+    "name": "Public Procurement",
+    "indicator_ids": [
+      "2.1",
+      "2.2",
+      "2.3"
+    ]
+  },
+  "3": {
+    "name": "Foreign Direct Investment",
+    "indicator_ids": [
+      "3.1",
+      "3.2",
+      "3.3",
+      "3.4",
+      "3.5"
+    ]
+  },
+  "4": {
+    "name": "Intellectual Property Rights",
+    "indicator_ids": [
+      "4.01",
+      "4.2",
+      "4.3",
+      "4.5",
+      "4.6",
+      "4.9",
+      "4.1"
+    ]
+  },
+  "5": {
+    "name": "Telecom Regulations & Competition",
+    "indicator_ids": [
+      "5.1",
+      "5.2",
+      "5.3",
+      "5.4",
+      "5.5",
+      "5.7"
+    ]
+  },
+  "6": {
+    "name": "Cross-border Data Policies",
+    "indicator_ids": [
+      "6.1",
+      "6.2",
+      "6.3",
+      "6.4",
+      "6.5"
+    ]
+  },
+  "7": {
+    "name": "Domestic Data Protection & Privacy",
+    "indicator_ids": [
+      "7.1",
+      "7.2",
+      "7.3",
+      "7.4",
+      "7.5"
+    ]
+  },
+  "8": {
+    "name": "Internet Intermediary Liability",
+    "indicator_ids": [
+      "8.1",
+      "8.2",
+      "8.3",
+      "8.4"
+    ]
+  },
+  "9": {
+    "name": "Content Access",
+    "indicator_ids": [
+      "9.1",
+      "9.3",
+      "9.4"
+    ]
+  },
+  "10": {
+    "name": "Non-technical NTMs",
+    "indicator_ids": [
+      "10.1",
+      "10.2",
+      "10.3",
+      "10.4"
+    ]
+  },
+  "11": {
+    "name": "Standards and Procedures",
+    "indicator_ids": [
+      "11.1",
+      "11.2",
+      "11.3",
+      "11.4"
+    ]
+  },
+  "12": {
+    "name": "Online Sales and Transactions",
+    "indicator_ids": [
+      "12.01",
+      "12.2",
+      "12.3",
+      "12.4.1",
+      "12.4.2",
+      "12.4.3",
+      "12.4.4",
+      "12.4.5",
+      "12.4.6",
+      "12.4.7",
+      "12.5",
+      "12.6",
+      "12.7",
+      "12.8",
+      "12.9"
+    ]
+  }
+}

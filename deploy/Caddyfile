@@ -1,0 +1,16 @@
+# Caddy in front of RegCompass on a hosted server (docker-compose.vps.yml).
+#
+# REGCOMPASS_DOMAIN is the site address. A domain name (regcompass.example.org)
+# makes Caddy fetch and renew a certificate by itself, so the site is HTTPS
+# with nothing else to do; the domain's A record must already point at this
+# server and ports 80 and 443 must be open. ":80" serves plain HTTP on the
+# server's IP address instead, with no certificate (the fallback when there is
+# no domain yet).
+{$REGCOMPASS_DOMAIN::80} {
+	encode gzip
+	# The app asks for the login itself (REGCOMPASS_AUTH_USER and
+	# REGCOMPASS_AUTH_PASSWORD); Caddy only carries the traffic. The Run
+	# progress log is a server-sent event stream, which reverse_proxy passes
+	# through without buffering.
+	reverse_proxy regcompass:8000
+}

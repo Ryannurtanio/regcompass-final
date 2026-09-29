@@ -1,0 +1,60 @@
+{
+ "derived_scores": {
+  "AU": {
+   "6.1": 0.0,
+   "6.2": 1.0,
+   "6.3": 1.0,
+   "6.4": 1.0,
+   "7.1": 1.0,
+   "7.2": 0.0,
+   "7.3": 1.0,
+   "7.4": 0.0,
+   "7.5": 1.0
+  },
+  "MY": {
+   "6.1": 0.0,
+   "6.2": 1.0,
+   "6.3": 1.0,
+   "6.4": 1.0,
+   "7.1": 0.0,
+   "7.2": 0.0,
+   "7.3": 1.0,
+   "7.4": 0.0,
+   "7.5": 1.0
+  },
+  "SG": {
+   "6.1": 1.0,
+   "6.2": 1.0,
+   "6.3": 1.0,
+   "6.4": 1.0,
+   "7.1": 0.0,
+   "7.2": 0.0,
+   "7.3": 1.0,
+   "7.4": 1.0,
+   "7.5": 1.0
+  }
+ },
+ "score_direction": "inverse (0 = open, 1 = restrictive)",
+ "score_method": "presence-based: a verified controlling provision yields the SCORE_IF_PRESENT value for its indicator (7.1/7.2 invert: the presence of a framework is openness); absence yields the complement. Sectoral 0.5 granularity is a human-review refinement.",
+ "n_rows": 96,
+ "n_substantive": 93,
+ "n_absence": 3,
+ "coverage_stats": {
+  "SG": {
+   "law": "Telecommunications Act 1999",
+   "sections": 98,
+   "pairs_gated": 136
+  },
+  "MY": {
+   "law": "Personal Data Protection Act 2010",
+   "sections": 146,
+   "pairs_gated": 166
+  },
+  "AU": {
+   "law": "Criminal Code Act 1995",
+   "sections": 536,
+   "pairs_gated": 145
+  }
+ },
+ "battery": "green"
+}

@@ -1,0 +1,11 @@
+{
+  "_comment": "Human review-rejected records excluded at export (mapping_id -> entry). The frozen checkpoints and audit trails keep the full record; only the shipped export excludes the row, and supplementary.json discloses every applied drop. Entries matching no record in a given run are ignored (this file is shared by fixture-scale and corpus-scale exports).",
+  "drops": [
+    {
+      "mapping_id": "doc_sg_sso_agc_gov_sg_Act_CoA1967:c0370::6.4",
+      "reason": "Mapping Rationale asserts data-transfer scope the quoted provision does not state (generic foreign-entity registration boilerplate, s. 359(2)); mapper overreach, no score path (SG 6.4 scores via PDPA s. 26(1)).",
+      "reviewer": "team quality review",
+      "date": "2026-07-07"
+    }
+  ]
+}

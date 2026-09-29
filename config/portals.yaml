@@ -1,0 +1,343 @@
+# Official legislation portals, one per Economy the tool can be pointed at: the
+# three Round 1 Economies plus every Economy in the final-round live-test pool.
+# The hosts list is a WHITELIST: every submission Source URL must resolve to one
+# of these hosts (M9 gate battery). An EMPTY hosts list is allowed only when the
+# strategy is `manual`, and it means exactly what it says: no host has been
+# verified for this Economy yet, so nothing can be crawled and a Document
+# arrives through "Add document" with its own Source URL.
+# Per-portal endpoints, URL shapes, and verified quirks (volume-0 URLs, the
+# doubled-path bug, kategori scope, WAF behavior): docs/PORTALS.md.
+#
+# Fields:
+#   official_name  the organizer Coverage Matrix spelling; this is the value
+#                  written into the submission's Economy column.
+#   un_name        the UN member-state name, given ONLY where it differs from
+#                  the Coverage Matrix spelling.
+#   languages      the Document languages to expect, from the organizer's own
+#                  11-value list (English, Thai, Vietnamese, Bahasa Indonesia,
+#                  Chinese, Hindi, Kazakh, Russian, Lao, Mongolian, Other).
+#                  The first entry is the default for this Economy.
+#   strategy       the Discovery plan, a name in crawl.STRATEGIES. `manual`
+#                  means Discovery does not fetch for this Economy at all.
+#   manual_only    true only where the Portal's own site rules forbid automated
+#                  collection, so Discovery may NEVER run here and every
+#                  Document arrives through "Add document". Most `manual`
+#                  entries below are merely waiting for a Discovery strategy
+#                  of their own and will lose it; a manual_only one never will.
+#   min_interval_seconds
+#                  the politeness FLOOR in seconds between two requests to this
+#                  Portal's host. Default 1.0. A published robots.txt
+#                  crawl-delay RAISES it and never lowers it, so this is the
+#                  least we promise, not what we aim for.
+#   robots_unreachable_since
+#                  the first date (YYYY-MM-DD) a person checked this Portal by
+#                  hand and found its robots.txt answering a server error. A
+#                  5xx is "unavailable", not "no rules", so Discovery refuses
+#                  while it lasts; RFC 9309 section 2.3.1.4 lets a crawler
+#                  treat a Portal that has stayed that way for 30 days as
+#                  publishing no rules, and this date is what starts that
+#                  clock. With no date recorded the refusal simply stands.
+#   robots_unavailable_policy
+#                  what an unavailable robots.txt (a 5xx) means for THIS
+#                  Portal: `refuse`, which is the default everywhere the line
+#                  is absent and is RFC 9309's own reading, or `proceed`, an
+#                  operator's recorded decision that this Portal's silence is
+#                  read as publishing no rules. `proceed` changes nothing else:
+#                  the spacing floor above, the host whitelist, the identified
+#                  agent and any rules the Portal CAN serve all apply exactly
+#                  as before, and every record of a request made under it
+#                  carries the status the Portal answered with and this policy.
+#                  Delete the line to return the Portal to the default refusal.
+#   prepared       true only once this Economy's Corpus has actually been
+#                  fetched and checked. It is a fact about the Corpus, not an
+#                  intention: an Economy flips to true once the crawl seeds
+#                  for it have been landed and run, never before.
+#   live_test_pool true for the nine Economies the organizers may draw on
+#                  15 Oct 2026.
+portals:
+  SG:
+    official_name: Singapore
+    languages: [English]
+    hosts:
+      - sso.agc.gov.sg
+    strategy: curl_cffi_ladder
+    min_interval_seconds: 6  # matches the published crawl-delay
+    prepared: true
+    live_test_pool: false
+    notes: >-
+      Escalation ladder, cheapest rung first, each rung SMOKE-TESTED never assumed:
+      curl_cffi TLS impersonation -> plain headless Playwright -> Patchright headful.
+      Document = /Act/{code}?ViewType=Pdf (whole-act consolidation PDF). The plain
+      /Act/{code} HTML page lazy-loads its provisions and is NOT the whole act
+      (docs/PORTALS.md, verified 5 Jul 2026).
+  AU:
+    official_name: Australia
+    languages: [English]
+    hosts:
+      - www.legislation.gov.au
+      - legislation.gov.au
+    strategy: playwright
+    min_interval_seconds: 10  # matches the published crawl-delay
+    prepared: true
+    live_test_pool: false
+    notes: Genuine JS SPA; sitemap-aware, wait-for-selector.
+  MY:
+    official_name: Malaysia
+    languages: [English]
+    hosts:
+      - lom.agc.gov.my
+    strategy: httpx
+    min_interval_seconds: 5  # no retrievable robots.txt, so our own floor stands
+    robots_unreachable_since: 2026-07-06  # HTTP 500, verified by hand that day
+    prepared: true
+    live_test_pool: false
+    notes: >-
+      Direct PDF fetches under /ilims/upload/portal/akta/ via httpx + tenacity.
+      The organizer materials print lor.agc.gov.my: that host is DEAD (DNS verified
+      4 Jul 2026). lom.agc.gov.my is the live portal; keep this correction visible
+      for judges cross-checking the printed URL.
+      Language: the portal publishes the authoritative Malay text alongside an
+      English version and Round 1 shipped Malaysia as English. Malay is NOT one
+      of the organizer's 11 values, so a Malay Document exports as "Other".
+  ID:
+    official_name: Indonesia
+    languages: [Bahasa Indonesia, English]
+    hosts:
+      - peraturan.bpk.go.id
+      - peraturan.go.id
+    strategy: curl_cffi_ladder
+    min_interval_seconds: 5  # our own floor; the Portal publishes no crawl-delay
+    prepared: true  # supervised live Discovery of 23 Sep 2026: 7 Documents, first rung, no block
+    live_test_pool: true
+    notes: >-
+      Target Prepared Economy. The Portal is peraturan.bpk.go.id,
+      the Audit Board's national regulation database (JDIH BPK). The originally
+      intended target peraturan.go.id is UNREACHABLE from our machines (TCP
+      connect timeout on three attempts, 16 Sep 2026); it stays on the whitelist
+      because it is an official Indonesian Portal and a Document a reviewer
+      adds from it must pass the host check, but Discovery never points at it.
+      BPK's robots.txt permits every route Discovery takes (/Search, /Details/,
+      /Download/) and publishes no crawl-delay, while its Cloudflare edge
+      answers the identified user agent with 403, so this Economy takes the
+      SAME escalation ladder Singapore takes: ask as ourselves, climb to the
+      browser-impersonating rung only after the refusal, and record on the
+      Discovery record that we did. Document = /Download/{file id}/{file name}
+      (the statute PDF); the /Details/ page carries metadata and an abstract,
+      not the articles, and its id is NOT the download id.
+      prepared flipped to true on 23 Sep 2026: the operator's supervised
+      Discovery fetched all seven seeded statutes on the first rung in 38 s
+      (no 403 that day, so the impersonating rung was never used).
+      Per-portal detail: docs/PORTALS.md.
+  TH:
+    official_name: Thailand
+    languages: [Thai, English]
+    hosts:
+      - searchlaw.ocs.go.th
+    strategy: manual
+    prepared: false
+    live_test_pool: true
+    min_interval_seconds: 2  # our own floor: /robots.txt is a 404, so no rules
+    notes: >-
+      Host verified 22 Sep 2026, Discovery deliberately NOT wired. TWO
+      CORRECTIONS to the printed plan. First, the host: www.krisdika.go.th
+      serves a self-signed certificate and answers 404 on every path, and the
+      live law library is searchlaw.ocs.go.th, whose certificate verifies
+      cleanly against certifi (GlobalSign OV, *.ocs.go.th, to 2 Nov 2026). No
+      certificate pinning is needed anywhere and none was added. Second,
+      www.law.go.th (Cloudflare 403) and the Royal Gazette are out of scope and
+      were never requested.
+      The site is an Angular application over an unauthenticated JSON API at
+      /ocs-api. Its browse lane ANSWERS us: the subject tags and the Acts under
+      each tag come back with errorCode SUCCESS, and they name the statutes we
+      want (Electronic Transactions, Cybersecurity, Computer-related Crime,
+      Digital Economy and Society, Digital Government). What does not answer is
+      everything that would turn one of those into a Document. All three search
+      services fail with the same 6013 code (searchPublicLaw, searchPublicByTag
+      and suggest), and the two services that return the text of a law reject
+      the identifier the browse lane gives, with a server-side cipher error.
+      A document URL needs a timelineId, which only the search services issue,
+      so there is no reachable path from a seed to a Thai statute. The bodies
+      sent are the application's own, read out of its bundle, over the same
+      connection the browse lane answered on: this is the Portal's condition,
+      not our client. Evidence, with the verbatim answers:
+      tests/fixtures/portals/th/, docs/PORTALS.md.
+      Documents therefore arrive through "Add document"; the host is
+      whitelisted so an operator-supplied searchlaw.ocs.go.th URL needs no
+      override. Thai traineddata IS vendored, so a Thai scan reads normally.
+      The 20 Sep 2026 time box passed without a working Discovery. Decision
+      (22 Sep 2026): Thailand is KEPT as an upload-only Economy in the
+      live-test pool; the Russian Federation
+      fallback was examined and not taken (see the RU notes below).
+  LA:
+    official_name: Lao PDR
+    un_name: Lao People's Democratic Republic
+    languages: [Lao, English]
+    hosts:
+      - laoofficialgazette.gov.la
+    strategy: httpx
+    min_interval_seconds: 2  # our own floor: the host publishes no robots.txt
+    prepared: true  # supervised live Discovery of 23 Sep 2026: 37 Documents, 2 s floor, no block
+    live_test_pool: true
+    notes: >-
+      Target Prepared Economy, replacing Timor-Leste. The Official
+      Gazette is a server-rendered Yii application: the legislation grid at
+      /index.php?r=site/index takes a Lao title filter (Document[title]) and a
+      page number (Document_page), and each row carries the official Lao PDF
+      and, for a few instruments, an English rendering beside it. The Lao file
+      is the Document; the English URL is recorded in the Corpus row's notes and
+      is never the quote source. /robots.txt answers 200 with the homepage (a
+      soft 404), so no rules are published and our own 2s floor stands.
+      Verified 16 Sep 2026 across 10 recorded requests
+      (tests/fixtures/portals/la/README.md), which is the Portal and the
+      adapter, not the Corpus. The Corpus itself was fetched and checked by
+      the operator's supervised live Discovery of 23 Sep 2026 (37 Documents),
+      which is what `prepared: true` records.
+  VN:
+    official_name: Viet Nam
+    languages: [Vietnamese, English]
+    hosts:
+      - vbpl.vn
+    strategy: manual
+    prepared: false
+    live_test_pool: true
+    min_interval_seconds: 2
+    notes: >-
+      Host verified 16 Sep 2026, Discovery deliberately NOT wired. vbpl.vn
+      publishes real rules (Allow: /, Disallow: /api/, Disallow: /Pages/) and a
+      sitemap, but the sitemap is four static navigation pages: the document
+      list exists only behind /api/, which those rules forbid, and the pages
+      themselves are a JavaScript shell behind a bot-defence script. The one
+      remaining route is a headless browser, which would make the forbidden
+      /api/ calls itself. So Documents arrive through "Add document"; the host
+      is whitelisted so an operator-supplied vbpl.vn URL needs no override.
+      Evidence: tests/fixtures/portals/vn/, docs/PORTALS.md.
+  CN:
+    official_name: China
+    languages: [Chinese]
+    hosts:
+      - www.cac.gov.cn
+    strategy: manual
+    manual_only: false
+    prepared: true
+    live_test_pool: true
+    min_interval_seconds: 3  # our own floor; the host publishes no crawl-delay
+    notes: >-
+      Host verified 23 Sep 2026, Discovery deliberately NOT wired: the three
+      statutes are fixed URLs, so each arrives through "Add document" by its
+      Source URL. The whitelisted host is the Cyberspace Administration of
+      China (www.cac.gov.cn), the regulator that enforces the Personal
+      Information Protection Law, the Data Security Law and the Cybersecurity
+      Law. It republishes the National People's Congress text in full and
+      credits the source on each page. Its robots.txt addresses every agent
+      and closes only /zfz/, /wxb_zfz/, /wxzf/ and a video player path, so the
+      law pages are open; it publishes no crawl-delay. The NPC's own hosts are
+      NOT used: flk.npc.gov.cn (the national law database) forbids any
+      automated tool, script or crawler in its robots.txt (Disallow: /), so it
+      is never whitelisted and never requested; www.npc.gov.cn refused the
+      HTTPS handshake on every client we tried and stalled its HTTP bodies
+      past our 120 s fetch timeout, so it cannot be relied on. The
+      Cybersecurity Law Document is the consolidated text as amended by the
+      NPC Standing Committee decision of 28 Oct 2025, in force 1 Jan 2026.
+      Evidence: docs/PORTALS.md.
+  IN:
+    official_name: India
+    languages: [English, Hindi]
+    hosts:
+      - indiacode.gov.in
+      # The organizer materials print the old host. It redirects to the new one
+      # (a migration notice page, verified 16 Sep 2026), so it is whitelisted
+      # too: an operator pasting the printed URL should not need the "official
+      # source outside the configured Portal" override for a URL that is the
+      # same Portal. Discovery never emits these; they exist for the add lane.
+      - www.indiacode.nic.in
+      - indiacode.nic.in
+    strategy: dspace_rest
+    min_interval_seconds: 2  # nothing published, so our own floor stands
+    robots_unreachable_since: 2026-09-16  # HTTP 500, then HTTP 502 on a retry
+    # Operator decision, 17 Sep 2026: this Portal's robots.txt answers 5xx, so
+    # its rules cannot be read and the default refusal would hold until
+    # 2026-10-17. Discovery proceeds here, at the 2s floor above and under
+    # every other politeness rule, and says so on each record. Remove this line
+    # to return India to the default refusal.
+    robots_unavailable_policy: proceed
+    prepared: true  # supervised live Discovery of 23 Sep 2026: 4 Documents, 2 s floor, robots policy proceed
+    live_test_pool: true
+    notes: >-
+      THE PORTAL MOVED: the printed host www.indiacode.nic.in refused the
+      identified agent with an Akamai 403 and, through the documented
+      escalation rung, answered with a migration notice pointing at
+      indiacode.gov.in (verified 16 Sep 2026). The new host runs DSpace 7 and
+      publishes a read-only REST API, which is what `dspace_rest` reads: item
+      search with embedded bundles, one request per seed, then the act's own
+      ORIGINAL-bundle PDF. Every section of an act is indexed as its own item
+      and carries no PDF, so only an exact title match becomes a Document.
+      CAUTION: robots.txt answered HTTP 500, and 502 on a retry (16 Sep 2026).
+      A 5xx is "unavailable", not "no rules", so the default rule would refuse
+      this Economy until 2026-10-17. This Portal carries
+      robots_unavailable_policy: proceed (operator decision, 17 Sep 2026), so
+      Discovery and the add-by-URL lane go ahead at our 2s floor and every
+      record they write carries the status robots.txt answered with and the
+      policy that let them proceed. The rules are honoured the moment the
+      Portal can serve them again.
+  KZ:
+    official_name: Kazakhstan
+    languages: [Russian, Kazakh]
+    hosts:
+      - adilet.zan.kz
+    strategy: manual
+    prepared: false
+    live_test_pool: true
+    min_interval_seconds: 2
+    notes: >-
+      Host verified 16 Sep 2026, Discovery deliberately NOT wired. Legislation
+      is published in both Kazakh and Russian; Russian is the default because
+      the consolidated texts appear there first. The Portal's robots.txt is
+      explicit (act pages open, /api/, /search and /advanced-search closed) and
+      closes the whole site to model-training crawlers by name; RegCompass is
+      not named, so the `*` group binds it. The act route answers a 2.7 KB
+      shell whose own comment says the full text is withheld from non-browser
+      clients on purpose, so that the system is cited rather than drained. A
+      headless browser would render around that ask, so we do not: Documents
+      arrive through "Add document". Evidence: tests/fixtures/portals/kz/.
+  MN:
+    official_name: Mongolia
+    languages: [Mongolian, English]
+    hosts:
+      - legalinfo.mn
+    strategy: manual
+    prepared: false
+    live_test_pool: true
+    min_interval_seconds: 2
+    notes: >-
+      Host verified 16 Sep 2026, Discovery deliberately NOT wired.
+      legalinfo.mn publishes no robots.txt (its /robots.txt is the 404 page)
+      and serves real HTML, but every act list, including search results,
+      arrives through an undocumented POST endpoint (/mn/ajaxList/) that
+      returns pre-rendered markup; the server HTML carries only the category
+      tree. The page advertised as an API reference is an article about the
+      Constitution, not a published API, so there is nothing here we may build
+      on. Documents arrive through "Add document". Note for the operator: no
+      Mongolian traineddata is vendored, so a scanned Mongolian upload is not
+      usable evidence; prefer a text-layer PDF or the English tree at /en.
+  RU:
+    official_name: Russian Federation
+    languages: [Russian]
+    hosts: []
+    strategy: manual
+    prepared: false
+    live_test_pool: true
+    min_interval_seconds: 2
+    notes: >-
+      Live-test pool, and formerly the documented fallback if Thailand missed
+      its 20 Sep time box. The Coverage Matrix has NO row for the Russian
+      Federation (organizer defect 5), so this spelling comes from the live-test
+      pool list in the organizer's Instructions sheet.
+      NETWORK NOTE: on 16 Sep 2026 publication.pravo.gov.ru timed out at the
+      TCP connect on every attempt. On 22 Sep 2026 the cause was found: port
+      443 is blocked on our network path to every Russian government host,
+      while port 80 answers. Over HTTP the Portal has an open API
+      (/api/Documents, /api/DocumentTypes), but its acts are image-only
+      scanned PDFs and it publishes amendments, not consolidated law, so the
+      fallback was examined and NOT taken. No host is whitelisted; Documents
+      arrive through "Add document" with their own Source URL, which needs the
+      "official source outside the configured Portal" tick.

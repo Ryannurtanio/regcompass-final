@@ -1,0 +1,12 @@
+{
+  "respHeader" : {
+    "reqId" : "1790043188871",
+    "reqChannel" : "WEB",
+    "reqDtm" : "2026-09-22 10:13:08.871",
+    "serviceName" : "getPublicYears",
+    "reqBy" : "unknow",
+    "respRefId" : "20260922091309-4bd90764-f84f-42bc-a659-ab16ea52cc5c",
+    "errorCode" : "PYC_9998",
+    "errorDesc" : "เกิดข้อผิดพลาดในระหว่างดำเนินการ กรุณาติดต่อเจ้าหน้าที่ดูแลระบบ"
+  }
+}

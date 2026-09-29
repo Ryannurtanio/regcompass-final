@@ -1,0 +1,19 @@
+rank,document_id,title,source_url,relevance_score,matched_keywords
+1,doc_au_C2026C00227,Privacy Act 1988,https://www.legislation.gov.au/C2004A03712/2026-06-04/2026-06-04/text/original/pdf/0,0.602490,outside Australia; cross-border disclosure; adequacy; approval of the commissioner; safeguards
+2,doc_au_C2025C00662,My Health Records Act 2012,https://www.legislation.gov.au/C2012A00063/2025-12-05/2025-12-05/text/original/pdf/0,0.587231,outside Australia; records outside; storage of data; hold the records
+3,doc_au_C2024C00820,Data Availability and Transparency Act 2022,https://www.legislation.gov.au/C2022A00011/2024-12-11/2024-12-11/text/original/pdf/0,0.567713,outside Australia; copy of the data; safeguards
+4,doc_au_C2026C00243VOL03,Criminal Code Act 1995,https://www.legislation.gov.au/C2004A04868/2026-06-30/2026-06-30/text/original/pdf/3,0.556458,outside Australia; territory outside
+5,doc_au_C2026C00209VOL02,Telecommunications (Interception and Access) Act 1979,https://www.legislation.gov.au/C2004A02124/2026-06-04/2026-06-04/text/original/pdf/2,0.521116,outside Australia; safeguards
+6,doc_au_C2026C00243VOL01,Criminal Code Act 1995,https://www.legislation.gov.au/C2004A04868/2026-06-30/2026-06-30/text/original/pdf/1,0.506489,outside Australia; held outside; safeguards
+7,doc_au_C2021A00078,Telecommunications Legislation Amendment (International Production Orders) Act 2021,https://www.legislation.gov.au/C2021A00078/2021-07-23/2021-07-23/text/original/pdf/0,0.501607,outside Australia; safeguards
+8,doc_au_C2021C00496,Telecommunications and Other Legislation Amendment (Assistance and Access) Act 2018,https://www.legislation.gov.au/C2018A00148/2021-09-01/2021-09-01/text/original/pdf/0,0.498326,outside Australia
+9,doc_au_C2026C00243VOL02,Criminal Code Act 1995,https://www.legislation.gov.au/C2004A04868/2026-06-30/2026-06-30/text/original/pdf/2,0.496729,outside Australia
+10,doc_au_C2026C00213,Security of Critical Infrastructure Act 2018,https://www.legislation.gov.au/C2018A00029/2026-06-04/2026-06-04/text/original/pdf/0,0.496227,outside Australia
+11,doc_au_C2026C00224VOL03,Telecommunications Act 1997,https://www.legislation.gov.au/C2004A05145/2026-06-04/2026-06-04/text/original/pdf/3,0.479598,outside Australia; safeguards
+12,doc_au_C2021A00098,Surveillance Legislation Amendment (Identify and Disrupt) Act 2021,https://www.legislation.gov.au/C2021A00098/2021-09-03/2021-09-03/text/original/pdf/0,0.478702,
+13,doc_au_C2026C00209VOL01,Telecommunications (Interception and Access) Act 1979,https://www.legislation.gov.au/C2004A02124/2026-06-04/2026-06-04/text/original/pdf/1,0.460016,outside Australia
+14,doc_au_C2024C00852,Online Safety Act 2021,https://www.legislation.gov.au/C2021A00076/2024-12-11/2024-12-11/text/original/pdf/0,0.457200,outside Australia; adequacy; approval of the commissioner; safeguards
+15,doc_au_C2026C00067,Organisation Act 1979,https://www.legislation.gov.au/C2004A02123/2026-01-22/2026-01-22/text/original/pdf/0,0.438726,outside Australia; safeguards
+16,doc_au_C2026C00224VOL02,Telecommunications Act 1997,https://www.legislation.gov.au/C2004A05145/2026-06-04/2026-06-04/text/original/pdf/2,0.437491,outside Australia; safeguards
+17,doc_au_C2026C00224VOL01,Telecommunications Act 1997,https://www.legislation.gov.au/C2004A05145/2026-06-04/2026-06-04/text/original/pdf/1,0.387213,outside Australia; safeguards
+18,doc_au_F2024C00958,Telecommunications Regulations 2021,https://www.legislation.gov.au/F2021L00289/2024-10-14/2024-10-14/text/original/pdf/0,0.379276,

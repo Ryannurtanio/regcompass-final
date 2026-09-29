@@ -1,0 +1,259 @@
+{
+ "derived_scores": {
+  "AU": {
+   "6.1": 0.0,
+   "6.2": 1.0,
+   "6.3": 0.0,
+   "6.4": 1.0,
+   "7.1": 0.0,
+   "7.2": 0.0,
+   "7.3": 1.0,
+   "7.4": 0.0,
+   "7.5": 1.0
+  },
+  "MY": {
+   "6.1": 0.0,
+   "6.2": 1.0,
+   "6.3": 0.0,
+   "6.4": 1.0,
+   "7.1": 0.0,
+   "7.2": 0.0,
+   "7.3": 1.0,
+   "7.4": 1.0,
+   "7.5": 1.0
+  },
+  "SG": {
+   "6.1": 0.0,
+   "6.2": 0.5,
+   "6.3": 0.0,
+   "6.4": 1.0,
+   "7.1": 0.0,
+   "7.2": 0.0,
+   "7.3": 1.0,
+   "7.4": 1.0,
+   "7.5": 1.0
+  }
+ },
+ "score_direction": "inverse (0 = open, 1 = restrictive)",
+ "score_method": "classification rubric (M12): the model labels each verified provision from a closed menu (measure nature, data scope, application, government-data flag); scores derive in code from the RDTII 2.1 Guide's per-indicator criteria over the classified records. Labels are model judgment; every cell names its controlling provision for human review. Unclassified records never drive a score.",
+ "n_rows": 965,
+ "n_substantive": 965,
+ "n_absence": 0,
+ "coverage_stats": {
+  "SG": {
+   "law": "10 Singapore legislative documents (full corpus sweep)",
+   "sections": 2024,
+   "pairs_gated": 1337
+  },
+  "AU": {
+   "law": "18 Australia legislative documents (full corpus sweep)",
+   "sections": 4607,
+   "pairs_gated": 2856
+  },
+  "MY": {
+   "law": "21 Malaysia legislative documents (full corpus sweep)",
+   "sections": 1149,
+   "pairs_gated": 1044
+  }
+ },
+ "battery": "green",
+ "review_drops": {
+  "n_dropped": 1,
+  "dropped": [
+   {
+    "mapping_id": "doc_sg_sso_agc_gov_sg_Act_CoA1967:c0370::6.4",
+    "reason": "Mapping Rationale asserts data-transfer scope the quoted provision does not state (generic foreign-entity registration boilerplate, s. 359(2)); mapper overreach, no score path (SG 6.4 scores via PDPA s. 26(1))."
+   }
+  ],
+  "note": "records excluded by the committed human-review drop lane (config/review_drops.json); checkpoints and audit trails keep the full record"
+ },
+ "warnings": {
+  "last_amended_blank_rows": 11,
+  "note": "Last Amended derives mechanically from the document's own front matter or register URL and stays blank when the source declares no date, never guessed."
+ },
+ "score_details": {
+  "AU": {
+   "6.1": {
+    "score": 0.0,
+    "controlling_mapping_id": null,
+    "basis": "no rubric-eligible measure found"
+   },
+   "6.2": {
+    "score": 1.0,
+    "controlling_mapping_id": "doc_au_C2026C00227:c0088::6.2",
+    "basis": "local_storage covering personal data"
+   },
+   "6.3": {
+    "score": 0.0,
+    "controlling_mapping_id": null,
+    "basis": "no rubric-eligible measure found"
+   },
+   "6.4": {
+    "score": 1.0,
+    "controlling_mapping_id": "doc_au_C2026C00209VOL01:c0285::6.4",
+    "basis": "conditional_transfer covering personal data"
+   },
+   "7.1": {
+    "score": 0.0,
+    "controlling_mapping_id": "doc_au_C2024C00820:c0023::7.1",
+    "basis": "comprehensive horizontal framework"
+   },
+   "7.2": {
+    "score": 0.0,
+    "controlling_mapping_id": "doc_au_C2024C00820:c0050::7.2",
+    "basis": "dedicated horizontal framework"
+   },
+   "7.3": {
+    "score": 1.0,
+    "controlling_mapping_id": "doc_au_C2025C00662:c0024::7.3",
+    "basis": "minimum retention period specified"
+   },
+   "7.4": {
+    "score": 0.0,
+    "controlling_mapping_id": null,
+    "basis": "no rubric-eligible measure found"
+   },
+   "7.5": {
+    "score": 1.0,
+    "controlling_mapping_id": "doc_au_C2021A00098:c0131::7.5",
+    "basis": "government access without judicial authorization"
+   }
+  },
+  "MY": {
+   "6.1": {
+    "score": 0.0,
+    "controlling_mapping_id": null,
+    "basis": "no rubric-eligible measure found"
+   },
+   "6.2": {
+    "score": 1.0,
+    "controlling_mapping_id": "doc_my_20180828_AKTA_807_BI:c0024::6.2",
+    "basis": "local_storage covering all sectors"
+   },
+   "6.3": {
+    "score": 0.0,
+    "controlling_mapping_id": null,
+    "basis": "no rubric-eligible measure found"
+   },
+   "6.4": {
+    "score": 1.0,
+    "controlling_mapping_id": "doc_my_Act_709_ori:c0131::6.4",
+    "basis": "conditional_transfer covering personal data"
+   },
+   "7.1": {
+    "score": 0.0,
+    "controlling_mapping_id": "doc_my_Act_709_ori:c0007::7.1",
+    "basis": "comprehensive horizontal framework"
+   },
+   "7.2": {
+    "score": 0.0,
+    "controlling_mapping_id": "doc_my_A1743_BI-_COMMUNICATIONS_AND_MULTIMEDIA_(AMENDMENT)_ACT_2025:c0089::7.2",
+    "basis": "dedicated horizontal framework"
+   },
+   "7.3": {
+    "score": 1.0,
+    "controlling_mapping_id": "doc_my_Act_854:c0032::7.3",
+    "basis": "minimum retention period specified"
+   },
+   "7.4": {
+    "score": 1.0,
+    "controlling_mapping_id": "doc_my_Act_A1727:c0006::7.4",
+    "basis": "DPO required horizontally"
+   },
+   "7.5": {
+    "score": 1.0,
+    "controlling_mapping_id": "doc_my_20120622_747_BI_Act_747_BI:c0006::7.5",
+    "basis": "government access without judicial authorization"
+   }
+  },
+  "SG": {
+   "6.1": {
+    "score": 0.0,
+    "controlling_mapping_id": null,
+    "basis": "no rubric-eligible measure found"
+   },
+   "6.2": {
+    "score": 0.5,
+    "controlling_mapping_id": "doc_sg_sso_agc_gov_sg_Act_BA1970:c0089::6.2",
+    "basis": "local_storage on non_personal data"
+   },
+   "6.3": {
+    "score": 0.0,
+    "controlling_mapping_id": null,
+    "basis": "no rubric-eligible measure found"
+   },
+   "6.4": {
+    "score": 1.0,
+    "controlling_mapping_id": "doc_sg_sso_agc_gov_sg_Act_PDPA2012:c0030::6.4",
+    "basis": "conditional_transfer covering personal data"
+   },
+   "7.1": {
+    "score": 0.0,
+    "controlling_mapping_id": "doc_sg_sso_agc_gov_sg_Act_PDPA2012:c0016::7.1",
+    "basis": "comprehensive horizontal framework"
+   },
+   "7.2": {
+    "score": 0.0,
+    "controlling_mapping_id": "doc_sg_sso_agc_gov_sg_Act_CA2018:c0004::7.2",
+    "basis": "dedicated horizontal framework"
+   },
+   "7.3": {
+    "score": 1.0,
+    "controlling_mapping_id": "doc_sg_sso_agc_gov_sg_Act_ITA1947:c0242::7.3",
+    "basis": "minimum retention period specified"
+   },
+   "7.4": {
+    "score": 1.0,
+    "controlling_mapping_id": "doc_sg_sso_agc_gov_sg_Act_PDPA2012:c0013::7.4",
+    "basis": "DPO required horizontally"
+   },
+   "7.5": {
+    "score": 1.0,
+    "controlling_mapping_id": "doc_sg_sso_agc_gov_sg_Act_BA1970:c0068::7.5",
+    "basis": "government access without judicial authorization"
+   }
+  }
+ },
+ "presence_scores_v1": {
+  "AU": {
+   "6.1": 1.0,
+   "6.2": 1.0,
+   "6.3": 1.0,
+   "6.4": 1.0,
+   "7.1": 0.0,
+   "7.2": 0.0,
+   "7.3": 1.0,
+   "7.4": 1.0,
+   "7.5": 1.0
+  },
+  "MY": {
+   "6.1": 1.0,
+   "6.2": 1.0,
+   "6.3": 1.0,
+   "6.4": 1.0,
+   "7.1": 0.0,
+   "7.2": 0.0,
+   "7.3": 1.0,
+   "7.4": 1.0,
+   "7.5": 1.0
+  },
+  "SG": {
+   "6.1": 1.0,
+   "6.2": 1.0,
+   "6.3": 1.0,
+   "6.4": 1.0,
+   "7.1": 0.0,
+   "7.2": 0.0,
+   "7.3": 1.0,
+   "7.4": 1.0,
+   "7.5": 1.0
+  }
+ },
+ "classification_summary": {
+  "n_passed": 965,
+  "n_classified": 965,
+  "n_unclassified": 0,
+  "n_not_data_measure": 14,
+  "n_confirmation_refused": 301
+ }
+}

@@ -1,0 +1,59 @@
+# Hosted copy on a rented server: the same stack plus a login and HTTPS.
+# Used ON TOP of docker-compose.yml, never alone:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.vps.yml up -d --build
+#
+# The step-by-step guide is docs/DEPLOY_VPS.md. What this file changes:
+#
+#   * the app asks for a login on its own sign-in page (/login; scripts may
+#     send the pair as an HTTP Basic header instead). The defaults are
+#     admin / admin123: CHANGE THE PASSWORD in the .env beside this file before
+#     the server is reachable from the internet.
+#   * a Caddy service answers on ports 80 and 443 and gets a certificate for
+#     REGCOMPASS_DOMAIN by itself. Leave REGCOMPASS_DOMAIN unset to serve plain
+#     HTTP on the server's IP address.
+#   * nothing else is published: the app's port 8000 and Ollama's 11434 are
+#     reachable only inside the compose network, so every request goes through
+#     Caddy and the login.
+#
+# Compose reads the .env beside the compose files for the ${...} values below
+# and for the OPENROUTER_API_KEY pass-through in docker-compose.yml.
+# `!reset` needs Docker Compose 2.24 or newer.
+
+services:
+  ollama:
+    ports: !reset []
+
+  regcompass:
+    environment:
+      - REGCOMPASS_AUTH_USER=${REGCOMPASS_AUTH_USER:-admin}
+      - REGCOMPASS_AUTH_PASSWORD=${REGCOMPASS_AUTH_PASSWORD:-admin123}
+    ports: !reset []
+
+  # The keyless evidence view (profile judge-bundle) has no login: never publish it here.
+  regcompass-bundle:
+    ports: !reset []
+
+  caddy:
+    # Official image. Pin bump: see hub.docker.com/_/caddy/tags .
+    image: caddy:2.10.2
+    container_name: regcompass-caddy
+    depends_on:
+      - regcompass
+    environment:
+      REGCOMPASS_DOMAIN: ${REGCOMPASS_DOMAIN:-:80}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      # The certificate and its account key: keep them across restarts, or a
+      # restart asks the certificate authority again and can hit its limits.
+      - caddy-data:/data
+      - caddy-config:/config
+    restart: unless-stopped
+
+volumes:
+  caddy-data:
+  caddy-config:

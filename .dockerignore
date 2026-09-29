@@ -1,0 +1,44 @@
+# Keep the image small and reproducible: runtime data, local model weights,
+# build caches and VCS metadata never belong in the image.
+.git/
+.git
+.github/
+.githooks/
+
+# Runtime data and outputs (created inside the container / bind-mounted).
+data/
+out/
+
+# Local model artifacts (delivered via `ollama pull`, never baked in).
+models/
+
+# Golden baselines are a development gate, not a runtime input (41 MB).
+# tests/fixtures IS kept: the sample legislation a Corpus can be seeded from
+# and what the keyless fake-Engine demo reads.
+tests/golden/
+# Four of them ARE a runtime input: audit_bundle/manifest.json resolves every
+# Document's canonical, chunks, gate and records file into these directories
+# (about 14 MB), and the bundle is read eagerly, so the judge-bundle profile
+# fails without them.
+!tests/golden/m1/
+!tests/golden/m4/
+!tests/golden/m5/
+!tests/golden/m8/
+
+# Python + tooling caches and virtualenvs.
+.venv/
+.venv
+**/__pycache__/
+**/*.py[cod]
+.pytest_cache/
+.ruff_cache/
+dist/
+*.egg-info/
+
+# Node UI toolchain (the built bundle under src/ IS kept; node_modules is not).
+**/node_modules/
+ui/node_modules/
+
+# Secrets and local editor noise.
+.env
+.DS_Store

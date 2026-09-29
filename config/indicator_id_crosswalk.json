@@ -1,0 +1,17 @@
+{
+  "_comment": "Indicator ID emission: numeric IDs are canonical for ALL internal logic; the submission Indicator ID column is driven by emission_scheme. Default 'numeric' (identity): it is GENERATED at load time over every legislation-mapped indicator in config/indicators.json, so a new indicator needs no edit here. The p_code scheme is the documented alternative and stays scoped to the Round 1 pillars it lists; never mix schemes in one export run. P-codes are positional aliases: P{p}-I{n} = {p}.{n}.",
+  "emission_scheme": "numeric",
+  "schemes": {
+    "p_code": {
+      "6.1": "P6-I1",
+      "6.2": "P6-I2",
+      "6.3": "P6-I3",
+      "6.4": "P6-I4",
+      "7.1": "P7-I1",
+      "7.2": "P7-I2",
+      "7.3": "P7-I3",
+      "7.4": "P7-I4",
+      "7.5": "P7-I5"
+    }
+  }
+}

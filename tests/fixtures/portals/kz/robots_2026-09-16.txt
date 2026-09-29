@@ -1,0 +1,92 @@
+# Әділет 2.0 — правила для роботов.
+#
+# ⚠️ robots.txt — это ЗНАК, а не забор. Замер Cloudflare (январь 2026): ИИ-краулеры
+# нарушают правила на 72 % проверенных сайтов; исследование Duke (2025) показало,
+# что часть краулеров вообще не запрашивает robots.txt. Настоящие ограничения —
+# лимиты и охранник на стороне сервера, см.
+# docs/architecture/plans/2026-09-07-anti-scraping-backend-handover.md.
+# Здесь мы лишь честно объявляем правила: вежливые роботы их соблюдают, а для
+# невежливых те же имена продублированы в docker/nginx.conf.template.
+#
+# ── ГЛАВНОЕ РАЗЛИЧЕНИЕ ──────────────────────────────────────────────────────
+# У каждого поставщика ИИ сейчас РАЗНЫЕ агенты под разные задачи:
+#   • обучение модели   — выкачивает корпус, ссылок на нас не даёт  → закрываем;
+#   • поиск и цитирование — приводит человека на сайт со ссылкой     → открываем;
+#   • по запросу человека — «открой мне эту страницу»                → открываем.
+# Закрыть всё скопом — значит выпасть из ответов ИИ-поисковиков, оставшись при
+# этом в обучающих выборках тех, кто robots.txt игнорирует. Для правовой системы
+# находимость актов — уставная задача, поэтому поиск и цитирование мы НЕ закрываем.
+
+# ── 1. Все роботы ───────────────────────────────────────────────────────────
+# Открыты страницы актов и информационные разделы. Закрыты: API, результаты
+# поиска (это не контент, а нагрузка), вход, личные и административные разделы.
+User-agent: *
+Disallow: /api/
+Disallow: /api/internal-export
+Disallow: /search
+Disallow: /advanced-search
+Disallow: /login
+Disallow: /register
+Disallow: /profile
+Disallow: /workspace
+Disallow: /admin
+Disallow: /super-admin
+Disallow: /documentation
+Allow: /
+
+# ── 2. Обучающие ИИ-краулеры (класс угроз T4) ───────────────────────────────
+# Массовая выкачка корпуса на обучение модели. Это ровно то, против чего
+# существует весь эпик антипарсинга, только вежливое и с подписью в User-Agent.
+# ⚠️ Google-Extended — НЕ Googlebot: запрет касается обучения ИИ, на
+# позиции в поиске Google не влияет. Applebot-Extended — не Applebot.
+User-agent: GPTBot
+User-agent: ClaudeBot
+User-agent: anthropic-ai
+User-agent: Claude-Web
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+User-agent: meta-externalagent
+User-agent: CCBot
+User-agent: Bytespider
+User-agent: cohere-ai
+User-agent: Diffbot
+User-agent: AI2Bot
+User-agent: Omgilibot
+User-agent: ImagesiftBot
+User-agent: Timpibot
+User-agent: PanguBot
+User-agent: Webzio-Extended
+User-agent: Kangaroo Bot
+Disallow: /
+
+# ── 3. SEO-сканеры ──────────────────────────────────────────────────────────
+# Сайту пользы не приносят, нагрузку создают.
+User-agent: SemrushBot
+User-agent: AhrefsBot
+User-agent: MJ12bot
+User-agent: DotBot
+User-agent: DataForSeoBot
+User-agent: BLEXBot
+User-agent: SeekportBot
+User-agent: Barkrowler
+Disallow: /
+
+# ── 4. Кого мы НАМЕРЕННО не ограничиваем ────────────────────────────────────
+# Поисковые системы:            Googlebot, YandexBot, Bingbot, Applebot
+# Поиск и цитирование ИИ:       OAI-SearchBot, Claude-SearchBot, PerplexityBot,
+#                               Amzn-SearchBot
+# Открыть по просьбе человека:  ChatGPT-User, Claude-User, Perplexity-User,
+#                               meta-externalfetcher
+#
+# Все они подчиняются общим правилам раздела 1: служебные разделы закрыты,
+# страницы актов открыты. Они приводят человека к первоисточнику со ссылкой —
+# это и есть распространение правовой информации, ради которого система создана.
+#
+# ⚠️ Оговорка по Perplexity: у него худшая репутация по соблюдению robots.txt
+# среди крупных поставщиков (данные Cloudflare за 2025–2026). Если нагрузка от
+# него станет заметной — перенести PerplexityBot в раздел 2 и в nginx.
+
+# ── 5. Карта сайта ──────────────────────────────────────────────────────────
+# Внутренними ссылками 900 тысяч актов не обойти: без карты бо́льшая часть
+# корпуса не будет обнаружена никогда. Индекс карт отдаёт шлюз (тикет AS-24).
+Sitemap: https://adilet.zan.kz/sitemap.xml

@@ -1,0 +1,9 @@
+User-agent: *
+Disallow: /Admin/
+Disallow: /Identity/
+Disallow: /Account/
+Disallow: /Manage/
+Disallow: /health
+Disallow: /Error
+
+Sitemap: https://peraturan.bpk.go.id/sitemap.xml

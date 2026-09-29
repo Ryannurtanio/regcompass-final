@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RegCompass</title>
+    <script>
+      // A theme chosen with the switch, set before the first paint so the page
+      // does not flash the other one. Without a choice the CSS follows the
+      // system setting.
+      try {
+        var t = localStorage.getItem('regcompass.theme')
+        if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t
+      } catch (e) {}
+    </script>
+    <script type="module" crossorigin src="./assets/index-DSyQNeJk.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-CZ9nTuI8.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

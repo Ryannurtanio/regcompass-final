@@ -1,0 +1,252 @@
+{
+  "dspaceUI" : "https://indiacode.gov.in",
+  "dspaceName" : "IndiaCode",
+  "dspaceServer" : "https://indiacode.gov.in/server",
+  "dspaceVersion" : "DSpace 9.1",
+  "type" : "root",
+  "_links" : {
+    "actuator" : {
+      "href" : "https://indiacode.gov.in/server/actuator"
+    },
+    "authn" : {
+      "href" : "https://indiacode.gov.in/server/api/authn"
+    },
+    "authorizations" : {
+      "href" : "https://indiacode.gov.in/server/api/authz/authorizations"
+    },
+    "bitstreamformats" : {
+      "href" : "https://indiacode.gov.in/server/api/core/bitstreamformats"
+    },
+    "bitstreams" : {
+      "href" : "https://indiacode.gov.in/server/api/core/bitstreams"
+    },
+    "browses" : {
+      "href" : "https://indiacode.gov.in/server/api/discover/browses"
+    },
+    "bulkaccessconditionoptions" : {
+      "href" : "https://indiacode.gov.in/server/api/config/bulkaccessconditionoptions"
+    },
+    "bundles" : {
+      "href" : "https://indiacode.gov.in/server/api/core/bundles"
+    },
+    "captcha" : {
+      "href" : "https://indiacode.gov.in/server/api/captcha"
+    },
+    "claimedtasks" : {
+      "href" : "https://indiacode.gov.in/server/api/workflow/claimedtasks"
+    },
+    "claimedtasks-search" : {
+      "href" : "https://indiacode.gov.in/server/api/workflow/claimedtasks/search"
+    },
+    "collections" : {
+      "href" : "https://indiacode.gov.in/server/api/core/collections"
+    },
+    "communities" : {
+      "href" : "https://indiacode.gov.in/server/api/core/communities"
+    },
+    "contentreport" : {
+      "href" : "https://indiacode.gov.in/server/api/contentreport"
+    },
+    "correctiontypes" : {
+      "href" : "https://indiacode.gov.in/server/api/config/correctiontypes"
+    },
+    "discover" : {
+      "href" : "https://indiacode.gov.in/server/api/discover"
+    },
+    "dso" : {
+      "href" : "https://indiacode.gov.in/server/api/dso/find{?uuid}",
+      "templated" : true
+    },
+    "enqueueretry" : {
+      "href" : "https://indiacode.gov.in/server/api/ldn/messages/{id}/enqueueretry",
+      "templated" : true
+    },
+    "entitytypes" : {
+      "href" : "https://indiacode.gov.in/server/api/core/entitytypes"
+    },
+    "eperson-registration" : {
+      "href" : "https://indiacode.gov.in/server/api/eperson/registrations"
+    },
+    "epersons" : {
+      "href" : "https://indiacode.gov.in/server/api/eperson/epersons"
+    },
+    "externalsources" : {
+      "href" : "https://indiacode.gov.in/server/api/integration/externalsources"
+    },
+    "features" : {
+      "href" : "https://indiacode.gov.in/server/api/authz/features"
+    },
+    "feedbacks" : {
+      "href" : "https://indiacode.gov.in/server/api/tools/feedbacks"
+    },
+    "groups" : {
+      "href" : "https://indiacode.gov.in/server/api/eperson/groups"
+    },
+    "identifiers" : {
+      "href" : "https://indiacode.gov.in/server/api/pid/identifiers"
+    },
+    "itemfilters" : {
+      "href" : "https://indiacode.gov.in/server/api/config/itemfilters"
+    },
+    "itemrequests" : {
+      "href" : "https://indiacode.gov.in/server/api/tools/itemrequests"
+    },
+    "items" : {
+      "href" : "https://indiacode.gov.in/server/api/core/items"
+    },
+    "itemtemplates" : {
+      "href" : "https://indiacode.gov.in/server/api/core/itemtemplates"
+    },
+    "ldnservices" : {
+      "href" : "https://indiacode.gov.in/server/api/ldn/ldnservices"
+    },
+    "messages" : {
+      "href" : "https://indiacode.gov.in/server/api/ldn/messages"
+    },
+    "metadatafields" : {
+      "href" : "https://indiacode.gov.in/server/api/core/metadatafields"
+    },
+    "metadataschemas" : {
+      "href" : "https://indiacode.gov.in/server/api/core/metadataschemas"
+    },
+    "notifyrequests" : {
+      "href" : "https://indiacode.gov.in/server/api/ldn/notifyrequests"
+    },
+    "oidc" : {
+      "href" : "https://indiacode.gov.in/server/api/authn"
+    },
+    "pid" : {
+      "href" : "https://indiacode.gov.in/server/api/pid/find{?id}",
+      "templated" : true
+    },
+    "pooltasks" : {
+      "href" : "https://indiacode.gov.in/server/api/workflow/pooltasks"
+    },
+    "pooltasks-search" : {
+      "href" : "https://indiacode.gov.in/server/api/workflow/pooltasks/search"
+    },
+    "processes" : {
+      "href" : "https://indiacode.gov.in/server/api/system/processes"
+    },
+    "properties" : {
+      "href" : "https://indiacode.gov.in/server/api/config/properties"
+    },
+    "qualityassuranceevents" : {
+      "href" : "https://indiacode.gov.in/server/api/integration/qualityassuranceevents"
+    },
+    "qualityassurancesources" : {
+      "href" : "https://indiacode.gov.in/server/api/integration/qualityassurancesources"
+    },
+    "qualityassurancetopics" : {
+      "href" : "https://indiacode.gov.in/server/api/integration/qualityassurancetopics"
+    },
+    "registrations" : {
+      "href" : "https://indiacode.gov.in/server/api/eperson/registrations"
+    },
+    "relationships" : {
+      "href" : "https://indiacode.gov.in/server/api/core/relationships"
+    },
+    "relationshiptypes" : {
+      "href" : "https://indiacode.gov.in/server/api/core/relationshiptypes"
+    },
+    "resourcepolicies" : {
+      "href" : "https://indiacode.gov.in/server/api/authz/resourcepolicies"
+    },
+    "resourcepolicies-search" : {
+      "href" : "https://indiacode.gov.in/server/api/authz/resourcepolicies/search"
+    },
+    "scripts" : {
+      "href" : "https://indiacode.gov.in/server/api/system/scripts"
+    },
+    "self" : {
+      "href" : "https://indiacode.gov.in/server/api"
+    },
+    "sites" : {
+      "href" : "https://indiacode.gov.in/server/api/core/sites"
+    },
+    "statistics" : {
+      "href" : "https://indiacode.gov.in/server/api/statistics"
+    },
+    "submissionaccessoptions" : {
+      "href" : "https://indiacode.gov.in/server/api/config/submissionaccessoptions"
+    },
+    "submissioncclicenseUrls" : {
+      "href" : "https://indiacode.gov.in/server/api/config/submissioncclicenseUrls"
+    },
+    "submissioncclicenseUrls-search" : {
+      "href" : "https://indiacode.gov.in/server/api/config/submissioncclicenseUrls/search"
+    },
+    "submissioncclicenses" : {
+      "href" : "https://indiacode.gov.in/server/api/config/submissioncclicenses"
+    },
+    "submissioncoarnotifyconfigs" : {
+      "href" : "https://indiacode.gov.in/server/api/config/submissioncoarnotifyconfigs"
+    },
+    "submissiondefinitions" : {
+      "href" : "https://indiacode.gov.in/server/api/config/submissiondefinitions"
+    },
+    "submissionforms" : {
+      "href" : "https://indiacode.gov.in/server/api/config/submissionforms"
+    },
+    "submissionsections" : {
+      "href" : "https://indiacode.gov.in/server/api/config/submissionsections"
+    },
+    "submissionuploads" : {
+      "href" : "https://indiacode.gov.in/server/api/config/submissionuploads"
+    },
+    "subscriptions" : {
+      "href" : "https://indiacode.gov.in/server/api/core/subscriptions"
+    },
+    "subscriptions-search" : {
+      "href" : "https://indiacode.gov.in/server/api/core/subscriptions/search"
+    },
+    "suggestions" : {
+      "href" : "https://indiacode.gov.in/server/api/integration/suggestions"
+    },
+    "suggestionsources" : {
+      "href" : "https://indiacode.gov.in/server/api/integration/suggestionsources"
+    },
+    "suggestiontargets" : {
+      "href" : "https://indiacode.gov.in/server/api/integration/suggestiontargets"
+    },
+    "supervisionorders" : {
+      "href" : "https://indiacode.gov.in/server/api/core/supervisionorders"
+    },
+    "systemwidealerts" : {
+      "href" : "https://indiacode.gov.in/server/api/system/systemwidealerts"
+    },
+    "usagereports" : {
+      "href" : "https://indiacode.gov.in/server/api/statistics/usagereports"
+    },
+    "versionhistories" : {
+      "href" : "https://indiacode.gov.in/server/api/versioning/versionhistories"
+    },
+    "versions" : {
+      "href" : "https://indiacode.gov.in/server/api/versioning/versions"
+    },
+    "vocabularies" : {
+      "href" : "https://indiacode.gov.in/server/api/submission/vocabularies"
+    },
+    "vocabularyEntryDetails" : {
+      "href" : "https://indiacode.gov.in/server/api/submission/vocabularyEntryDetails"
+    },
+    "vocabularyEntryDetails-search" : {
+      "href" : "https://indiacode.gov.in/server/api/submission/vocabularyEntryDetails/search"
+    },
+    "workflowactions" : {
+      "href" : "https://indiacode.gov.in/server/api/config/workflowactions"
+    },
+    "workflowdefinitions" : {
+      "href" : "https://indiacode.gov.in/server/api/config/workflowdefinitions"
+    },
+    "workflowitems" : {
+      "href" : "https://indiacode.gov.in/server/api/workflow/workflowitems"
+    },
+    "workflowsteps" : {
+      "href" : "https://indiacode.gov.in/server/api/config/workflowsteps"
+    },
+    "workspaceitems" : {
+      "href" : "https://indiacode.gov.in/server/api/submission/workspaceitems"
+    }
+  }
+}

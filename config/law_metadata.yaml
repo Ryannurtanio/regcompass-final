@@ -1,0 +1,88 @@
+# Law Name, Law Number / Ref and Last Amended for Documents that are NOT in
+# config/corpus.yaml (export columns 2 to 4), keyed by document id. These
+# Documents (a live Discovery catch, or one added through "Add document") have
+# no generated corpus entry, so the name would be the title derived from the
+# Document and the other two columns would ship blank. Hand-maintained: every
+# value is read off the official text and never guessed; a key left out keeps
+# the derived name or a blank column. corpus.yaml entries never read this file.
+#
+# law_name: set only where the derived title is abbreviated or misread (the
+# template: "Full official name plus year. Do not abbreviate.").
+# last_amended: the year of the most recent amendment, blank for a law never
+# amended (the template's column guidance: "Year of most recent amendment.
+# Leave blank if not amended."). The export shows the year alone.
+documents:
+  # China: the three statutes on www.cac.gov.cn. law_number_ref is the Order of
+  # the President that promulgated the law (year of promulgation in brackets).
+  # PIPL: adopted 20 Aug 2021, in force 1 Nov 2021, not amended.
+  doc_cn_c_1631050028355286:
+    law_name: "Personal Information Protection Law of the People's Republic of China (2021)"
+    law_number_ref: Order of the President No. 91 (2021)
+  # DSL: adopted 10 Jun 2021, in force 1 Sep 2021, not amended.
+  doc_cn_c_1624994566919140:
+    law_name: "Data Security Law of the People's Republic of China (2021)"
+    law_number_ref: Order of the President No. 84 (2021)
+  # CSL: adopted 7 Nov 2016; amended by the Decision of the NPC Standing
+  # Committee of 28 Oct 2025, in force 1 Jan 2026. The Order number is the
+  # 2016 promulgation's.
+  doc_cn_c_1768735112911946:
+    law_name: "Cybersecurity Law of the People's Republic of China (2016, amended 2025)"
+    law_number_ref: Order of the President No. 53 (2016)
+    last_amended: '2025'
+
+  # Indonesia: names from each Document's own title block (page 1), numbers in
+  # the template's own form ('Law No. 27/2022').
+  doc_id_UU_Nomor_11_Tahun_2008:
+    law_name: Undang-Undang Republik Indonesia Nomor 11 Tahun 2008 tentang Informasi dan Transaksi Elektronik
+    law_number_ref: Law No. 11/2008
+    # Amended by UU 19/2016 and again by UU 1/2024; the latter is in the Corpus
+    # (doc_id_UU_Nomor_1_Tahun_2024), titled "Perubahan Kedua atas
+    # Undang-Undang Nomor 11 Tahun 2008".
+    last_amended: '2024'
+  doc_id_UU_Nomor_19_Tahun_2016:
+    law_name: Undang-Undang Republik Indonesia Nomor 19 Tahun 2016 tentang Perubahan atas Undang-Undang Nomor 11 Tahun 2008 tentang Informasi dan Transaksi Elektronik
+    law_number_ref: Law No. 19/2016
+  doc_id_UU_Nomor_1_Tahun_2024:
+    law_name: Undang-Undang Republik Indonesia Nomor 1 Tahun 2024 tentang Perubahan Kedua atas Undang-Undang Nomor 11 Tahun 2008 tentang Informasi dan Transaksi Elektronik
+    law_number_ref: Law No. 1/2024
+  # Not amended.
+  doc_id_UU_Nomor_27_Tahun_2022:
+    law_name: Undang-Undang Republik Indonesia Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi
+    law_number_ref: Law No. 27/2022
+  # Amendment status not established from the Corpus: last_amended left out.
+  doc_id_UU_Nomor_36_Tahun_1999:
+    law_name: Undang-Undang Republik Indonesia Nomor 36 Tahun 1999 tentang Telekomunikasi
+    law_number_ref: Law No. 36/1999
+  doc_id_UU_Nomor_8_Tahun_1999:
+    law_name: Undang-Undang Republik Indonesia Nomor 8 Tahun 1999 tentang Perlindungan Konsumen
+    law_number_ref: Law No. 8/1999
+  doc_id_PP_Nomor_71_Tahun_2019:
+    law_name: Peraturan Pemerintah Republik Indonesia Nomor 71 Tahun 2019 tentang Penyelenggaraan Sistem dan Transaksi Elektronik
+    law_number_ref: Government Regulation No. 71/2019
+
+  # India: names and numbers from each Document's own title lines. The India
+  # Code texts of the two 2023 Acts carry no amendment footnotes, so neither
+  # has been amended.
+  doc_in_a2023-22:
+    # The cover line reads "Datai"; the Act's own heading reads
+    # "THE DIGITAL PERSONAL DATA PROTECTION ACT, 2023".
+    law_name: Digital Personal Data Protection Act, 2023
+    law_number_ref: Act No. 22 of 2023
+  doc_in_A2023-44:
+    law_name: "Telecommunications Act, 2023"
+    law_number_ref: Act No. 44 of 2023
+  # The amending Act itself (Gazette of India, 5 Feb 2009): "THE INFORMATION
+  # TECHNOLOGY (AMENDMENT) ACT, 2008 ... No. 10 OF 2009". It amends the
+  # Information Technology Act, 2000, which is in the Corpus below.
+  doc_in_2009-10:
+    law_name: Information Technology (Amendment) Act, 2008
+    law_number_ref: Act No. 10 of 2009
+  # India Code serves only the consolidated text ("[As on the 27th June,
+  # 2025]"); its list of amending Acts ends with the Jan Vishwas (Amendment of
+  # Provisions) Act, 2023 (18 of 2023), in force 30 Nov 2023. The Digital
+  # Personal Data Protection Act, 2023 s. 44(2) omits s. 43A, but that
+  # sub-section is not yet in force.
+  doc_in_A2000-21:
+    law_name: Information Technology Act, 2000
+    law_number_ref: Act No. 21 of 2000
+    last_amended: '2023'

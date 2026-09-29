@@ -1,0 +1,54 @@
+{
+ "documents": [
+  {
+   "document_id": "doc_sg_telecommunications_act_1999",
+   "title": "Telecommunications Act 1999",
+   "economy": "SG",
+   "pdf": "../tests/fixtures/sample_legislation/born_digital/Telecommunications Act 1999.pdf",
+   "source_url": "https://sso.agc.gov.sg/Act/TA1999",
+   "canonical": "../tests/golden/m1/sg_telecommunications_act_1999.json.gz",
+   "chunks": "../tests/golden/m4/sg_telecommunications_act_1999.chunks.json.gz",
+   "records": "../tests/golden/m8/sg_telecommunications_act_1999.reconciled.json.gz",
+   "gate": "../tests/golden/m5/sg_telecommunications_act_1999.gated.json.gz"
+  },
+  {
+   "document_id": "doc_my_personal_data_protection_act_2010",
+   "title": "Personal Data Protection Act 2010",
+   "economy": "MY",
+   "pdf": "../tests/fixtures/sample_legislation/born_digital/PERSONAL DATA PROTECTION ACT 2010.pdf",
+   "source_url": "https://lom.agc.gov.my/",
+   "canonical": "../tests/golden/m1/my_personal_data_protection_act_2010.json.gz",
+   "chunks": "../tests/golden/m4/my_personal_data_protection_act_2010.chunks.json.gz",
+   "records": "../tests/golden/m8/my_personal_data_protection_act_2010.reconciled.json.gz",
+   "gate": "../tests/golden/m5/my_personal_data_protection_act_2010.gated.json.gz"
+  },
+  {
+   "document_id": "doc_au_C2026C00098VOL01",
+   "title": "Criminal Code Act 1995 (compilation, volume 1)",
+   "economy": "AU",
+   "pdf": "../tests/fixtures/sample_legislation/born_digital/C2026C00098VOL01.pdf",
+   "source_url": "https://www.legislation.gov.au/C2026C00098/latest/text",
+   "canonical": "../tests/golden/m1/au_C2026C00098VOL01.json.gz",
+   "chunks": "../tests/golden/m4/au_C2026C00098VOL01.chunks.json.gz",
+   "records": "../tests/golden/m8/au_C2026C00098VOL01.reconciled.json.gz",
+   "gate": "../tests/golden/m5/au_C2026C00098VOL01.gated.json.gz"
+  }
+ ],
+ "coverage_stats": {
+  "SG": {
+   "law": "Telecommunications Act 1999",
+   "sections": 98,
+   "pairs_gated": 136
+  },
+  "MY": {
+   "law": "Personal Data Protection Act 2010",
+   "sections": 146,
+   "pairs_gated": 166
+  },
+  "AU": {
+   "law": "Criminal Code Act 1995",
+   "sections": 536,
+   "pairs_gated": 145
+  }
+ }
+}

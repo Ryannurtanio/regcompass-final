@@ -1,0 +1,33 @@
+# Secrets: keys live here and ONLY here (gitleaks enforces the rest)
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+dist/
+*.egg-info/
+
+# Runtime data: crawled corpora and working DBs stay local during the build.
+# REVISIT AT P0 (packaging): the committed best-run outputs, the bundled tiny demo corpus,
+# and the OCR evidence pairs need explicit carve-outs or a different home.
+data/
+
+# Default export directory of run/export/e2e/map-pdf: a judge's demo run must
+# never dirty the working tree.
+out/
+
+# Per-Engine records written by the paid accuracy gate (tests/test_map.py):
+# a measurement made on a machine with a key, not a repository fact.
+tests/.paid/
+
+# Local model artifacts (delivered via ollama pull / pinned downloads, never committed)
+models/
+
+# UI toolchain (dev machine only; the built bundle IS committed, node_modules never)
+node_modules/
+
+# macOS noise
+.DS_Store

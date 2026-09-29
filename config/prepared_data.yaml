@@ -1,0 +1,11 @@
+# The prepared database a release ships beside its code: the pre-run Runs,
+# their Corpus and the source files, as one archive attached to the GitHub
+# Release. `regcompass load-data` reads the address and the SHA-256 from here
+# when neither is passed on the command line, so a release fills both in the
+# commit it tags. Blank between releases.
+#
+# url: the archive's download address, for example
+#   https://github.com/<owner>/<repo>/releases/download/<tag>/<name>.tar.gz
+# sha256: the first field of the <name>.tar.gz.sha256 file packed with it.
+url: "https://github.com/Ryannurtanio/regcompass-final/releases/download/final-round/regcompass-prepared-20260928.tar.gz"
+sha256: "0bfa6d4db6e10a3166a6bfdfefccbc5a8a39303ebd416fb3986367179a82ff22"

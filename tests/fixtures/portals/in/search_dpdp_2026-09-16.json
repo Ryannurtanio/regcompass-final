@@ -1,0 +1,2579 @@
+{
+  "id" : null,
+  "scope" : null,
+  "query" : "The Digital Personal Data Protection Act, 2023",
+  "appliedFilters" : null,
+  "sort" : null,
+  "configuration" : null,
+  "type" : "discover",
+  "_links" : {
+    "self" : {
+      "href" : "https://indiacode.gov.in/server/api/discover/search/objects?query=The%2520Digital%2520Personal%2520Data%2520Protection%2520Act%252C%25202023&dsoType=item"
+    }
+  },
+  "_embedded" : {
+    "searchResult" : {
+      "_embedded" : {
+        "objects" : [ {
+          "hitHighlights" : {
+            "dc.description.abstract" : [ "Summary of The <em>Digital</em> <em>Personal</em> <em>Data</em> <em>Protection</em> <em>Act</em>, <em>2023</em>\nScope and Application\n•\tApplies to <em>digital</em> <em>personal</em> <em>data</em> in India and for Indians abroad.\n•\tExemptions for <em>personal</em> use, publicly available <em>data</em>, and legal requirements.\n", "Principal's Rights\n•\tAccess and Transparency\n•\tCorrection and Deletion\n•\tGrievance Mechanism\nGovernance\n•\t<em>Data</em> <em>Protection</em> Board: Oversight.\n•\tTribunal: Appeals.\n•\t(Penalties and Detailed Governance: Refer Full <em>Act</em>)\nAction Consult the full <em>Act</em> for detailed penalties, exemptions, and governance." ],
+            "dc.title" : [ "The <em>Digital</em> <em>Personal</em> <em>Data</em> <em>Protection</em> <em>Act</em>, <em>2023</em>." ]
+          },
+          "type" : "discover",
+          "_links" : {
+            "indexableObject" : {
+              "href" : "https://indiacode.gov.in/server/api/core/items/c058fa9f-eaf0-4ca3-98f1-3443b087bca9"
+            }
+          },
+          "_embedded" : {
+            "indexableObject" : {
+              "id" : "c058fa9f-eaf0-4ca3-98f1-3443b087bca9",
+              "uuid" : "c058fa9f-eaf0-4ca3-98f1-3443b087bca9",
+              "name" : "The Digital Personal Data Protection Act, 2023.",
+              "handle" : "123456789/496508",
+              "metadata" : {
+                "dc.date.accessioned" : [ {
+                  "value" : "2026-07-10T20:12:17Z",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.date.act_year" : [ {
+                  "value" : "2023",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.date.enact_date" : [ {
+                  "value" : "2023-08-11",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.date.entry_date" : [ {
+                  "value" : "2025-11-18",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.date.issued" : [ {
+                  "value" : "2023-08-11",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.date.last_modified" : [ {
+                  "value" : "2025-11-19",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.description.abstract" : [ {
+                  "value" : "Summary of The Digital Personal Data Protection Act, 2023\nScope and Application\n•\tApplies to digital personal data in India and for Indians abroad.\n•\tExemptions for personal use, publicly available data, and legal requirements.\nKey Roles\n•\tData Principal: The individual.\n•\tData Fiduciary: Controls data processing.\n•\tData Processor: Acts on behalf of the Fiduciary.\nFiduciary Duties\n•\tLegitimate Processing: Consent or lawful uses.\n•\tTransparent Notice: Informing principals.\n•\tSecure Processing: Implementing safeguards.\nPrincipal's Rights\n•\tAccess and Transparency\n•\tCorrection and Deletion\n•\tGrievance Mechanism\nGovernance\n•\tData Protection Board: Oversight.\n•\tTribunal: Appeals.\n•\t(Penalties and Detailed Governance: Refer Full Act)\nAction Consult the full Act for detailed penalties, exemptions, and governance.",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.act_id" : [ {
+                  "value" : "AC_CEN_45_0_00003_2023-22_1763464807080",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.act_number" : [ {
+                  "value" : "22",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.collection" : [ {
+                  "value" : "ACT",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.givenid" : [ {
+                  "value" : "2023-22",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.ministry_id" : [ {
+                  "value" : "45",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.ministry_name" : [ {
+                  "value" : "Ministry of Electronics and Information Technology",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.no_of_chapter" : [ {
+                  "value" : "0",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.no_of_section" : [ {
+                  "value" : "0",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.preamble_description" : [ {
+                  "value" : "<center style=\"font-size: 17px;\">THE DIGITAL PERSONAL DATA PROTECTION ACT, 2023<br/><hr style=\"border: none; margin-bottom: 8px; margin-top: 0;\"/> ACT NO. 22 OF 2023</center><br/><hr style=\"border: none; margin-bottom: 8px; margin-top: 0;\"/> <p style=\"text-align:right;\">[11<i>th August</i>, 2023.]</p><br/><hr style=\"border: none; margin-bottom: 8px; margin-top: 0;\"/> An Act to provide for the processing of digital personal data in a manner that recognises both the right of individuals to protect their personal data and the need to process such personal data for lawful purposes and for matters connected therewith or incidental thereto.<br/><hr style=\"border: none; margin-bottom: 8px; margin-top: 0;\"/> <span style=\"margin-left: 15px;\"></span>BE it enacted by Parliament in the Seventy-fourth Year of the Republic of India as follows:---<br/><hr style=\"border: none; margin-bottom: 8px; margin-top: 0;\"/>",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.refact" : [ {
+                  "value" : "0",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.reference_sites" : [ {
+                  "value" : "Ministry of Electronics and Information Technology https://www.meity.gov.in/",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                }, {
+                  "value" : "Concerned Ministry/Department Acts and Rules https://www.meity.gov.in/documents/act-and-policies?page=2",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 1
+                } ],
+                "dc.identifier.repealed" : [ {
+                  "value" : "false",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.state_id" : [ {
+                  "value" : "1",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.state_name" : [ {
+                  "value" : "CENTRAL",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.uri" : [ {
+                  "value" : "http://test1.indiacode.nic.in/handle/123456789/496508",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.legislation.history" : [ {
+                  "value" : "Legislative History: \nThe Digital Personal Data Protection Act, 2023  \n\nSource: Official Record of Parliament, India Code, and Ministry of Electronics and Information Technology \n \nAct Title - The Digital Personal Data Protection Act, 2023 \nAct Number - Act No. 22 of 2023 \nAct ID (India Code) - 202322 \n Presidential Assent date - August 11, 2023 \n Enforcement Date - August 11, 2023 \nNodal Ministry - Ministry of Electronics and Information Technology \n\nPrecedent & Historical Rationale\n●\tFirst Comprehensive Data Privacy Framework: Establishes India’s first dedicated, primary statutory regime for the processing of digital personal data, giving legislative form to the fundamental right to privacy affirmed in K.S. Puttaswamy v. Union of India (2017).\n●\tData Fiduciaries & Data Principals: Outlines clear legal grounds for processing personal data (based on consent or \"certain legitimate uses\"), defines rights and duties of individuals (Data Principals), and establishes strict obligations for processing entities (Data Fiduciaries and Significant Data Fiduciaries).\n●\tEstablishment of DPBI & Penalty Structure: Creates the Data Protection Board of India (DPBI) as an adjudicatory body to investigate breaches and impose statutory penalties of up to ₹250 crore per instance, replacing criminal penalties with civil monetary adjudications.\n \nParliamentary Trajectory & Enactment\n●\tFormulation: Emerging from years of drafting rounds (including the Srikrishna Committee report, the Personal Data Protection Bill, 2019, and subsequent withdrawals), it was introduced as the Digital Personal Data Protection Bill, 2023 by the Union Minister of Electronics and IT, Shri Ashwini Vaishnaw.\n●\tParliamentary Passage: Introduced in the Lok Sabha on August 3, 2023; passed by the Lok Sabha on August 7, 2023; and passed by the Rajya Sabha on August 9, 2023.\n●\tPresidential Assent: Received the assent of the President of India on August 11, 2023.\n●\tEnforcement: Enforced on August 11, 2023.",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.title" : [ {
+                  "value" : "The Digital Personal Data Protection Act, 2023.",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.title.long_title" : [ {
+                  "value" : "An Act to provide for the processing of digital personal data in a manner that recognises both the right of individuals to protect their personal data and the need to process such personal data for lawful purposes and for matters connected therewith or incidental thereto.",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.type" : [ {
+                  "value" : "Developmental",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ]
+              },
+              "inArchive" : true,
+              "discoverable" : true,
+              "withdrawn" : false,
+              "lastModified" : "2026-08-11T17:23:07.386229Z",
+              "entityType" : null,
+              "type" : "item",
+              "_links" : {
+                "accessStatus" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/c058fa9f-eaf0-4ca3-98f1-3443b087bca9/accessStatus"
+                },
+                "bundles" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/c058fa9f-eaf0-4ca3-98f1-3443b087bca9/bundles"
+                },
+                "identifiers" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/c058fa9f-eaf0-4ca3-98f1-3443b087bca9/identifiers"
+                },
+                "mappedCollections" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/c058fa9f-eaf0-4ca3-98f1-3443b087bca9/mappedCollections"
+                },
+                "owningCollection" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/c058fa9f-eaf0-4ca3-98f1-3443b087bca9/owningCollection"
+                },
+                "relationships" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/c058fa9f-eaf0-4ca3-98f1-3443b087bca9/relationships"
+                },
+                "version" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/c058fa9f-eaf0-4ca3-98f1-3443b087bca9/version"
+                },
+                "templateItemOf" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/c058fa9f-eaf0-4ca3-98f1-3443b087bca9/templateItemOf"
+                },
+                "thumbnail" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/c058fa9f-eaf0-4ca3-98f1-3443b087bca9/thumbnail"
+                },
+                "submitter" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/c058fa9f-eaf0-4ca3-98f1-3443b087bca9/submitter"
+                },
+                "self" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/c058fa9f-eaf0-4ca3-98f1-3443b087bca9"
+                }
+              },
+              "_embedded" : {
+                "bundles" : {
+                  "_embedded" : {
+                    "bundles" : [ {
+                      "uuid" : "0f8d55d1-edab-4a75-9223-c5ddf86d9ce2",
+                      "name" : "ORIGINAL",
+                      "handle" : null,
+                      "metadata" : {
+                        "dc.title" : [ {
+                          "value" : "ORIGINAL",
+                          "language" : null,
+                          "authority" : null,
+                          "confidence" : -1,
+                          "place" : 0
+                        } ]
+                      },
+                      "type" : "bundle",
+                      "_links" : {
+                        "item" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/0f8d55d1-edab-4a75-9223-c5ddf86d9ce2/item"
+                        },
+                        "bitstreams" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/0f8d55d1-edab-4a75-9223-c5ddf86d9ce2/bitstreams"
+                        },
+                        "primaryBitstream" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/0f8d55d1-edab-4a75-9223-c5ddf86d9ce2/primaryBitstream"
+                        },
+                        "self" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/0f8d55d1-edab-4a75-9223-c5ddf86d9ce2"
+                        }
+                      },
+                      "_embedded" : {
+                        "bitstreams" : {
+                          "_embedded" : {
+                            "bitstreams" : [ {
+                              "id" : "52f9ecbb-b927-4ba6-ae6f-ca2fac50d4df",
+                              "uuid" : "52f9ecbb-b927-4ba6-ae6f-ca2fac50d4df",
+                              "name" : "a2023-22.pdf",
+                              "handle" : null,
+                              "metadata" : {
+                                "dc.title" : [ {
+                                  "value" : "a2023-22.pdf",
+                                  "language" : null,
+                                  "authority" : null,
+                                  "confidence" : -1,
+                                  "place" : 0
+                                } ]
+                              },
+                              "bundleName" : "ORIGINAL",
+                              "sizeBytes" : 382467,
+                              "checkSum" : {
+                                "checkSumAlgorithm" : "MD5",
+                                "value" : "fb46e9c3389fc29a88bdd34cb5356112"
+                              },
+                              "sequenceId" : 1,
+                              "type" : "bitstream",
+                              "_links" : {
+                                "content" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/52f9ecbb-b927-4ba6-ae6f-ca2fac50d4df/content"
+                                },
+                                "bundle" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/52f9ecbb-b927-4ba6-ae6f-ca2fac50d4df/bundle"
+                                },
+                                "accessStatus" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/52f9ecbb-b927-4ba6-ae6f-ca2fac50d4df/accessStatus"
+                                },
+                                "format" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/52f9ecbb-b927-4ba6-ae6f-ca2fac50d4df/format"
+                                },
+                                "thumbnail" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/52f9ecbb-b927-4ba6-ae6f-ca2fac50d4df/thumbnail"
+                                },
+                                "self" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/52f9ecbb-b927-4ba6-ae6f-ca2fac50d4df"
+                                }
+                              }
+                            } ]
+                          },
+                          "page" : {
+                            "number" : 0,
+                            "size" : 20,
+                            "totalPages" : 1,
+                            "totalElements" : 1
+                          },
+                          "_links" : {
+                            "self" : {
+                              "href" : "https://indiacode.gov.in/server/api/core/bundles/0f8d55d1-edab-4a75-9223-c5ddf86d9ce2/bitstreams"
+                            }
+                          }
+                        }
+                      }
+                    }, {
+                      "uuid" : "77a6f6f3-40d7-4ee7-96dd-9b674cd9a08c",
+                      "name" : "TEXT",
+                      "handle" : null,
+                      "metadata" : {
+                        "dc.title" : [ {
+                          "value" : "TEXT",
+                          "language" : null,
+                          "authority" : null,
+                          "confidence" : -1,
+                          "place" : 0
+                        } ]
+                      },
+                      "type" : "bundle",
+                      "_links" : {
+                        "item" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/77a6f6f3-40d7-4ee7-96dd-9b674cd9a08c/item"
+                        },
+                        "bitstreams" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/77a6f6f3-40d7-4ee7-96dd-9b674cd9a08c/bitstreams"
+                        },
+                        "primaryBitstream" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/77a6f6f3-40d7-4ee7-96dd-9b674cd9a08c/primaryBitstream"
+                        },
+                        "self" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/77a6f6f3-40d7-4ee7-96dd-9b674cd9a08c"
+                        }
+                      },
+                      "_embedded" : {
+                        "bitstreams" : {
+                          "_embedded" : {
+                            "bitstreams" : [ {
+                              "id" : "84e85c8a-13ec-4fc3-9620-44225e5a7bce",
+                              "uuid" : "84e85c8a-13ec-4fc3-9620-44225e5a7bce",
+                              "name" : "a2023-22.pdf.txt",
+                              "handle" : null,
+                              "metadata" : {
+                                "dc.description" : [ {
+                                  "value" : "Extracted text",
+                                  "language" : null,
+                                  "authority" : null,
+                                  "confidence" : -1,
+                                  "place" : 0
+                                } ],
+                                "dc.source" : [ {
+                                  "value" : "Written by FormatFilter org.dspace.app.mediafilter.TikaTextExtractionFilter on 2026-07-15T03:37:59Z (GMT).",
+                                  "language" : null,
+                                  "authority" : null,
+                                  "confidence" : -1,
+                                  "place" : 0
+                                } ],
+                                "dc.title" : [ {
+                                  "value" : "a2023-22.pdf.txt",
+                                  "language" : null,
+                                  "authority" : null,
+                                  "confidence" : -1,
+                                  "place" : 0
+                                } ]
+                              },
+                              "bundleName" : "TEXT",
+                              "sizeBytes" : 69884,
+                              "checkSum" : {
+                                "checkSumAlgorithm" : "MD5",
+                                "value" : "af6142661b6719b275420fc0a464d6c2"
+                              },
+                              "sequenceId" : 2,
+                              "type" : "bitstream",
+                              "_links" : {
+                                "content" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/84e85c8a-13ec-4fc3-9620-44225e5a7bce/content"
+                                },
+                                "bundle" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/84e85c8a-13ec-4fc3-9620-44225e5a7bce/bundle"
+                                },
+                                "accessStatus" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/84e85c8a-13ec-4fc3-9620-44225e5a7bce/accessStatus"
+                                },
+                                "format" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/84e85c8a-13ec-4fc3-9620-44225e5a7bce/format"
+                                },
+                                "thumbnail" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/84e85c8a-13ec-4fc3-9620-44225e5a7bce/thumbnail"
+                                },
+                                "self" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/84e85c8a-13ec-4fc3-9620-44225e5a7bce"
+                                }
+                              }
+                            } ]
+                          },
+                          "page" : {
+                            "number" : 0,
+                            "size" : 20,
+                            "totalPages" : 1,
+                            "totalElements" : 1
+                          },
+                          "_links" : {
+                            "self" : {
+                              "href" : "https://indiacode.gov.in/server/api/core/bundles/77a6f6f3-40d7-4ee7-96dd-9b674cd9a08c/bitstreams"
+                            }
+                          }
+                        }
+                      }
+                    }, {
+                      "uuid" : "928a0143-c304-42ef-8b5f-7b379c5ceb6d",
+                      "name" : "THUMBNAIL",
+                      "handle" : null,
+                      "metadata" : {
+                        "dc.title" : [ {
+                          "value" : "THUMBNAIL",
+                          "language" : null,
+                          "authority" : null,
+                          "confidence" : -1,
+                          "place" : 0
+                        } ]
+                      },
+                      "type" : "bundle",
+                      "_links" : {
+                        "item" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/928a0143-c304-42ef-8b5f-7b379c5ceb6d/item"
+                        },
+                        "bitstreams" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/928a0143-c304-42ef-8b5f-7b379c5ceb6d/bitstreams"
+                        },
+                        "primaryBitstream" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/928a0143-c304-42ef-8b5f-7b379c5ceb6d/primaryBitstream"
+                        },
+                        "self" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/928a0143-c304-42ef-8b5f-7b379c5ceb6d"
+                        }
+                      },
+                      "_embedded" : {
+                        "bitstreams" : {
+                          "_embedded" : {
+                            "bitstreams" : [ {
+                              "id" : "0807d0b2-69e8-4072-bdf4-0d7df8cb892c",
+                              "uuid" : "0807d0b2-69e8-4072-bdf4-0d7df8cb892c",
+                              "name" : "a2023-22.pdf.jpg",
+                              "handle" : null,
+                              "metadata" : {
+                                "dc.description" : [ {
+                                  "value" : "Generated Thumbnail",
+                                  "language" : null,
+                                  "authority" : null,
+                                  "confidence" : -1,
+                                  "place" : 0
+                                } ],
+                                "dc.source" : [ {
+                                  "value" : "Written by FormatFilter org.dspace.app.mediafilter.PDFBoxThumbnail on 2026-07-15T03:37:59Z (GMT).",
+                                  "language" : null,
+                                  "authority" : null,
+                                  "confidence" : -1,
+                                  "place" : 0
+                                } ],
+                                "dc.title" : [ {
+                                  "value" : "a2023-22.pdf.jpg",
+                                  "language" : null,
+                                  "authority" : null,
+                                  "confidence" : -1,
+                                  "place" : 0
+                                } ]
+                              },
+                              "bundleName" : "THUMBNAIL",
+                              "sizeBytes" : 2275,
+                              "checkSum" : {
+                                "checkSumAlgorithm" : "MD5",
+                                "value" : "b6a1a2545d97afaeb64f73f89b3fe8bf"
+                              },
+                              "sequenceId" : 3,
+                              "type" : "bitstream",
+                              "_links" : {
+                                "content" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/0807d0b2-69e8-4072-bdf4-0d7df8cb892c/content"
+                                },
+                                "bundle" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/0807d0b2-69e8-4072-bdf4-0d7df8cb892c/bundle"
+                                },
+                                "accessStatus" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/0807d0b2-69e8-4072-bdf4-0d7df8cb892c/accessStatus"
+                                },
+                                "format" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/0807d0b2-69e8-4072-bdf4-0d7df8cb892c/format"
+                                },
+                                "thumbnail" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/0807d0b2-69e8-4072-bdf4-0d7df8cb892c/thumbnail"
+                                },
+                                "self" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/0807d0b2-69e8-4072-bdf4-0d7df8cb892c"
+                                }
+                              }
+                            } ]
+                          },
+                          "page" : {
+                            "number" : 0,
+                            "size" : 20,
+                            "totalPages" : 1,
+                            "totalElements" : 1
+                          },
+                          "_links" : {
+                            "self" : {
+                              "href" : "https://indiacode.gov.in/server/api/core/bundles/928a0143-c304-42ef-8b5f-7b379c5ceb6d/bitstreams"
+                            }
+                          }
+                        }
+                      }
+                    } ]
+                  },
+                  "page" : {
+                    "number" : 0,
+                    "size" : 20,
+                    "totalPages" : 1,
+                    "totalElements" : 3
+                  },
+                  "_links" : {
+                    "self" : {
+                      "href" : "https://indiacode.gov.in/server/api/core/items/c058fa9f-eaf0-4ca3-98f1-3443b087bca9/bundles"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }, {
+          "hitHighlights" : null,
+          "type" : "discover",
+          "_links" : {
+            "indexableObject" : {
+              "href" : "https://indiacode.gov.in/server/api/core/items/d95eb25b-486b-47f6-997a-6511fc89a945"
+            }
+          },
+          "_embedded" : {
+            "indexableObject" : {
+              "id" : "d95eb25b-486b-47f6-997a-6511fc89a945",
+              "uuid" : "d95eb25b-486b-47f6-997a-6511fc89a945",
+              "name" : "Corrigendum to Digital Personal Data Protection Rules, 2025",
+              "handle" : "123456789/510192",
+              "metadata" : {
+                "dc.date" : [ {
+                  "value" : "2025-12-11",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.date.accessioned" : [ {
+                  "value" : "2026-07-10T21:42:37Z",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.date.act_year" : [ {
+                  "value" : "2023",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.date.entry_date" : [ {
+                  "value" : "2026-05-05",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.date.issued" : [ {
+                  "value" : "2025-12-11",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.act_id" : [ {
+                  "value" : "AC_CEN_45_0_00003_2023-22_1763464807080",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.act_name" : [ {
+                  "value" : "The Digital Personal Data Protection Act, 2023.",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.act_number" : [ {
+                  "value" : "22",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.act_repealed" : [ {
+                  "value" : "false",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.collection" : [ {
+                  "value" : "RULE",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.id" : [ {
+                  "value" : "RU_CEN_45_0_00002_1777976757092",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.ministry_id" : [ {
+                  "value" : "45",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.ministry_name" : [ {
+                  "value" : "Ministry of Electronics and Information Technology",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.repealed" : [ {
+                  "value" : "false",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.rule_id" : [ {
+                  "value" : "RU_CEN_45_0_00002_1777976757092",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.state_id" : [ {
+                  "value" : "1",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.state_name" : [ {
+                  "value" : "CENTRAL",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.uri" : [ {
+                  "value" : "http://test1.indiacode.nic.in/handle/123456789/510192",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.title" : [ {
+                  "value" : "Corrigendum to Digital Personal Data Protection Rules, 2025",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.title.regional" : [ {
+                  "value" : "डिजिटल व्यक्तिगत डेटा संरक्षण नियम 2025 का शुद्धिपत्र",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ]
+              },
+              "inArchive" : true,
+              "discoverable" : true,
+              "withdrawn" : false,
+              "lastModified" : "2026-08-03T05:43:16.380533Z",
+              "entityType" : null,
+              "type" : "item",
+              "_links" : {
+                "accessStatus" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/d95eb25b-486b-47f6-997a-6511fc89a945/accessStatus"
+                },
+                "bundles" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/d95eb25b-486b-47f6-997a-6511fc89a945/bundles"
+                },
+                "identifiers" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/d95eb25b-486b-47f6-997a-6511fc89a945/identifiers"
+                },
+                "mappedCollections" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/d95eb25b-486b-47f6-997a-6511fc89a945/mappedCollections"
+                },
+                "owningCollection" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/d95eb25b-486b-47f6-997a-6511fc89a945/owningCollection"
+                },
+                "relationships" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/d95eb25b-486b-47f6-997a-6511fc89a945/relationships"
+                },
+                "version" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/d95eb25b-486b-47f6-997a-6511fc89a945/version"
+                },
+                "templateItemOf" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/d95eb25b-486b-47f6-997a-6511fc89a945/templateItemOf"
+                },
+                "thumbnail" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/d95eb25b-486b-47f6-997a-6511fc89a945/thumbnail"
+                },
+                "submitter" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/d95eb25b-486b-47f6-997a-6511fc89a945/submitter"
+                },
+                "self" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/d95eb25b-486b-47f6-997a-6511fc89a945"
+                }
+              },
+              "_embedded" : {
+                "bundles" : {
+                  "_embedded" : {
+                    "bundles" : [ {
+                      "uuid" : "883bcf57-d783-49a0-972d-7241a90b5ea4",
+                      "name" : "ORIGINAL",
+                      "handle" : null,
+                      "metadata" : {
+                        "dc.title" : [ {
+                          "value" : "ORIGINAL",
+                          "language" : null,
+                          "authority" : null,
+                          "confidence" : -1,
+                          "place" : 0
+                        } ]
+                      },
+                      "type" : "bundle",
+                      "_links" : {
+                        "item" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/883bcf57-d783-49a0-972d-7241a90b5ea4/item"
+                        },
+                        "bitstreams" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/883bcf57-d783-49a0-972d-7241a90b5ea4/bitstreams"
+                        },
+                        "primaryBitstream" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/883bcf57-d783-49a0-972d-7241a90b5ea4/primaryBitstream"
+                        },
+                        "self" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/883bcf57-d783-49a0-972d-7241a90b5ea4"
+                        }
+                      },
+                      "_embedded" : {
+                        "bitstreams" : {
+                          "_embedded" : {
+                            "bitstreams" : [ {
+                              "id" : "fb67b17e-e31c-4407-83ba-59f856dabc69",
+                              "uuid" : "fb67b17e-e31c-4407-83ba-59f856dabc69",
+                              "name" : "268455.pdf",
+                              "handle" : null,
+                              "metadata" : {
+                                "dc.title" : [ {
+                                  "value" : "268455.pdf",
+                                  "language" : null,
+                                  "authority" : null,
+                                  "confidence" : -1,
+                                  "place" : 0
+                                } ]
+                              },
+                              "bundleName" : "ORIGINAL",
+                              "sizeBytes" : 408279,
+                              "checkSum" : {
+                                "checkSumAlgorithm" : "MD5",
+                                "value" : "0e69c77bdaef2d114ced0d31b311e8b8"
+                              },
+                              "sequenceId" : 1,
+                              "type" : "bitstream",
+                              "_links" : {
+                                "content" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/fb67b17e-e31c-4407-83ba-59f856dabc69/content"
+                                },
+                                "bundle" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/fb67b17e-e31c-4407-83ba-59f856dabc69/bundle"
+                                },
+                                "accessStatus" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/fb67b17e-e31c-4407-83ba-59f856dabc69/accessStatus"
+                                },
+                                "format" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/fb67b17e-e31c-4407-83ba-59f856dabc69/format"
+                                },
+                                "thumbnail" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/fb67b17e-e31c-4407-83ba-59f856dabc69/thumbnail"
+                                },
+                                "self" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/fb67b17e-e31c-4407-83ba-59f856dabc69"
+                                }
+                              }
+                            } ]
+                          },
+                          "page" : {
+                            "number" : 0,
+                            "size" : 20,
+                            "totalPages" : 1,
+                            "totalElements" : 1
+                          },
+                          "_links" : {
+                            "self" : {
+                              "href" : "https://indiacode.gov.in/server/api/core/bundles/883bcf57-d783-49a0-972d-7241a90b5ea4/bitstreams"
+                            }
+                          }
+                        }
+                      }
+                    }, {
+                      "uuid" : "36d99d11-6f17-47f8-8e46-85a4b7d4d90a",
+                      "name" : "TEXT",
+                      "handle" : null,
+                      "metadata" : {
+                        "dc.title" : [ {
+                          "value" : "TEXT",
+                          "language" : null,
+                          "authority" : null,
+                          "confidence" : -1,
+                          "place" : 0
+                        } ]
+                      },
+                      "type" : "bundle",
+                      "_links" : {
+                        "item" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/36d99d11-6f17-47f8-8e46-85a4b7d4d90a/item"
+                        },
+                        "bitstreams" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/36d99d11-6f17-47f8-8e46-85a4b7d4d90a/bitstreams"
+                        },
+                        "primaryBitstream" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/36d99d11-6f17-47f8-8e46-85a4b7d4d90a/primaryBitstream"
+                        },
+                        "self" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/36d99d11-6f17-47f8-8e46-85a4b7d4d90a"
+                        }
+                      },
+                      "_embedded" : {
+                        "bitstreams" : {
+                          "_embedded" : {
+                            "bitstreams" : [ {
+                              "id" : "ca3f6ef8-d9c1-44ad-9fd0-0d3abea49076",
+                              "uuid" : "ca3f6ef8-d9c1-44ad-9fd0-0d3abea49076",
+                              "name" : "268455.pdf.txt",
+                              "handle" : null,
+                              "metadata" : {
+                                "dc.description" : [ {
+                                  "value" : "Extracted text",
+                                  "language" : null,
+                                  "authority" : null,
+                                  "confidence" : -1,
+                                  "place" : 0
+                                } ],
+                                "dc.source" : [ {
+                                  "value" : "Written by FormatFilter org.dspace.app.mediafilter.TikaTextExtractionFilter on 2026-08-03T05:43:16Z (GMT).",
+                                  "language" : null,
+                                  "authority" : null,
+                                  "confidence" : -1,
+                                  "place" : 0
+                                } ],
+                                "dc.title" : [ {
+                                  "value" : "268455.pdf.txt",
+                                  "language" : null,
+                                  "authority" : null,
+                                  "confidence" : -1,
+                                  "place" : 0
+                                } ]
+                              },
+                              "bundleName" : "TEXT",
+                              "sizeBytes" : 1986,
+                              "checkSum" : {
+                                "checkSumAlgorithm" : "MD5",
+                                "value" : "42aa0ef7cf0304da4c7da2571099f058"
+                              },
+                              "sequenceId" : 2,
+                              "type" : "bitstream",
+                              "_links" : {
+                                "content" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/ca3f6ef8-d9c1-44ad-9fd0-0d3abea49076/content"
+                                },
+                                "bundle" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/ca3f6ef8-d9c1-44ad-9fd0-0d3abea49076/bundle"
+                                },
+                                "accessStatus" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/ca3f6ef8-d9c1-44ad-9fd0-0d3abea49076/accessStatus"
+                                },
+                                "format" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/ca3f6ef8-d9c1-44ad-9fd0-0d3abea49076/format"
+                                },
+                                "thumbnail" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/ca3f6ef8-d9c1-44ad-9fd0-0d3abea49076/thumbnail"
+                                },
+                                "self" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/ca3f6ef8-d9c1-44ad-9fd0-0d3abea49076"
+                                }
+                              }
+                            } ]
+                          },
+                          "page" : {
+                            "number" : 0,
+                            "size" : 20,
+                            "totalPages" : 1,
+                            "totalElements" : 1
+                          },
+                          "_links" : {
+                            "self" : {
+                              "href" : "https://indiacode.gov.in/server/api/core/bundles/36d99d11-6f17-47f8-8e46-85a4b7d4d90a/bitstreams"
+                            }
+                          }
+                        }
+                      }
+                    }, {
+                      "uuid" : "4cc7d0ec-7578-4f3f-8bc4-5dcd673e599a",
+                      "name" : "THUMBNAIL",
+                      "handle" : null,
+                      "metadata" : {
+                        "dc.title" : [ {
+                          "value" : "THUMBNAIL",
+                          "language" : null,
+                          "authority" : null,
+                          "confidence" : -1,
+                          "place" : 0
+                        } ]
+                      },
+                      "type" : "bundle",
+                      "_links" : {
+                        "item" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/4cc7d0ec-7578-4f3f-8bc4-5dcd673e599a/item"
+                        },
+                        "bitstreams" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/4cc7d0ec-7578-4f3f-8bc4-5dcd673e599a/bitstreams"
+                        },
+                        "primaryBitstream" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/4cc7d0ec-7578-4f3f-8bc4-5dcd673e599a/primaryBitstream"
+                        },
+                        "self" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/4cc7d0ec-7578-4f3f-8bc4-5dcd673e599a"
+                        }
+                      },
+                      "_embedded" : {
+                        "bitstreams" : {
+                          "_embedded" : {
+                            "bitstreams" : [ {
+                              "id" : "eadf7324-0d4c-49cb-8530-e33d56b3607d",
+                              "uuid" : "eadf7324-0d4c-49cb-8530-e33d56b3607d",
+                              "name" : "268455.pdf.jpg",
+                              "handle" : null,
+                              "metadata" : {
+                                "dc.description" : [ {
+                                  "value" : "Generated Thumbnail",
+                                  "language" : null,
+                                  "authority" : null,
+                                  "confidence" : -1,
+                                  "place" : 0
+                                } ],
+                                "dc.source" : [ {
+                                  "value" : "Written by FormatFilter org.dspace.app.mediafilter.PDFBoxThumbnail on 2026-08-03T05:43:16Z (GMT).",
+                                  "language" : null,
+                                  "authority" : null,
+                                  "confidence" : -1,
+                                  "place" : 0
+                                } ],
+                                "dc.title" : [ {
+                                  "value" : "268455.pdf.jpg",
+                                  "language" : null,
+                                  "authority" : null,
+                                  "confidence" : -1,
+                                  "place" : 0
+                                } ]
+                              },
+                              "bundleName" : "THUMBNAIL",
+                              "sizeBytes" : 4930,
+                              "checkSum" : {
+                                "checkSumAlgorithm" : "MD5",
+                                "value" : "ddf762d0832484e0d17918337474f49d"
+                              },
+                              "sequenceId" : 3,
+                              "type" : "bitstream",
+                              "_links" : {
+                                "content" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/eadf7324-0d4c-49cb-8530-e33d56b3607d/content"
+                                },
+                                "bundle" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/eadf7324-0d4c-49cb-8530-e33d56b3607d/bundle"
+                                },
+                                "accessStatus" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/eadf7324-0d4c-49cb-8530-e33d56b3607d/accessStatus"
+                                },
+                                "format" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/eadf7324-0d4c-49cb-8530-e33d56b3607d/format"
+                                },
+                                "thumbnail" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/eadf7324-0d4c-49cb-8530-e33d56b3607d/thumbnail"
+                                },
+                                "self" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/eadf7324-0d4c-49cb-8530-e33d56b3607d"
+                                }
+                              }
+                            } ]
+                          },
+                          "page" : {
+                            "number" : 0,
+                            "size" : 20,
+                            "totalPages" : 1,
+                            "totalElements" : 1
+                          },
+                          "_links" : {
+                            "self" : {
+                              "href" : "https://indiacode.gov.in/server/api/core/bundles/4cc7d0ec-7578-4f3f-8bc4-5dcd673e599a/bitstreams"
+                            }
+                          }
+                        }
+                      }
+                    } ]
+                  },
+                  "page" : {
+                    "number" : 0,
+                    "size" : 20,
+                    "totalPages" : 1,
+                    "totalElements" : 3
+                  },
+                  "_links" : {
+                    "self" : {
+                      "href" : "https://indiacode.gov.in/server/api/core/items/d95eb25b-486b-47f6-997a-6511fc89a945/bundles"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }, {
+          "hitHighlights" : null,
+          "type" : "discover",
+          "_links" : {
+            "indexableObject" : {
+              "href" : "https://indiacode.gov.in/server/api/core/items/6387180a-0def-4f62-baca-0c092c1dc2a1"
+            }
+          },
+          "_embedded" : {
+            "indexableObject" : {
+              "id" : "6387180a-0def-4f62-baca-0c092c1dc2a1",
+              "uuid" : "6387180a-0def-4f62-baca-0c092c1dc2a1",
+              "name" : "Processing of personal data outside India.",
+              "handle" : "123456789/512146",
+              "metadata" : {
+                "dc.date.accessioned" : [ {
+                  "value" : "2026-07-10T21:52:18Z",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.date.act_year" : [ {
+                  "value" : "2023",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.act_id" : [ {
+                  "value" : "AC_CEN_45_0_00003_2023-22_1763464807080",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.act_name" : [ {
+                  "value" : "The Digital Personal Data Protection Act, 2023.",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.act_number" : [ {
+                  "value" : "22",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.act_repealed" : [ {
+                  "value" : "false",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.collection" : [ {
+                  "value" : "SECTION",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.id" : [ {
+                  "value" : "101282",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.ministry_id" : [ {
+                  "value" : "45",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.ministry_name" : [ {
+                  "value" : "Ministry of Electronics and Information Technology",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.order_number" : [ {
+                  "value" : "16",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.page_from" : [ {
+                  "value" : "0",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.page_number" : [ {
+                  "value" : "14",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.page_to" : [ {
+                  "value" : "0",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.repealed" : [ {
+                  "value" : "false",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.section_id" : [ {
+                  "value" : "101282",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.section_number" : [ {
+                  "value" : "16",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.section_page_note" : [ {
+                  "value" : "<span style=\"margin-left: 15px;\"></span>(1) The Central Government may, by notification, restrict the transfer of personal data by a Data Fiduciary for processing to such country or territory outside India as may be so notified.<br/><hr style=\"border: none; margin-bottom: 8px; margin-top: 0;\"/> <span style=\"margin-left: 15px;\"></span>(2) Nothing contained in this section shall restrict the applicability of any law for the time being in force in India that provides for a higher degree of protection for or restriction on transfer of personal data by a Data Fiduciary outside India in relation to any personal data or Data Fiduciary or class thereof. <br/><hr style=\"border: none; margin-bottom: 8px; margin-top: 0;\"/>",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.state_id" : [ {
+                  "value" : "1",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.state_name" : [ {
+                  "value" : "CENTRAL",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.uri" : [ {
+                  "value" : "http://test1.indiacode.nic.in/handle/123456789/512146",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.title" : [ {
+                  "value" : "Processing of personal data outside India.",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ]
+              },
+              "inArchive" : true,
+              "discoverable" : true,
+              "withdrawn" : false,
+              "lastModified" : "2026-07-10T21:52:18.365207Z",
+              "entityType" : null,
+              "type" : "item",
+              "_links" : {
+                "accessStatus" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/6387180a-0def-4f62-baca-0c092c1dc2a1/accessStatus"
+                },
+                "bundles" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/6387180a-0def-4f62-baca-0c092c1dc2a1/bundles"
+                },
+                "identifiers" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/6387180a-0def-4f62-baca-0c092c1dc2a1/identifiers"
+                },
+                "mappedCollections" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/6387180a-0def-4f62-baca-0c092c1dc2a1/mappedCollections"
+                },
+                "owningCollection" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/6387180a-0def-4f62-baca-0c092c1dc2a1/owningCollection"
+                },
+                "relationships" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/6387180a-0def-4f62-baca-0c092c1dc2a1/relationships"
+                },
+                "version" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/6387180a-0def-4f62-baca-0c092c1dc2a1/version"
+                },
+                "templateItemOf" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/6387180a-0def-4f62-baca-0c092c1dc2a1/templateItemOf"
+                },
+                "thumbnail" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/6387180a-0def-4f62-baca-0c092c1dc2a1/thumbnail"
+                },
+                "submitter" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/6387180a-0def-4f62-baca-0c092c1dc2a1/submitter"
+                },
+                "self" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/6387180a-0def-4f62-baca-0c092c1dc2a1"
+                }
+              },
+              "_embedded" : {
+                "bundles" : {
+                  "_embedded" : {
+                    "bundles" : [ ]
+                  },
+                  "page" : {
+                    "number" : 0,
+                    "size" : 20,
+                    "totalPages" : 0,
+                    "totalElements" : 0
+                  },
+                  "_links" : {
+                    "self" : {
+                      "href" : "https://indiacode.gov.in/server/api/core/items/6387180a-0def-4f62-baca-0c092c1dc2a1/bundles"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }, {
+          "hitHighlights" : null,
+          "type" : "discover",
+          "_links" : {
+            "indexableObject" : {
+              "href" : "https://indiacode.gov.in/server/api/core/items/6e642814-ffd4-4c5b-b400-a540d0dc69fb"
+            }
+          },
+          "_embedded" : {
+            "indexableObject" : {
+              "id" : "6e642814-ffd4-4c5b-b400-a540d0dc69fb",
+              "uuid" : "6e642814-ffd4-4c5b-b400-a540d0dc69fb",
+              "name" : "Establishment of the Data Protection Board of India",
+              "handle" : "123456789/504685",
+              "metadata" : {
+                "dc.date.accessioned" : [ {
+                  "value" : "2026-07-10T21:15:16Z",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.date.act_year" : [ {
+                  "value" : "2023",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.date.entry_date" : [ {
+                  "value" : "2026-05-06",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.date.issued" : [ {
+                  "value" : "2025-11-13",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.date.notification_year" : [ {
+                  "value" : "2025-11-13",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.act_id" : [ {
+                  "value" : "AC_CEN_45_0_00003_2023-22_1763464807080",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.act_name" : [ {
+                  "value" : "The Digital Personal Data Protection Act, 2023.",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.act_number" : [ {
+                  "value" : "22",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.act_repealed" : [ {
+                  "value" : "false",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.collection" : [ {
+                  "value" : "NOTIFICATION",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.id" : [ {
+                  "value" : "NO_CEN_45_0_00002_1778047818243",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.ministry_id" : [ {
+                  "value" : "45",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.ministry_name" : [ {
+                  "value" : "Ministry of Electronics and Information Technology",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.notification_id" : [ {
+                  "value" : "NO_CEN_45_0_00002_1778047818243",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.repealed" : [ {
+                  "value" : "false",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.state_id" : [ {
+                  "value" : "1",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.state_name" : [ {
+                  "value" : "CENTRAL",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.uri" : [ {
+                  "value" : "http://test1.indiacode.nic.in/handle/123456789/504685",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.title" : [ {
+                  "value" : "Establishment of the Data Protection Board of India",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.title.regional" : [ {
+                  "value" : "भारतीय डेटा संरक्षण बोर्ड की स्थापना",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ]
+              },
+              "inArchive" : true,
+              "discoverable" : true,
+              "withdrawn" : false,
+              "lastModified" : "2026-08-12T00:05:10.054610Z",
+              "entityType" : null,
+              "type" : "item",
+              "_links" : {
+                "accessStatus" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/6e642814-ffd4-4c5b-b400-a540d0dc69fb/accessStatus"
+                },
+                "bundles" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/6e642814-ffd4-4c5b-b400-a540d0dc69fb/bundles"
+                },
+                "identifiers" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/6e642814-ffd4-4c5b-b400-a540d0dc69fb/identifiers"
+                },
+                "mappedCollections" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/6e642814-ffd4-4c5b-b400-a540d0dc69fb/mappedCollections"
+                },
+                "owningCollection" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/6e642814-ffd4-4c5b-b400-a540d0dc69fb/owningCollection"
+                },
+                "relationships" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/6e642814-ffd4-4c5b-b400-a540d0dc69fb/relationships"
+                },
+                "version" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/6e642814-ffd4-4c5b-b400-a540d0dc69fb/version"
+                },
+                "templateItemOf" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/6e642814-ffd4-4c5b-b400-a540d0dc69fb/templateItemOf"
+                },
+                "thumbnail" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/6e642814-ffd4-4c5b-b400-a540d0dc69fb/thumbnail"
+                },
+                "submitter" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/6e642814-ffd4-4c5b-b400-a540d0dc69fb/submitter"
+                },
+                "self" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/6e642814-ffd4-4c5b-b400-a540d0dc69fb"
+                }
+              },
+              "_embedded" : {
+                "bundles" : {
+                  "_embedded" : {
+                    "bundles" : [ {
+                      "uuid" : "df83ff6b-59fe-4f32-808d-069c49329c8f",
+                      "name" : "ORIGINAL",
+                      "handle" : null,
+                      "metadata" : {
+                        "dc.title" : [ {
+                          "value" : "ORIGINAL",
+                          "language" : null,
+                          "authority" : null,
+                          "confidence" : -1,
+                          "place" : 0
+                        } ]
+                      },
+                      "type" : "bundle",
+                      "_links" : {
+                        "item" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/df83ff6b-59fe-4f32-808d-069c49329c8f/item"
+                        },
+                        "bitstreams" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/df83ff6b-59fe-4f32-808d-069c49329c8f/bitstreams"
+                        },
+                        "primaryBitstream" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/df83ff6b-59fe-4f32-808d-069c49329c8f/primaryBitstream"
+                        },
+                        "self" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/df83ff6b-59fe-4f32-808d-069c49329c8f"
+                        }
+                      },
+                      "_embedded" : {
+                        "bitstreams" : {
+                          "_embedded" : {
+                            "bitstreams" : [ {
+                              "id" : "7c6f8d2f-a7c2-43f5-bbb7-8c542b8996e8",
+                              "uuid" : "7c6f8d2f-a7c2-43f5-bbb7-8c542b8996e8",
+                              "name" : "cc217843dc3bcb37b2b05bcc3b4e031f.pdf",
+                              "handle" : null,
+                              "metadata" : {
+                                "dc.title" : [ {
+                                  "value" : "cc217843dc3bcb37b2b05bcc3b4e031f.pdf",
+                                  "language" : null,
+                                  "authority" : null,
+                                  "confidence" : -1,
+                                  "place" : 0
+                                } ]
+                              },
+                              "bundleName" : "ORIGINAL",
+                              "sizeBytes" : 1804307,
+                              "checkSum" : {
+                                "checkSumAlgorithm" : "MD5",
+                                "value" : "9b1f49122ae42f62a82a3a277d51f083"
+                              },
+                              "sequenceId" : 1,
+                              "type" : "bitstream",
+                              "_links" : {
+                                "content" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/7c6f8d2f-a7c2-43f5-bbb7-8c542b8996e8/content"
+                                },
+                                "bundle" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/7c6f8d2f-a7c2-43f5-bbb7-8c542b8996e8/bundle"
+                                },
+                                "accessStatus" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/7c6f8d2f-a7c2-43f5-bbb7-8c542b8996e8/accessStatus"
+                                },
+                                "format" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/7c6f8d2f-a7c2-43f5-bbb7-8c542b8996e8/format"
+                                },
+                                "thumbnail" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/7c6f8d2f-a7c2-43f5-bbb7-8c542b8996e8/thumbnail"
+                                },
+                                "self" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/7c6f8d2f-a7c2-43f5-bbb7-8c542b8996e8"
+                                }
+                              }
+                            } ]
+                          },
+                          "page" : {
+                            "number" : 0,
+                            "size" : 20,
+                            "totalPages" : 1,
+                            "totalElements" : 1
+                          },
+                          "_links" : {
+                            "self" : {
+                              "href" : "https://indiacode.gov.in/server/api/core/bundles/df83ff6b-59fe-4f32-808d-069c49329c8f/bitstreams"
+                            }
+                          }
+                        }
+                      }
+                    }, {
+                      "uuid" : "090a45dc-563e-4bd5-a586-d14e83f5af59",
+                      "name" : "TEXT",
+                      "handle" : null,
+                      "metadata" : {
+                        "dc.title" : [ {
+                          "value" : "TEXT",
+                          "language" : null,
+                          "authority" : null,
+                          "confidence" : -1,
+                          "place" : 0
+                        } ]
+                      },
+                      "type" : "bundle",
+                      "_links" : {
+                        "item" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/090a45dc-563e-4bd5-a586-d14e83f5af59/item"
+                        },
+                        "bitstreams" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/090a45dc-563e-4bd5-a586-d14e83f5af59/bitstreams"
+                        },
+                        "primaryBitstream" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/090a45dc-563e-4bd5-a586-d14e83f5af59/primaryBitstream"
+                        },
+                        "self" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/090a45dc-563e-4bd5-a586-d14e83f5af59"
+                        }
+                      },
+                      "_embedded" : {
+                        "bitstreams" : {
+                          "_embedded" : {
+                            "bitstreams" : [ {
+                              "id" : "0302590e-c176-453d-96f1-e10b8eadc0c6",
+                              "uuid" : "0302590e-c176-453d-96f1-e10b8eadc0c6",
+                              "name" : "cc217843dc3bcb37b2b05bcc3b4e031f.pdf.txt",
+                              "handle" : null,
+                              "metadata" : {
+                                "dc.description" : [ {
+                                  "value" : "Extracted text",
+                                  "language" : null,
+                                  "authority" : null,
+                                  "confidence" : -1,
+                                  "place" : 0
+                                } ],
+                                "dc.source" : [ {
+                                  "value" : "Written by FormatFilter org.dspace.app.mediafilter.TikaTextExtractionFilter on 2026-08-12T00:05:09Z (GMT).",
+                                  "language" : null,
+                                  "authority" : null,
+                                  "confidence" : -1,
+                                  "place" : 0
+                                } ],
+                                "dc.title" : [ {
+                                  "value" : "cc217843dc3bcb37b2b05bcc3b4e031f.pdf.txt",
+                                  "language" : null,
+                                  "authority" : null,
+                                  "confidence" : -1,
+                                  "place" : 0
+                                } ]
+                              },
+                              "bundleName" : "TEXT",
+                              "sizeBytes" : 3224,
+                              "checkSum" : {
+                                "checkSumAlgorithm" : "MD5",
+                                "value" : "9c62077ebbfcbb5835f4aa483663222c"
+                              },
+                              "sequenceId" : 4,
+                              "type" : "bitstream",
+                              "_links" : {
+                                "content" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/0302590e-c176-453d-96f1-e10b8eadc0c6/content"
+                                },
+                                "bundle" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/0302590e-c176-453d-96f1-e10b8eadc0c6/bundle"
+                                },
+                                "accessStatus" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/0302590e-c176-453d-96f1-e10b8eadc0c6/accessStatus"
+                                },
+                                "format" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/0302590e-c176-453d-96f1-e10b8eadc0c6/format"
+                                },
+                                "thumbnail" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/0302590e-c176-453d-96f1-e10b8eadc0c6/thumbnail"
+                                },
+                                "self" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/0302590e-c176-453d-96f1-e10b8eadc0c6"
+                                }
+                              }
+                            } ]
+                          },
+                          "page" : {
+                            "number" : 0,
+                            "size" : 20,
+                            "totalPages" : 1,
+                            "totalElements" : 1
+                          },
+                          "_links" : {
+                            "self" : {
+                              "href" : "https://indiacode.gov.in/server/api/core/bundles/090a45dc-563e-4bd5-a586-d14e83f5af59/bitstreams"
+                            }
+                          }
+                        }
+                      }
+                    }, {
+                      "uuid" : "db4d4978-db74-4af6-84f5-07e35976b375",
+                      "name" : "THUMBNAIL",
+                      "handle" : null,
+                      "metadata" : {
+                        "dc.title" : [ {
+                          "value" : "THUMBNAIL",
+                          "language" : null,
+                          "authority" : null,
+                          "confidence" : -1,
+                          "place" : 0
+                        } ]
+                      },
+                      "type" : "bundle",
+                      "_links" : {
+                        "item" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/db4d4978-db74-4af6-84f5-07e35976b375/item"
+                        },
+                        "bitstreams" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/db4d4978-db74-4af6-84f5-07e35976b375/bitstreams"
+                        },
+                        "primaryBitstream" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/db4d4978-db74-4af6-84f5-07e35976b375/primaryBitstream"
+                        },
+                        "self" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/db4d4978-db74-4af6-84f5-07e35976b375"
+                        }
+                      },
+                      "_embedded" : {
+                        "bitstreams" : {
+                          "_embedded" : {
+                            "bitstreams" : [ {
+                              "id" : "d7f30695-5862-4379-94db-49edb3d1d578",
+                              "uuid" : "d7f30695-5862-4379-94db-49edb3d1d578",
+                              "name" : "cc217843dc3bcb37b2b05bcc3b4e031f.pdf.jpg",
+                              "handle" : null,
+                              "metadata" : {
+                                "dc.description" : [ {
+                                  "value" : "Generated Thumbnail",
+                                  "language" : null,
+                                  "authority" : null,
+                                  "confidence" : -1,
+                                  "place" : 0
+                                } ],
+                                "dc.source" : [ {
+                                  "value" : "Written by FormatFilter org.dspace.app.mediafilter.PDFBoxThumbnail on 2026-08-12T00:05:10Z (GMT).",
+                                  "language" : null,
+                                  "authority" : null,
+                                  "confidence" : -1,
+                                  "place" : 0
+                                } ],
+                                "dc.title" : [ {
+                                  "value" : "cc217843dc3bcb37b2b05bcc3b4e031f.pdf.jpg",
+                                  "language" : null,
+                                  "authority" : null,
+                                  "confidence" : -1,
+                                  "place" : 0
+                                } ]
+                              },
+                              "bundleName" : "THUMBNAIL",
+                              "sizeBytes" : 8491,
+                              "checkSum" : {
+                                "checkSumAlgorithm" : "MD5",
+                                "value" : "c29095880ce3a9f789a7c5f777aced83"
+                              },
+                              "sequenceId" : 5,
+                              "type" : "bitstream",
+                              "_links" : {
+                                "content" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/d7f30695-5862-4379-94db-49edb3d1d578/content"
+                                },
+                                "bundle" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/d7f30695-5862-4379-94db-49edb3d1d578/bundle"
+                                },
+                                "accessStatus" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/d7f30695-5862-4379-94db-49edb3d1d578/accessStatus"
+                                },
+                                "format" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/d7f30695-5862-4379-94db-49edb3d1d578/format"
+                                },
+                                "thumbnail" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/d7f30695-5862-4379-94db-49edb3d1d578/thumbnail"
+                                },
+                                "self" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/d7f30695-5862-4379-94db-49edb3d1d578"
+                                }
+                              }
+                            } ]
+                          },
+                          "page" : {
+                            "number" : 0,
+                            "size" : 20,
+                            "totalPages" : 1,
+                            "totalElements" : 1
+                          },
+                          "_links" : {
+                            "self" : {
+                              "href" : "https://indiacode.gov.in/server/api/core/bundles/db4d4978-db74-4af6-84f5-07e35976b375/bitstreams"
+                            }
+                          }
+                        }
+                      }
+                    } ]
+                  },
+                  "page" : {
+                    "number" : 0,
+                    "size" : 20,
+                    "totalPages" : 1,
+                    "totalElements" : 3
+                  },
+                  "_links" : {
+                    "self" : {
+                      "href" : "https://indiacode.gov.in/server/api/core/items/6e642814-ffd4-4c5b-b400-a540d0dc69fb/bundles"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }, {
+          "hitHighlights" : null,
+          "type" : "discover",
+          "_links" : {
+            "indexableObject" : {
+              "href" : "https://indiacode.gov.in/server/api/core/items/3cf1707c-d8ad-432b-92c1-64bcc45ce711"
+            }
+          },
+          "_embedded" : {
+            "indexableObject" : {
+              "id" : "3cf1707c-d8ad-432b-92c1-64bcc45ce711",
+              "uuid" : "3cf1707c-d8ad-432b-92c1-64bcc45ce711",
+              "name" : "Decision Regarding Number of Members in the Data Protection Board of India",
+              "handle" : "123456789/504688",
+              "metadata" : {
+                "dc.date.accessioned" : [ {
+                  "value" : "2026-07-10T21:15:17Z",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.date.act_year" : [ {
+                  "value" : "2023",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.date.entry_date" : [ {
+                  "value" : "2026-05-06",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.date.issued" : [ {
+                  "value" : "2025-11-13",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.date.notification_year" : [ {
+                  "value" : "2025-11-13",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.act_id" : [ {
+                  "value" : "AC_CEN_45_0_00003_2023-22_1763464807080",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.act_name" : [ {
+                  "value" : "The Digital Personal Data Protection Act, 2023.",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.act_number" : [ {
+                  "value" : "22",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.act_repealed" : [ {
+                  "value" : "false",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.collection" : [ {
+                  "value" : "NOTIFICATION",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.id" : [ {
+                  "value" : "NO_CEN_45_0_00003_1778048012726",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.ministry_id" : [ {
+                  "value" : "45",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.ministry_name" : [ {
+                  "value" : "Ministry of Electronics and Information Technology",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.notification_id" : [ {
+                  "value" : "NO_CEN_45_0_00003_1778048012726",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.repealed" : [ {
+                  "value" : "false",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.state_id" : [ {
+                  "value" : "1",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.state_name" : [ {
+                  "value" : "CENTRAL",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.identifier.uri" : [ {
+                  "value" : "http://test1.indiacode.nic.in/handle/123456789/504688",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.title" : [ {
+                  "value" : "Decision Regarding Number of Members in the Data Protection Board of India",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ],
+                "dc.title.regional" : [ {
+                  "value" : "भारतीय डेटा संरक्षण बोर्ड में सदस्यों की संख्या के संबंध में निर्णय",
+                  "language" : null,
+                  "authority" : null,
+                  "confidence" : -1,
+                  "place" : 0
+                } ]
+              },
+              "inArchive" : true,
+              "discoverable" : true,
+              "withdrawn" : false,
+              "lastModified" : "2026-08-11T20:58:24.494131Z",
+              "entityType" : null,
+              "type" : "item",
+              "_links" : {
+                "accessStatus" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/3cf1707c-d8ad-432b-92c1-64bcc45ce711/accessStatus"
+                },
+                "bundles" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/3cf1707c-d8ad-432b-92c1-64bcc45ce711/bundles"
+                },
+                "identifiers" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/3cf1707c-d8ad-432b-92c1-64bcc45ce711/identifiers"
+                },
+                "mappedCollections" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/3cf1707c-d8ad-432b-92c1-64bcc45ce711/mappedCollections"
+                },
+                "owningCollection" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/3cf1707c-d8ad-432b-92c1-64bcc45ce711/owningCollection"
+                },
+                "relationships" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/3cf1707c-d8ad-432b-92c1-64bcc45ce711/relationships"
+                },
+                "version" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/3cf1707c-d8ad-432b-92c1-64bcc45ce711/version"
+                },
+                "templateItemOf" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/3cf1707c-d8ad-432b-92c1-64bcc45ce711/templateItemOf"
+                },
+                "thumbnail" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/3cf1707c-d8ad-432b-92c1-64bcc45ce711/thumbnail"
+                },
+                "submitter" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/3cf1707c-d8ad-432b-92c1-64bcc45ce711/submitter"
+                },
+                "self" : {
+                  "href" : "https://indiacode.gov.in/server/api/core/items/3cf1707c-d8ad-432b-92c1-64bcc45ce711"
+                }
+              },
+              "_embedded" : {
+                "bundles" : {
+                  "_embedded" : {
+                    "bundles" : [ {
+                      "uuid" : "a12dcbc5-da93-41fd-b6c9-23070c11bb94",
+                      "name" : "ORIGINAL",
+                      "handle" : null,
+                      "metadata" : {
+                        "dc.title" : [ {
+                          "value" : "ORIGINAL",
+                          "language" : null,
+                          "authority" : null,
+                          "confidence" : -1,
+                          "place" : 0
+                        } ]
+                      },
+                      "type" : "bundle",
+                      "_links" : {
+                        "item" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/a12dcbc5-da93-41fd-b6c9-23070c11bb94/item"
+                        },
+                        "bitstreams" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/a12dcbc5-da93-41fd-b6c9-23070c11bb94/bitstreams"
+                        },
+                        "primaryBitstream" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/a12dcbc5-da93-41fd-b6c9-23070c11bb94/primaryBitstream"
+                        },
+                        "self" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/a12dcbc5-da93-41fd-b6c9-23070c11bb94"
+                        }
+                      },
+                      "_embedded" : {
+                        "bitstreams" : {
+                          "_embedded" : {
+                            "bitstreams" : [ {
+                              "id" : "0b1a2b14-d5d6-4dc1-84e5-b491d6e849a6",
+                              "uuid" : "0b1a2b14-d5d6-4dc1-84e5-b491d6e849a6",
+                              "name" : "f6c0837972422cf79d890bfe84cc04d6.pdf",
+                              "handle" : null,
+                              "metadata" : {
+                                "dc.title" : [ {
+                                  "value" : "f6c0837972422cf79d890bfe84cc04d6.pdf",
+                                  "language" : null,
+                                  "authority" : null,
+                                  "confidence" : -1,
+                                  "place" : 0
+                                } ]
+                              },
+                              "bundleName" : "ORIGINAL",
+                              "sizeBytes" : 1819855,
+                              "checkSum" : {
+                                "checkSumAlgorithm" : "MD5",
+                                "value" : "4dfdaccd678db88a15f480378ce557bf"
+                              },
+                              "sequenceId" : 1,
+                              "type" : "bitstream",
+                              "_links" : {
+                                "content" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/0b1a2b14-d5d6-4dc1-84e5-b491d6e849a6/content"
+                                },
+                                "bundle" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/0b1a2b14-d5d6-4dc1-84e5-b491d6e849a6/bundle"
+                                },
+                                "accessStatus" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/0b1a2b14-d5d6-4dc1-84e5-b491d6e849a6/accessStatus"
+                                },
+                                "format" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/0b1a2b14-d5d6-4dc1-84e5-b491d6e849a6/format"
+                                },
+                                "thumbnail" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/0b1a2b14-d5d6-4dc1-84e5-b491d6e849a6/thumbnail"
+                                },
+                                "self" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/0b1a2b14-d5d6-4dc1-84e5-b491d6e849a6"
+                                }
+                              }
+                            } ]
+                          },
+                          "page" : {
+                            "number" : 0,
+                            "size" : 20,
+                            "totalPages" : 1,
+                            "totalElements" : 1
+                          },
+                          "_links" : {
+                            "self" : {
+                              "href" : "https://indiacode.gov.in/server/api/core/bundles/a12dcbc5-da93-41fd-b6c9-23070c11bb94/bitstreams"
+                            }
+                          }
+                        }
+                      }
+                    }, {
+                      "uuid" : "88d18236-40d6-45a4-a993-a08a8449138a",
+                      "name" : "TEXT",
+                      "handle" : null,
+                      "metadata" : {
+                        "dc.title" : [ {
+                          "value" : "TEXT",
+                          "language" : null,
+                          "authority" : null,
+                          "confidence" : -1,
+                          "place" : 0
+                        } ]
+                      },
+                      "type" : "bundle",
+                      "_links" : {
+                        "item" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/88d18236-40d6-45a4-a993-a08a8449138a/item"
+                        },
+                        "bitstreams" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/88d18236-40d6-45a4-a993-a08a8449138a/bitstreams"
+                        },
+                        "primaryBitstream" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/88d18236-40d6-45a4-a993-a08a8449138a/primaryBitstream"
+                        },
+                        "self" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/88d18236-40d6-45a4-a993-a08a8449138a"
+                        }
+                      },
+                      "_embedded" : {
+                        "bitstreams" : {
+                          "_embedded" : {
+                            "bitstreams" : [ {
+                              "id" : "6ef0c38b-b6a2-4893-8802-63304f7cb8b3",
+                              "uuid" : "6ef0c38b-b6a2-4893-8802-63304f7cb8b3",
+                              "name" : "f6c0837972422cf79d890bfe84cc04d6.pdf.txt",
+                              "handle" : null,
+                              "metadata" : {
+                                "dc.description" : [ {
+                                  "value" : "Extracted text",
+                                  "language" : null,
+                                  "authority" : null,
+                                  "confidence" : -1,
+                                  "place" : 0
+                                } ],
+                                "dc.source" : [ {
+                                  "value" : "Written by FormatFilter org.dspace.app.mediafilter.TikaTextExtractionFilter on 2026-08-11T20:58:24Z (GMT).",
+                                  "language" : null,
+                                  "authority" : null,
+                                  "confidence" : -1,
+                                  "place" : 0
+                                } ],
+                                "dc.title" : [ {
+                                  "value" : "f6c0837972422cf79d890bfe84cc04d6.pdf.txt",
+                                  "language" : null,
+                                  "authority" : null,
+                                  "confidence" : -1,
+                                  "place" : 0
+                                } ]
+                              },
+                              "bundleName" : "TEXT",
+                              "sizeBytes" : 2435,
+                              "checkSum" : {
+                                "checkSumAlgorithm" : "MD5",
+                                "value" : "f238201bfdeb0ec4277b17afcd7e33bd"
+                              },
+                              "sequenceId" : 4,
+                              "type" : "bitstream",
+                              "_links" : {
+                                "content" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/6ef0c38b-b6a2-4893-8802-63304f7cb8b3/content"
+                                },
+                                "bundle" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/6ef0c38b-b6a2-4893-8802-63304f7cb8b3/bundle"
+                                },
+                                "accessStatus" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/6ef0c38b-b6a2-4893-8802-63304f7cb8b3/accessStatus"
+                                },
+                                "format" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/6ef0c38b-b6a2-4893-8802-63304f7cb8b3/format"
+                                },
+                                "thumbnail" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/6ef0c38b-b6a2-4893-8802-63304f7cb8b3/thumbnail"
+                                },
+                                "self" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/6ef0c38b-b6a2-4893-8802-63304f7cb8b3"
+                                }
+                              }
+                            } ]
+                          },
+                          "page" : {
+                            "number" : 0,
+                            "size" : 20,
+                            "totalPages" : 1,
+                            "totalElements" : 1
+                          },
+                          "_links" : {
+                            "self" : {
+                              "href" : "https://indiacode.gov.in/server/api/core/bundles/88d18236-40d6-45a4-a993-a08a8449138a/bitstreams"
+                            }
+                          }
+                        }
+                      }
+                    }, {
+                      "uuid" : "62e3d3e4-cd49-4c22-8e3e-3087b7064792",
+                      "name" : "THUMBNAIL",
+                      "handle" : null,
+                      "metadata" : {
+                        "dc.title" : [ {
+                          "value" : "THUMBNAIL",
+                          "language" : null,
+                          "authority" : null,
+                          "confidence" : -1,
+                          "place" : 0
+                        } ]
+                      },
+                      "type" : "bundle",
+                      "_links" : {
+                        "item" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/62e3d3e4-cd49-4c22-8e3e-3087b7064792/item"
+                        },
+                        "bitstreams" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/62e3d3e4-cd49-4c22-8e3e-3087b7064792/bitstreams"
+                        },
+                        "primaryBitstream" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/62e3d3e4-cd49-4c22-8e3e-3087b7064792/primaryBitstream"
+                        },
+                        "self" : {
+                          "href" : "https://indiacode.gov.in/server/api/core/bundles/62e3d3e4-cd49-4c22-8e3e-3087b7064792"
+                        }
+                      },
+                      "_embedded" : {
+                        "bitstreams" : {
+                          "_embedded" : {
+                            "bitstreams" : [ {
+                              "id" : "0f944377-e8b2-42c4-addb-fafc60d220e6",
+                              "uuid" : "0f944377-e8b2-42c4-addb-fafc60d220e6",
+                              "name" : "f6c0837972422cf79d890bfe84cc04d6.pdf.jpg",
+                              "handle" : null,
+                              "metadata" : {
+                                "dc.description" : [ {
+                                  "value" : "Generated Thumbnail",
+                                  "language" : null,
+                                  "authority" : null,
+                                  "confidence" : -1,
+                                  "place" : 0
+                                } ],
+                                "dc.source" : [ {
+                                  "value" : "Written by FormatFilter org.dspace.app.mediafilter.PDFBoxThumbnail on 2026-08-11T20:58:24Z (GMT).",
+                                  "language" : null,
+                                  "authority" : null,
+                                  "confidence" : -1,
+                                  "place" : 0
+                                } ],
+                                "dc.title" : [ {
+                                  "value" : "f6c0837972422cf79d890bfe84cc04d6.pdf.jpg",
+                                  "language" : null,
+                                  "authority" : null,
+                                  "confidence" : -1,
+                                  "place" : 0
+                                } ]
+                              },
+                              "bundleName" : "THUMBNAIL",
+                              "sizeBytes" : 8062,
+                              "checkSum" : {
+                                "checkSumAlgorithm" : "MD5",
+                                "value" : "8e509b92073f5ed1ad6bf13f9d3a5b5d"
+                              },
+                              "sequenceId" : 5,
+                              "type" : "bitstream",
+                              "_links" : {
+                                "content" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/0f944377-e8b2-42c4-addb-fafc60d220e6/content"
+                                },
+                                "bundle" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/0f944377-e8b2-42c4-addb-fafc60d220e6/bundle"
+                                },
+                                "accessStatus" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/0f944377-e8b2-42c4-addb-fafc60d220e6/accessStatus"
+                                },
+                                "format" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/0f944377-e8b2-42c4-addb-fafc60d220e6/format"
+                                },
+                                "thumbnail" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/0f944377-e8b2-42c4-addb-fafc60d220e6/thumbnail"
+                                },
+                                "self" : {
+                                  "href" : "https://indiacode.gov.in/server/api/core/bitstreams/0f944377-e8b2-42c4-addb-fafc60d220e6"
+                                }
+                              }
+                            } ]
+                          },
+                          "page" : {
+                            "number" : 0,
+                            "size" : 20,
+                            "totalPages" : 1,
+                            "totalElements" : 1
+                          },
+                          "_links" : {
+                            "self" : {
+                              "href" : "https://indiacode.gov.in/server/api/core/bundles/62e3d3e4-cd49-4c22-8e3e-3087b7064792/bitstreams"
+                            }
+                          }
+                        }
+                      }
+                    } ]
+                  },
+                  "page" : {
+                    "number" : 0,
+                    "size" : 20,
+                    "totalPages" : 1,
+                    "totalElements" : 3
+                  },
+                  "_links" : {
+                    "self" : {
+                      "href" : "https://indiacode.gov.in/server/api/core/items/3cf1707c-d8ad-432b-92c1-64bcc45ce711/bundles"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        } ]
+      },
+      "page" : {
+        "number" : 0,
+        "size" : 5,
+        "totalPages" : 30,
+        "totalElements" : 146
+      },
+      "_links" : {
+        "next" : {
+          "href" : "https://indiacode.gov.in/server/api/discover/search/objects?query=The%20Digital%20Personal%20Data%20Protection%20Act%2C%202023&dsoType=item&page=1&size=5"
+        },
+        "last" : {
+          "href" : "https://indiacode.gov.in/server/api/discover/search/objects?query=The%20Digital%20Personal%20Data%20Protection%20Act%2C%202023&dsoType=item&page=29&size=5"
+        },
+        "self" : {
+          "href" : "https://indiacode.gov.in/server/api/discover/search/objects?query=The%20Digital%20Personal%20Data%20Protection%20Act%2C%202023&dsoType=item&size=5"
+        }
+      }
+    },
+    "facets" : [ {
+      "name" : "author",
+      "facetType" : "text",
+      "facetLimit" : 5,
+      "openByDefault" : true,
+      "_links" : {
+        "self" : {
+          "href" : "https://indiacode.gov.in/server/api/discover/facets/author?query=The%20Digital%20Personal%20Data%20Protection%20Act%2C%202023&dsoType=item"
+        }
+      },
+      "_embedded" : {
+        "values" : [ ]
+      }
+    }, {
+      "name" : "subject",
+      "facetType" : "hierarchical",
+      "facetLimit" : 5,
+      "openByDefault" : false,
+      "_links" : {
+        "self" : {
+          "href" : "https://indiacode.gov.in/server/api/discover/facets/subject?query=The%20Digital%20Personal%20Data%20Protection%20Act%2C%202023&dsoType=item"
+        }
+      },
+      "_embedded" : {
+        "values" : [ ]
+      }
+    }, {
+      "name" : "dateIssued",
+      "facetType" : "date",
+      "facetLimit" : 5,
+      "minValue" : "0002-11-30",
+      "maxValue" : "9668-11-25",
+      "openByDefault" : false,
+      "page" : {
+        "number" : 0,
+        "size" : 5
+      },
+      "_links" : {
+        "self" : {
+          "href" : "https://indiacode.gov.in/server/api/discover/facets/dateIssued?query=The%20Digital%20Personal%20Data%20Protection%20Act%2C%202023&dsoType=item&size=5"
+        }
+      },
+      "_embedded" : {
+        "values" : [ {
+          "label" : "1740 - 3479",
+          "count" : 101,
+          "authorityKey" : null,
+          "type" : "discover",
+          "_links" : {
+            "search" : {
+              "href" : "https://indiacode.gov.in/server/api/discover/search/objects?query=The%2520Digital%2520Personal%2520Data%2520Protection%2520Act%252C%25202023&dsoType=item&f.dateIssued=%5B1740%20TO%203479%5D,equals"
+            }
+          }
+        } ]
+      }
+    }, {
+      "name" : "identifier_collection",
+      "facetType" : "text",
+      "facetLimit" : 10,
+      "openByDefault" : true,
+      "page" : {
+        "number" : 0,
+        "size" : 10
+      },
+      "_links" : {
+        "next" : {
+          "href" : "https://indiacode.gov.in/server/api/discover/facets/identifier_collection?query=The%20Digital%20Personal%20Data%20Protection%20Act%2C%202023&dsoType=item&page=1&size=10"
+        },
+        "self" : {
+          "href" : "https://indiacode.gov.in/server/api/discover/facets/identifier_collection?query=The%20Digital%20Personal%20Data%20Protection%20Act%2C%202023&dsoType=item&size=10"
+        }
+      },
+      "_embedded" : {
+        "values" : [ {
+          "label" : "SECTION",
+          "count" : 44,
+          "authorityKey" : null,
+          "type" : "discover",
+          "_links" : {
+            "search" : {
+              "href" : "https://indiacode.gov.in/server/api/discover/search/objects?query=The%2520Digital%2520Personal%2520Data%2520Protection%2520Act%252C%25202023&dsoType=item&f.identifier_collection=SECTION,equals"
+            }
+          }
+        }, {
+          "label" : "ACT",
+          "count" : 43,
+          "authorityKey" : null,
+          "type" : "discover",
+          "_links" : {
+            "search" : {
+              "href" : "https://indiacode.gov.in/server/api/discover/search/objects?query=The%2520Digital%2520Personal%2520Data%2520Protection%2520Act%252C%25202023&dsoType=item&f.identifier_collection=ACT,equals"
+            }
+          }
+        }, {
+          "label" : "RULE",
+          "count" : 33,
+          "authorityKey" : null,
+          "type" : "discover",
+          "_links" : {
+            "search" : {
+              "href" : "https://indiacode.gov.in/server/api/discover/search/objects?query=The%2520Digital%2520Personal%2520Data%2520Protection%2520Act%252C%25202023&dsoType=item&f.identifier_collection=RULE,equals"
+            }
+          }
+        }, {
+          "label" : "REGULATION",
+          "count" : 9,
+          "authorityKey" : null,
+          "type" : "discover",
+          "_links" : {
+            "search" : {
+              "href" : "https://indiacode.gov.in/server/api/discover/search/objects?query=The%2520Digital%2520Personal%2520Data%2520Protection%2520Act%252C%25202023&dsoType=item&f.identifier_collection=REGULATION,equals"
+            }
+          }
+        }, {
+          "label" : "NOTIFICATION",
+          "count" : 8,
+          "authorityKey" : null,
+          "type" : "discover",
+          "_links" : {
+            "search" : {
+              "href" : "https://indiacode.gov.in/server/api/discover/search/objects?query=The%2520Digital%2520Personal%2520Data%2520Protection%2520Act%252C%25202023&dsoType=item&f.identifier_collection=NOTIFICATION,equals"
+            }
+          }
+        }, {
+          "label" : "ACT_AMENDMENT",
+          "count" : 2,
+          "authorityKey" : null,
+          "type" : "discover",
+          "_links" : {
+            "search" : {
+              "href" : "https://indiacode.gov.in/server/api/discover/search/objects?query=The%2520Digital%2520Personal%2520Data%2520Protection%2520Act%252C%25202023&dsoType=item&f.identifier_collection=ACT_AMENDMENT,equals"
+            }
+          }
+        }, {
+          "label" : "ORDER",
+          "count" : 2,
+          "authorityKey" : null,
+          "type" : "discover",
+          "_links" : {
+            "search" : {
+              "href" : "https://indiacode.gov.in/server/api/discover/search/objects?query=The%2520Digital%2520Personal%2520Data%2520Protection%2520Act%252C%25202023&dsoType=item&f.identifier_collection=ORDER,equals"
+            }
+          }
+        }, {
+          "label" : "ACTS_NOT_ENFORCED",
+          "count" : 1,
+          "authorityKey" : null,
+          "type" : "discover",
+          "_links" : {
+            "search" : {
+              "href" : "https://indiacode.gov.in/server/api/discover/search/objects?query=The%2520Digital%2520Personal%2520Data%2520Protection%2520Act%252C%25202023&dsoType=item&f.identifier_collection=ACTS_NOT_ENFORCED,equals"
+            }
+          }
+        }, {
+          "label" : "REGULATION_US_240",
+          "count" : 1,
+          "authorityKey" : null,
+          "type" : "discover",
+          "_links" : {
+            "search" : {
+              "href" : "https://indiacode.gov.in/server/api/discover/search/objects?query=The%2520Digital%2520Personal%2520Data%2520Protection%2520Act%252C%25202023&dsoType=item&f.identifier_collection=REGULATION_US_240,equals"
+            }
+          }
+        }, {
+          "label" : "SCHEDULE",
+          "count" : 1,
+          "authorityKey" : null,
+          "type" : "discover",
+          "_links" : {
+            "search" : {
+              "href" : "https://indiacode.gov.in/server/api/discover/search/objects?query=The%2520Digital%2520Personal%2520Data%2520Protection%2520Act%252C%25202023&dsoType=item&f.identifier_collection=SCHEDULE,equals"
+            }
+          }
+        } ]
+      }
+    }, {
+      "name" : "itemtype",
+      "facetType" : "text",
+      "facetLimit" : 5,
+      "openByDefault" : true,
+      "page" : {
+        "number" : 0,
+        "size" : 5
+      },
+      "_links" : {
+        "self" : {
+          "href" : "https://indiacode.gov.in/server/api/discover/facets/itemtype?query=The%20Digital%20Personal%20Data%20Protection%20Act%2C%202023&dsoType=item&size=5"
+        }
+      },
+      "_embedded" : {
+        "values" : [ {
+          "label" : "Economic",
+          "count" : 8,
+          "authorityKey" : null,
+          "type" : "discover",
+          "_links" : {
+            "search" : {
+              "href" : "https://indiacode.gov.in/server/api/discover/search/objects?query=The%2520Digital%2520Personal%2520Data%2520Protection%2520Act%252C%25202023&dsoType=item&f.itemtype=Economic,equals"
+            }
+          }
+        }, {
+          "label" : "Developmental",
+          "count" : 7,
+          "authorityKey" : null,
+          "type" : "discover",
+          "_links" : {
+            "search" : {
+              "href" : "https://indiacode.gov.in/server/api/discover/search/objects?query=The%2520Digital%2520Personal%2520Data%2520Protection%2520Act%252C%25202023&dsoType=item&f.itemtype=Developmental,equals"
+            }
+          }
+        }, {
+          "label" : "Social",
+          "count" : 2,
+          "authorityKey" : null,
+          "type" : "discover",
+          "_links" : {
+            "search" : {
+              "href" : "https://indiacode.gov.in/server/api/discover/search/objects?query=The%2520Digital%2520Personal%2520Data%2520Protection%2520Act%252C%25202023&dsoType=item&f.itemtype=Social,equals"
+            }
+          }
+        } ]
+      }
+    } ]
+  }
+}

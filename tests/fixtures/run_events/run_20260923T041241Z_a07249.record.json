@@ -1,0 +1,156 @@
+{
+  "completion_tokens": 192053,
+  "corpus": [
+    {
+      "document_id": "doc_sg_sso_agc_gov_sg_Act_BA1970",
+      "language": null,
+      "n_pages": 257,
+      "title": "BANKING ACT 1970"
+    },
+    {
+      "document_id": "doc_sg_sso_agc_gov_sg_Act_CA2018",
+      "language": null,
+      "n_pages": 119,
+      "title": "CYBERSECURITY ACT 2018"
+    },
+    {
+      "document_id": "doc_sg_sso_agc_gov_sg_Act_CMA1993",
+      "language": null,
+      "n_pages": 30,
+      "title": "COMPUTER MISUSE ACT 1993"
+    },
+    {
+      "document_id": "doc_sg_sso_agc_gov_sg_Act_CPC2010",
+      "language": null,
+      "n_pages": 591,
+      "title": "CRIMINAL PROCEDURE CODE 2010"
+    },
+    {
+      "document_id": "doc_sg_sso_agc_gov_sg_Act_CoA1967",
+      "language": null,
+      "n_pages": 619,
+      "title": "COMPANIES ACT 1967"
+    },
+    {
+      "document_id": "doc_sg_sso_agc_gov_sg_Act_ETA2010",
+      "language": null,
+      "n_pages": 59,
+      "title": "ELECTRONIC TRANSACTIONS ACT 2010"
+    },
+    {
+      "document_id": "doc_sg_sso_agc_gov_sg_Act_EmA1968",
+      "language": null,
+      "n_pages": 139,
+      "title": "EMPLOYMENT ACT 1968"
+    },
+    {
+      "document_id": "doc_sg_sso_agc_gov_sg_Act_ITA1947",
+      "language": null,
+      "n_pages": 1321,
+      "title": "INCOME TAX ACT 1947"
+    },
+    {
+      "document_id": "doc_sg_sso_agc_gov_sg_Act_PDPA2012",
+      "language": null,
+      "n_pages": 124,
+      "title": "PERSONAL DATA PROTECTION ACT 2012"
+    },
+    {
+      "document_id": "doc_sg_sso_agc_gov_sg_Act_TA1999",
+      "language": null,
+      "n_pages": 155,
+      "title": "TELECOMMUNICATIONS ACT 1999"
+    }
+  ],
+  "cost_usd": 0.5821902000000001,
+  "details": {
+    "documents": [
+      "doc_sg_sso_agc_gov_sg_Act_BA1970",
+      "doc_sg_sso_agc_gov_sg_Act_CA2018",
+      "doc_sg_sso_agc_gov_sg_Act_CMA1993",
+      "doc_sg_sso_agc_gov_sg_Act_CPC2010",
+      "doc_sg_sso_agc_gov_sg_Act_CoA1967",
+      "doc_sg_sso_agc_gov_sg_Act_ETA2010",
+      "doc_sg_sso_agc_gov_sg_Act_EmA1968",
+      "doc_sg_sso_agc_gov_sg_Act_ITA1947",
+      "doc_sg_sso_agc_gov_sg_Act_PDPA2012",
+      "doc_sg_sso_agc_gov_sg_Act_TA1999"
+    ],
+    "engine_concurrency": 4,
+    "extraction": {
+      "doc_sg_sso_agc_gov_sg_Act_BA1970": "reused",
+      "doc_sg_sso_agc_gov_sg_Act_CA2018": "reused",
+      "doc_sg_sso_agc_gov_sg_Act_CMA1993": "reused",
+      "doc_sg_sso_agc_gov_sg_Act_CPC2010": "reused",
+      "doc_sg_sso_agc_gov_sg_Act_CoA1967": "reused",
+      "doc_sg_sso_agc_gov_sg_Act_ETA2010": "reused",
+      "doc_sg_sso_agc_gov_sg_Act_EmA1968": "reused",
+      "doc_sg_sso_agc_gov_sg_Act_ITA1947": "reused",
+      "doc_sg_sso_agc_gov_sg_Act_PDPA2012": "reused",
+      "doc_sg_sso_agc_gov_sg_Act_TA1999": "reused"
+    },
+    "extraction_keys": {
+      "doc_sg_sso_agc_gov_sg_Act_BA1970": "5b95d1d440bd0b02061f4ccce8e64dcb0ee664ba0204f6cdd81a124a1daadf52",
+      "doc_sg_sso_agc_gov_sg_Act_CA2018": "a7c630dce013a34c7131c4cba32426a04cde63df1b6ae87e1f2eb8a2b98f0da6",
+      "doc_sg_sso_agc_gov_sg_Act_CMA1993": "e6e7c845e1e513fda76ce6d48bd8f57731c2e39809203fdef96d9857bbf08648",
+      "doc_sg_sso_agc_gov_sg_Act_CPC2010": "f77b60f8b8aa2c681dc1e49448cfd685ed08675028b06d7ce935b7736b50ea9a",
+      "doc_sg_sso_agc_gov_sg_Act_CoA1967": "12696e519da24db0b619c664cb4ba4c401d60be514fc76d03fc8ef49c8380902",
+      "doc_sg_sso_agc_gov_sg_Act_ETA2010": "36a36b0c51ea9f0700d55783672fd7eb7d1ba496ccef6f29fcc3db83daa4d6c6",
+      "doc_sg_sso_agc_gov_sg_Act_EmA1968": "4809ec4a2bdaf29b2f2a92b6055f3ad926f1e940b8c971d3b312657b5145ab19",
+      "doc_sg_sso_agc_gov_sg_Act_ITA1947": "2771101dc8c138a4fd78db84066d54ad2e0279ea8eb0654e22b3ede1c65c56a4",
+      "doc_sg_sso_agc_gov_sg_Act_PDPA2012": "c33a3f71078fffef6eee3fb4666ef0dfbbaa07734568173e92174256a7a6513e",
+      "doc_sg_sso_agc_gov_sg_Act_TA1999": "50da920d2be2f23661d44b8abc96c3c31c7178485cb0a0d31ce696c57b132fe3"
+    },
+    "extraction_provenance": {
+      "doc_sg_sso_agc_gov_sg_Act_BA1970": null,
+      "doc_sg_sso_agc_gov_sg_Act_CA2018": null,
+      "doc_sg_sso_agc_gov_sg_Act_CMA1993": null,
+      "doc_sg_sso_agc_gov_sg_Act_CPC2010": null,
+      "doc_sg_sso_agc_gov_sg_Act_CoA1967": null,
+      "doc_sg_sso_agc_gov_sg_Act_ETA2010": null,
+      "doc_sg_sso_agc_gov_sg_Act_EmA1968": null,
+      "doc_sg_sso_agc_gov_sg_Act_ITA1947": null,
+      "doc_sg_sso_agc_gov_sg_Act_PDPA2012": null,
+      "doc_sg_sso_agc_gov_sg_Act_TA1999": null
+    },
+    "gloss_ms": 0.0,
+    "model_calls": 913,
+    "n_chunks": 2072,
+    "n_dropped": 9,
+    "n_glossed": 0,
+    "n_groups": 5,
+    "n_no_evidence": 713,
+    "n_pairs_gated": 870,
+    "n_passed": 148,
+    "notes": [],
+    "rate_limit_retries": 0,
+    "warnings": []
+  },
+  "documents_fetched": 0,
+  "economy": "SG",
+  "ended_at": "2026-09-23T04:30:56.495707Z",
+  "engine": "engine-a",
+  "error": null,
+  "indicators": null,
+  "kind": "run",
+  "mappings_by_document": {
+    "doc_sg_sso_agc_gov_sg_Act_BA1970": 11,
+    "doc_sg_sso_agc_gov_sg_Act_CA2018": 30,
+    "doc_sg_sso_agc_gov_sg_Act_CMA1993": 12,
+    "doc_sg_sso_agc_gov_sg_Act_CPC2010": 10,
+    "doc_sg_sso_agc_gov_sg_Act_CoA1967": 12,
+    "doc_sg_sso_agc_gov_sg_Act_ETA2010": 14,
+    "doc_sg_sso_agc_gov_sg_Act_EmA1968": 5,
+    "doc_sg_sso_agc_gov_sg_Act_ITA1947": 13,
+    "doc_sg_sso_agc_gov_sg_Act_PDPA2012": 33,
+    "doc_sg_sso_agc_gov_sg_Act_TA1999": 8
+  },
+  "pillars": [
+    7
+  ],
+  "prompt_tokens": 1758633,
+  "provider_cost_usd": 0.6646783700000007,
+  "run_id": "run_20260923T041241Z_a07249",
+  "started_at": "2026-09-23T04:12:41.445726Z",
+  "status": "completed"
+}

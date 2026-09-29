@@ -1,0 +1,118 @@
+{
+  "economies": {
+    "SG": {
+      "ingest_duration_s": 158.5,
+      "ingested_new": 10,
+      "excluded": [],
+      "embed_duration_s": 84.5,
+      "embedded_new": 10,
+      "n_documents": 10,
+      "text_coverage": 1.0,
+      "ocr_documents": [],
+      "pillars": {
+        "6": {
+          "csv": "shortlist_singapore_pillar6.csv",
+          "n_rows": 10,
+          "duration_s": 0.95,
+          "notes": [],
+          "eval": {
+            "n_gt_laws_in_corpus": 3,
+            "recall_at_10": 1.0,
+            "precision_at_5_capped": 0.5
+          }
+        },
+        "7": {
+          "csv": "shortlist_singapore_pillar7.csv",
+          "n_rows": 10,
+          "duration_s": 0.89,
+          "notes": [],
+          "eval": {
+            "n_gt_laws_in_corpus": 9,
+            "recall_at_10": 1.0,
+            "precision_at_5_capped": 0.6
+          }
+        }
+      },
+      "rank_duration_s": 86.3
+    },
+    "AU": {
+      "ingest_duration_s": 0.0,
+      "ingested_new": 0,
+      "excluded": [],
+      "embed_duration_s": 0.0,
+      "embedded_new": 0,
+      "n_documents": 18,
+      "text_coverage": 0.9995,
+      "ocr_documents": [],
+      "pillars": {
+        "6": {
+          "csv": "shortlist_australia_pillar6.csv",
+          "n_rows": 18,
+          "duration_s": 1.38,
+          "notes": [],
+          "eval": {
+            "n_gt_laws_in_corpus": 2,
+            "recall_at_10": 1.0,
+            "precision_at_5_capped": 1.0
+          }
+        },
+        "7": {
+          "csv": "shortlist_australia_pillar7.csv",
+          "n_rows": 18,
+          "duration_s": 1.37,
+          "notes": [],
+          "eval": {
+            "n_gt_laws_in_corpus": 11,
+            "recall_at_10": 1.0,
+            "precision_at_5_capped": 1.0
+          }
+        }
+      },
+      "rank_duration_s": 2.8
+    },
+    "MY": {
+      "ingest_duration_s": 0.0,
+      "ingested_new": 0,
+      "excluded": [],
+      "embed_duration_s": 0.0,
+      "embedded_new": 0,
+      "n_documents": 21,
+      "text_coverage": 0.9974,
+      "ocr_documents": [
+        "doc_my_ACT_563_-_WARTA_ASAL",
+        "doc_my_ACT_588",
+        "doc_my_ACT_593_(2)",
+        "doc_my_Act_A1422",
+        "doc_my_Act_A1423",
+        "doc_my_Act_A1431",
+        "doc_my_Act_A1521"
+      ],
+      "pillars": {
+        "6": {
+          "csv": "shortlist_malaysia_pillar6.csv",
+          "n_rows": 21,
+          "duration_s": 0.32,
+          "notes": [],
+          "eval": {
+            "n_gt_laws_in_corpus": 3,
+            "recall_at_10": 1.0,
+            "precision_at_5_capped": 0.6666666666666666
+          }
+        },
+        "7": {
+          "csv": "shortlist_malaysia_pillar7.csv",
+          "n_rows": 21,
+          "duration_s": 0.31,
+          "notes": [],
+          "eval": {
+            "n_gt_laws_in_corpus": 7,
+            "recall_at_10": 1.0,
+            "precision_at_5_capped": 0.8
+          }
+        }
+      },
+      "rank_duration_s": 0.6
+    }
+  },
+  "corpus_map_used": true
+}

@@ -1,0 +1,58 @@
+{
+  "document": "Lao PDR-Law on Electronic Transaction (Amended) No. 31.pdf",
+  "ocr": {
+    "extractor": "tesseract",
+    "extractor_version": "5.5.2",
+    "chars": 53671,
+    "mean_word_confidence": 0.8412600094206312,
+    "manual_review_flag": true,
+    "proxy_note": "dictionary-hit proxy is English-tuned; inapplicable to Lao"
+  },
+  "chunking": {
+    "style": "llm_boundary_fallback",
+    "n_chunks": 17,
+    "n_sections": 16,
+    "fallback_used": true,
+    "fallback_attempts": 1
+  },
+  "gate": {
+    "tier": "embedding only (bge-m3 cross-lingual)",
+    "finding": "gate_document crashes on a Lao corpus: the bm25 lexical tier tokenizes with the English legal vocabulary (zero tokens per Lao chunk, empty index); Round 2 non-Latin corpora need per-language vocabularies or an embedding-only gate mode",
+    "n_above_cosine_floor": 13,
+    "top_pair": {
+      "chunk_id": "doc_la_electronic_transactions_31:c0006",
+      "section_label": "Part III: Electronic Documents",
+      "indicator_id": "6.2",
+      "cosine_pillar": 0.5898412466049194
+    }
+  },
+  "selection": {
+    "attempts": 1,
+    "byte_verified": true,
+    "mode": "exact",
+    "finding": "on Lao OCR text the model re-emits quotes with normalized spacing, so strict emit-and-verify fails; locating the quote whitespace-collapsed and slicing the stream's own bytes preserves the byte-for-byte guarantee (Round 2: prefer point-and-slice selection for non-Latin scripts)",
+    "quote_lao": "4. ອາຍຸຂອງການເກັບຮັກສາເອກະສານທາງເອເລັກໂຕຣນິກແຕ່ລະປະເພດ ໃຫ້ປະຕິບັດຕາມກົດບນາຍ\nແລະ ລະບຽບການທີ່ກ່ຽວຂ້ອງ.\nມາດຕາ ຂຂ ການນໍາໃຊ້ເອກະສານທາງເອເລັກໂຕຣນິກເປັນຫຼັກຖານ"
+  },
+  "glosses": {
+    "llm": {
+      "key": "lao-demo",
+      "source_text": "4. ອາຍຸຂອງການເກັບຮັກສາເອກະສານທາງເອເລັກໂຕຣນິກແຕ່ລະປະເພດ ໃຫ້ປະຕິບັດຕາມກົດບນາຍ\nແລະ ລະບຽບການທີ່ກ່ຽວຂ້ອງ.\nມາດຕາ ຂຂ ການນໍາໃຊ້ເອກະສານທາງເອເລັກໂຕຣນິກເປັນຫຼັກຖານ",
+      "source_language": "lo",
+      "english": "4. The retention period for each type of electronic document shall comply with applicable laws and regulations.\n\nArticle K Paragraph K Use of Electronic Documents as Evidence",
+      "engine": "llm:openrouter/qwen/qwen3-30b-a3b-instruct-2507",
+      "authority": "draft",
+      "ai_generated": true,
+      "uncertainty_flag": null
+    },
+    "opus_mt": {
+      "key": "lao-demo",
+      "source_text": "4. ອາຍຸຂອງການເກັບຮັກສາເອກະສານທາງເອເລັກໂຕຣນິກແຕ່ລະປະເພດ ໃຫ້ປະຕິບັດຕາມກົດບນາຍ\nແລະ ລະບຽບການທີ່ກ່ຽວຂ້ອງ.\nມາດຕາ ຂຂ ການນໍາໃຊ້ເອກະສານທາງເອເລັກໂຕຣນິກເປັນຫຼັກຖານ",
+      "source_language": "lo",
+      "english": "4. The age of maintaining the maintenance on electronic Internet based digital content depends upon how to behave in various specific procedures and arrangements related.... The fact that the standard license restrictions on use of electronic Internet based building using computers is principles fundamental",
+      "engine": "opus-mt-mul-en-ct2",
+      "authority": "draft",
+      "ai_generated": true,
+      "uncertainty_flag": null
+    }
+  }
+}

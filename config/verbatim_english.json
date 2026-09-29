@@ -1,0 +1,24 @@
+{
+  "_comment": [
+    "A Verbatim Snippet stays in its",
+    "source language; this REVIEWED file supplies the appended English",
+    "translation per mapping_id. Translations are non-authoritative AI",
+    "output; export.py composes the mandatory label, and the gate battery",
+    "rejects a non-English snippet without an entry here. Current entries:",
+    "the one Malay-language provision in the Round 1 corpus, three rows",
+    "sharing one quote (Act A1472 amending the SOSMA 2012 s.6 interception",
+    "power; the lom.agc.gov.my 'BI' print of A1472 is Malay-bodied)."
+  ],
+  "doc_my_20141230_A1472_BI_Act_A1472:c0008::7.2": {
+    "source_language": "ms",
+    "english": "(a) require a communications service provider to intercept and retain a specified communication or communications of a specified description that are received or transmitted, or that are about to be received or transmitted, by that communications service provider; or"
+  },
+  "doc_my_20141230_A1472_BI_Act_A1472:c0008::7.3": {
+    "source_language": "ms",
+    "english": "(a) require a communications service provider to intercept and retain a specified communication or communications of a specified description that are received or transmitted, or that are about to be received or transmitted, by that communications service provider; or"
+  },
+  "doc_my_20141230_A1472_BI_Act_A1472:c0008::7.5": {
+    "source_language": "ms",
+    "english": "(a) require a communications service provider to intercept and retain a specified communication or communications of a specified description that are received or transmitted, or that are about to be received or transmitted, by that communications service provider; or"
+  }
+}

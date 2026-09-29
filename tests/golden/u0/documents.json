@@ -1,0 +1,35 @@
+[
+ {
+  "document_id": "doc_sg_telecommunications_act_1999",
+  "title": "Telecommunications Act 1999",
+  "economy": "SG",
+  "n_pages": 130,
+  "ocr_applied": false,
+  "n_records": 25,
+  "n_accepted": 0,
+  "n_rejected": 0,
+  "n_flagged": 0
+ },
+ {
+  "document_id": "doc_my_personal_data_protection_act_2010",
+  "title": "Personal Data Protection Act 2010",
+  "economy": "MY",
+  "n_pages": 52,
+  "ocr_applied": false,
+  "n_records": 46,
+  "n_accepted": 0,
+  "n_rejected": 0,
+  "n_flagged": 0
+ },
+ {
+  "document_id": "doc_au_C2026C00098VOL01",
+  "title": "Privacy Act 1988 (compilation, volume 1)",
+  "economy": "AU",
+  "n_pages": 666,
+  "ocr_applied": false,
+  "n_records": 22,
+  "n_accepted": 0,
+  "n_rejected": 0,
+  "n_flagged": 0
+ }
+]

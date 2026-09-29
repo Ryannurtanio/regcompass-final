@@ -1,0 +1,177 @@
+# RegCompass stack: the one app plus a local Ollama server for the Gate
+# embeddings. Everything a judge needs is one command on a clean machine:
+#
+#   docker compose up --build
+#   # then open http://localhost:8000
+#
+# The embedder (bge-m3, about 1.2 GB) is pulled automatically by the
+# ollama-init service before the app starts. There is no manual pull step.
+#
+# Keyless paths, for a judge with no OpenRouter key and no network (--no-deps
+# skips the embedder pull: the fake Engine needs neither a key nor Ollama):
+#   docker compose run --rm --no-deps regcompass-demo            # seed, Run, Export
+#   docker compose --profile judge-bundle up regcompass-bundle   # frozen evidence, port 8001
+#
+# The pre-run Runs are a separate download (see docs/RELEASE_DATA.md). Load them
+# into the volume BEFORE the first `up`, or after `docker compose stop regcompass`:
+#   docker compose run --rm --no-deps regcompass-load
+#
+# A key is optional: export OPENROUTER_API_KEY in your shell and compose passes
+# it through, or type one into the Settings screen for the session. Nothing
+# writes a key to disk and no key is baked into the image.
+#
+# One thing to know if you run this file from a RegCompass CHECKOUT rather than
+# from a release: Compose reads the project's own .env for interpolation AND for
+# bare pass-through variables, so a developer's key in ./.env reaches the app
+# service even when their shell has none (measured, 16 Sep 2026: `env_file: []`
+# does not stop it either). The regcompass-demo service below is immune, because
+# it sets the variable to an explicit empty string. To reproduce a judge's clean
+# machine exactly from a checkout, add --env-file /dev/null:
+#   docker compose --env-file /dev/null run --rm --no-deps regcompass ...
+
+services:
+  ollama:
+    # Official image. Pin bump: see hub.docker.com/r/ollama/ollama/tags .
+    image: ollama/ollama:0.32.1
+    container_name: regcompass-ollama
+    volumes:
+      - ollama-models:/root/.ollama   # model weights persist across restarts
+    ports:
+      - "11434:11434"                 # optional host exposure for manual pulls
+    restart: unless-stopped
+
+  # One-shot: wait for the Ollama server, pull the Gate embedder, exit 0. The
+  # app waits for this to complete, so the first `docker compose up` on a clean
+  # machine ends with a working Run path and no instructions to follow. Only
+  # bge-m3 is pulled here; an Engine B checkpoint is a separate, much larger
+  # pull and is not part of the judge's one command.
+  ollama-init:
+    image: ollama/ollama:0.32.1
+    container_name: regcompass-ollama-init
+    depends_on:
+      - ollama
+    environment:
+      OLLAMA_HOST: "http://ollama:11434"
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        until /bin/ollama list >/dev/null 2>&1; do
+          echo "waiting for the ollama service"
+          sleep 2
+        done
+        /bin/ollama pull bge-m3
+    restart: "no"
+
+  regcompass:
+    build: .
+    image: regcompass:local
+    container_name: regcompass-app
+    depends_on:
+      ollama:
+        condition: service_started
+      ollama-init:
+        condition: service_completed_successfully
+    environment:
+      # The pipeline reads this to reach the Ollama service (default in code is
+      # http://localhost:11434, which is wrong inside compose - hence this).
+      - OLLAMA_HOST=http://ollama:11434
+      # Paths on the named volume below. They match the flags the image's CMD
+      # passes, so the server and a `docker compose run` command-line share one
+      # database.
+      - REGCOMPASS_DB=/data/regcompass.db
+      - REGCOMPASS_OUT=/data/out
+      - REGCOMPASS_DATA=/data
+      # Engine A and Engine B both read this. Pass-through with NO default
+      # expression: nothing in this file supplies a value, so on a clean machine
+      # the variable simply is not set and a key is typed into the Settings
+      # screen instead. From a checkout, see the .env note in the header.
+      - OPENROUTER_API_KEY
+    ports:
+      - "8000:8000"
+    volumes:
+      # Named, not a bind mount: a clean machine has no ./data to mount. The
+      # pre-run database reaches this volume through regcompass-load below.
+      - regcompass-data:/data
+    restart: unless-stopped
+    # The health check lives in the Dockerfile (the keyless /api/status
+    # endpoint), so `docker run` and compose report the same state.
+
+  # The keyless demo: an Economy's Corpus, a Run and an Export, with no key, no
+  # network and no Ollama. Off by default; one command starts it:
+  #   docker compose run --rm --no-deps regcompass-demo
+  #
+  # Three properties make this the path to hand a judge. The key is an EXPLICIT
+  # empty string, so the Run cannot reach a paid Engine even from a checkout
+  # whose .env holds a key. The Corpus is seeded OFFLINE from the legislation
+  # bundled in the image, so a clean volume is not an empty Corpus (before this,
+  # the demo exited 2 and pointed at a network Discovery). And it writes to the
+  # same named volume the app serves from, so the Run a judge just made is in
+  # the interface when they open it.
+  #
+  # Australia is the default; every bundled Economy (AU, MY, SG) exports green
+  # the same way from the command line:
+  #   docker compose run --rm --no-deps regcompass-demo sh -c \
+  #     'regcompass seed --economy SG && regcompass run --engine fake --economy SG --pillar 7 && regcompass export'
+  regcompass-demo:
+    build: .
+    image: regcompass:local
+    profiles: ["demo"]
+    environment:
+      # Explicit empty, not a pass-through: the demo is keyless by construction
+      # and does not inherit a key from the shell or from a project .env.
+      OPENROUTER_API_KEY: ""
+      REGCOMPASS_DB: "/data/regcompass.db"
+      REGCOMPASS_OUT: "/data/out"
+      REGCOMPASS_DATA: "/data"
+    volumes:
+      - regcompass-data:/data
+    # No depends_on at all: the fake Engine needs neither Ollama nor the
+    # embedder, so --no-deps has nothing to skip and the demo starts alone.
+    command:
+      - sh
+      - -c
+      - |
+        set -e
+        regcompass seed --economy AU
+        regcompass run --engine fake --economy AU --pillar 7
+        regcompass export
+    restart: "no"
+
+  # The prepared database: downloads the archive the release names (address
+  # and SHA-256 in config/prepared_data.yaml, or --url/--sha256 after the
+  # service name), checks the SHA-256 before unpacking, and fills the same
+  # volume the app serves from. Off by default; one command:
+  #   docker compose run --rm --no-deps regcompass-load
+  # It refuses to replace a database that already holds Runs; add --force to
+  # the command (`... regcompass-load regcompass load-data --force`) to do so.
+  regcompass-load:
+    build: .
+    image: regcompass:local
+    profiles: ["prepared"]
+    environment:
+      OPENROUTER_API_KEY: ""
+      REGCOMPASS_DB: "/data/regcompass.db"
+      REGCOMPASS_DATA: "/data"
+    volumes:
+      - regcompass-data:/data
+    command: ["regcompass", "load-data"]
+    restart: "no"
+
+  # The Round 1 evidence view: a frozen audit bundle, no key, no Ollama, no
+  # Run. Off by default; start it with
+  #   docker compose --profile judge-bundle up regcompass-bundle
+  regcompass-bundle:
+    build: .
+    image: regcompass:local
+    container_name: regcompass-bundle
+    profiles: ["judge-bundle"]
+    command:
+      ["regcompass", "serve", "--bundle", "/app/audit_bundle",
+       "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "8001:8000"
+    restart: unless-stopped
+
+volumes:
+  ollama-models:
+  regcompass-data:

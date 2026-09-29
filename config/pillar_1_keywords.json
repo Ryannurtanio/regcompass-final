@@ -1,0 +1,23 @@
+{
+  "_comment": "Pillar 1 'Tariffs and Trade Defence' per-indicator vocabulary, DERIVED mechanically by scripts/make_pillar_keywords.py from the indicator name, scoring criteria and exception note in config/indicators.json. No model wrote any of it. A human review pass flips _reviewed.",
+  "_pillar_description": "Tariffs and Trade Defence: Trade defence measures including anti-dumping, countervailing duties and safeguards on ICT-related goods imported by other economies within the considered United Nations region.",
+  "_derived": true,
+  "_source": "config/indicators.json (name + criteria + exception)",
+  "_reviewed": false,
+  "1.4": [
+    "three",
+    "considered united nations region",
+    "ict-related goods imported",
+    "considered united nations",
+    "united nations region",
+    "more than three",
+    "trade defence",
+    "including anti-dumping",
+    "countervailing duties",
+    "ict-related goods",
+    "goods imported",
+    "economies within",
+    "considered united",
+    "united nations"
+  ]
+}

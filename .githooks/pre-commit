@@ -1,0 +1,8 @@
+#!/bin/sh
+# Pre-commit secret scan: no secret ever enters this repo (project hard rule).
+# Wired via: git config core.hooksPath .githooks
+if ! command -v gitleaks >/dev/null 2>&1; then
+    echo "gitleaks is not installed (brew install gitleaks). Refusing to commit unscanned."
+    exit 1
+fi
+exec gitleaks git --pre-commit --staged --redact --verbose --config .gitleaks.toml

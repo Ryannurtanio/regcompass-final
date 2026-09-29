@@ -1,0 +1,79 @@
+You are mapping national legislation to one indicator of the UN ESCAP RDTII 2.1 framework (Regional Digital Trade Integration Index).
+
+INDICATOR 6.4 - Conditional flow regimes
+Definition: Does the economy impose OTHER conditions (beyond storage/processing) that must be met before data can be transferred abroad, such as the data subject's consent, an adequacy evaluation by the business, or a government adequacy determination? Boundary with 6.1: if transfer is allowed once the conditions are satisfied it is 6.4; a complete prohibition is 6.1. Measures applied only to the Government's own data are NOT scored.
+
+SCORING CRITERIA for this indicator (the ESCAP scoring ladder):
+1) Conditions for all sectors or personal data 
+2) Conditions for specific data or non-personal data
+3) No condition
+Exception: Not score data localization measure applied to government data.
+Note on partial evidence: the provision does NOT have to satisfy the indicator
+completely. A provision that satisfies the indicator's criteria EVEN PARTIALLY
+(one sector, one class of data, one condition among several, a partial
+restriction) is evidence and must be mapped: those are exactly the
+half-score rungs of the ladder above. Only answer false when the provision
+carries no obligation, permission or restriction of the kind the indicator
+describes at all.
+
+
+One more rule, about neighbouring indicators: you are SELECTING a citation, not
+assigning the economy's score. Indicators cover neighbouring ground, and a later
+stage weighs the citations and settles which indicator and which rung a measure
+finally scores on. So a single provision may legitimately be cited under more
+than one indicator. Never answer false on the ground that a NEIGHBOURING
+indicator looks like the better fit for this provision; answer false only when
+the provision carries no obligation, permission or restriction that bears on
+this indicator at all.
+Do not require the provision to repeat the indicator's own words. A general
+obligation that governs the whole class of activity the indicator names (a duty
+on the handling of data, where the indicator asks about conditions on moving it)
+is evidence even when the provision does not spell out the indicator's exact
+case. What must be present is the obligation, permission or restriction itself,
+not the indicator's vocabulary.
+Check the provision against the rungs of the ladder above before you answer.
+The obligation you found must be of the KIND the rungs score: a ban or a local
+processing requirement where the rungs speak of bans, a condition where they
+speak of conditions, a retention period where they speak of retention. A
+provision whose obligation matches NO rung of this indicator's ladder is not
+evidence for this indicator, however clearly it bears on data.
+
+
+PROVISION (s. 12; document doc_test; economy SG):
+<<<PROVISION
+Section 12. Transfer of customer data abroad
+(1) A licensee must not transfer customer data to a place outside the
+economy unless the customer has given express consent in writing.
+(2) The Authority may exempt any class of transfers from subsection (1).
+
+PROVISION>>>
+
+How to read a statute:
+- Obligations live in operative verbs: must, shall, may, should, can, and their
+  negatives (must not, shall not). Evidence is a provision that imposes,
+  conditions, or removes an obligation relevant to the indicator.
+- Preambles, purpose clauses, short-title and commencement provisions state
+  intent, not obligations: NEVER map them.
+- Enforcement, penalty and appeal provisions are not substantive obligations,
+  UNLESS the indicator itself concerns government powers over data (then powers
+  of production, inspection, search or seizure are exactly the evidence).
+- Definitions that use "includes" are non-exhaustive; watch Schedules and
+  exemptions for carve-outs that change an obligation's scope.
+
+Task: decide whether THIS provision contains concrete textual evidence for the
+indicator above (evidence that the measure exists, or that transfers/processing
+are expressly conditioned or restricted as the indicator describes).
+- If yes: copy ONE quote of roughly 10 to 80 words from the provision text,
+  EXACTLY character for character: keep the original line breaks, punctuation
+  and spelling; never paraphrase, never normalize whitespace. The quote should
+  span the operative verb, its object, and any condition.
+- subsection: the smallest subsection reference containing the quote, exactly
+  as written in the provision, e.g. "(1)" or "(2)(a)"; null if none.
+- impact: ONE short sentence, at most 200 characters, stating what the
+  provision requires or permits, for whom, and which rung of the scoring ladder
+  above it matches. State the rung; do not argue for it.
+
+Answer with ONLY a JSON object, no prose, no markdown fences:
+{"maps_to_indicator": true, "verbatim_quote": "...", "subsection": "(1)", "impact": "..."}
+or, if the provision is not evidence for this indicator:
+{"maps_to_indicator": false, "verbatim_quote": "", "subsection": null, "impact": null}
