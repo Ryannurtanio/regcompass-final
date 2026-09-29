@@ -8,7 +8,7 @@ import {
   outputDownloadUrl,
   postExport,
 } from './api'
-import type { AuditRun, DocumentSummary, ExportFile } from './types'
+import type { AuditRun, DocumentSummary, ExportFile, QueueFilter } from './types'
 import AuditView from './AuditView'
 import Comparison from './Comparison'
 import DocumentList from './DocumentList'
@@ -60,7 +60,7 @@ const NAV: { screen: Screen; label: string; line: string }[] = [
   {
     screen: 'settings',
     label: 'Settings',
-    line: 'The key the Engines use, and clearing downloads and cache.',
+    line: 'The key the Engines use, how politely sites are crawled, and clearing downloads and cache.',
   },
 ]
 
@@ -148,7 +148,7 @@ export default function App() {
   // Both live here so that coming back from the audit view lands the reviewer
   // on the list they left, in the state they left it.
   const [evidenceView, setEvidenceView] = useState<EvidenceView>('documents')
-  const [queueUnreviewedOnly, setQueueUnreviewedOnly] = useState(false)
+  const [queueFilter, setQueueFilter] = useState<QueueFilter>('all')
   // The Document the audit view is on. In queue order it changes as the
   // reviewer steps, so the view reports it rather than the header guessing.
   const [auditTitle, setAuditTitle] = useState<string | null>(null)
@@ -513,7 +513,7 @@ export default function App() {
             documentId={route.documentId}
             runId={runId}
             queue={route.fromQueue ?? false}
-            unreviewedOnly={queueUnreviewedOnly}
+            queueFilter={queueFilter}
             startMappingId={route.mappingId ?? null}
             onBack={goBack}
             onReviewSaved={reloadDocs}
@@ -618,8 +618,8 @@ export default function App() {
               <ReviewQueueList
                 runId={runId}
                 reviewTick={reviewTick}
-                unreviewedOnly={queueUnreviewedOnly}
-                onUnreviewedOnly={setQueueUnreviewedOnly}
+                filter={queueFilter}
+                onFilter={setQueueFilter}
                 onOpen={(row) =>
                   setRoute({
                     kind: 'audit',
@@ -641,7 +641,7 @@ export default function App() {
             Comparison and Settings it was advertising keys that do nothing. */}
         {route.kind === 'audit' ? (
           <span className="key-hints">
-            <kbd>A</kbd> accept · <kbd>R</kbd> reject · <kbd>F</kbd> flag · <kbd>J</kbd>
+            <kbd>A</kbd> accept · <kbd>R</kbd> reject · <kbd>F</kbd> flag · <kbd>C</kbd> correct · <kbd>J</kbd>
             <kbd>K</kbd> Mapping · <kbd>←</kbd>
             <kbd>→</kbd> page · <kbd>Esc</kbd> {route.fromQueue ? 'queue' : 'documents'}
           </span>

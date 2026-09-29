@@ -10,8 +10,8 @@ import { plainError, type PlainError } from './errors'
 // change, which is exactly what Accept all does.
 let landOnSummary = false
 
-/** What the Evidence Export would contain right now: only accepted Mappings
- *  ship, and the excluded ones are named before the file exists rather than
+/** What the Evidence Export would contain right now: only accepted and
+ *  corrected Mappings ship (a corrected one under the reviewer's Indicator), and the excluded ones are named before the file exists rather than
  *  discovered afterwards. The bulk accept is there for an operator against the
  *  clock, and it never overrides a decision already made. It says how many
  *  Mappings it will accept and waits for a second press before it does. */
@@ -101,14 +101,16 @@ export default function ExportPreview({
   }
 
   const n = preview.n_unreviewed
+  const corrected = preview.n_corrected ?? 0
+  const shipping = preview.n_accepted + corrected
   const plural = (k: number) => (k === 1 ? 'Mapping' : 'Mappings')
 
   return (
     <div className="ev-preview" data-testid="export-preview">
       <p className="ev-summary" ref={summaryRef} tabIndex={-1}>
-        {preview.n_accepted} of {preview.n_verified} proven {plural(preview.n_verified)} will
+        {shipping} of {preview.n_verified} proven {plural(preview.n_verified)} will
         go into the Evidence Export.{' '}
-        <span className="ev-muted">Only accepted Mappings ship.</span>
+        <span className="ev-muted">Only accepted and corrected Mappings ship.</span>
       </p>
       <div className="ev-tally">
         <dl className="ev-stats">
@@ -118,6 +120,13 @@ export default function ExportPreview({
               accepted, will export
             </dt>
             <dd data-testid="export-accepted-count">{preview.n_accepted}</dd>
+          </div>
+          <div className="ev-stat corrected">
+            <dt>
+              <DecisionGlyph status="corrected" />
+              corrected, will export
+            </dt>
+            <dd data-testid="export-corrected-count">{corrected}</dd>
           </div>
           <div className="ev-stat rejected">
             <dt>
@@ -144,7 +153,7 @@ export default function ExportPreview({
         {n > 0 && !confirming && (
           <div className="ev-bulk">
             <span className="ev-warn" data-testid="export-preview-warning">
-              {preview.n_accepted === 0
+              {shipping === 0
                 ? 'Nothing exports until you accept.'
                 : 'Mappings not reviewed do not ship.'}
             </span>
@@ -173,8 +182,8 @@ export default function ExportPreview({
               Accept all {n} {plural(n)} not reviewed yet?
             </p>
             <p id="ev-confirm-d" className="ev-muted">
-              They will go into the Evidence Export. Mappings you already accepted, rejected or
-              flagged stay as they are, and you can still reject or flag any of these later.
+              They will go into the Evidence Export. Mappings you already accepted, corrected,
+              rejected or flagged stay as they are, and you can still reject or flag any of these later.
             </p>
           </div>
           <div className="ev-confirm-actions">

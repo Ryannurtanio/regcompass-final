@@ -155,6 +155,11 @@ docker compose run --rm --no-deps regcompass-load   # download, verify, unpack
 docker compose up                                   # then open http://localhost:8000
 ```
 
+A successful load prints `SHA-256 verified (401 MB)`, one line per Economy (AU 18 Documents,
+CN 3, ID 7, IN 4, MY 21, SG 10, each with 4 Runs), and ends `loaded 63 Documents and 24 Runs`
+(63 source files written). The download time depends on your connection; the check and the
+unpack after it take seconds.
+
 On the host path the same step is `uv run regcompass load-data`, listed in **6. Without
 Docker**. Details, sizes and the form that names the address and SHA-256 yourself
 (`--url`, `--sha256`): [docs/RELEASE_DATA.md](docs/RELEASE_DATA.md).
@@ -169,8 +174,8 @@ What you get once it is loaded:
   archive carries none, and every prepared Run's Evidence Export is empty until you accept
   rows. On the **Evidence** screen, the button **Accept all N…** (N is the count not reviewed
   yet) asks *Accept all N Mappings not reviewed yet?*, and **Accept N Mappings** then accepts
-  every undecided Mapping of that Run; rows already accepted, rejected or flagged stay as they
-  are. Review row by row instead if you want to judge them first.
+  every undecided Mapping of that Run; rows already accepted, rejected, flagged or corrected stay
+  as they are. Review row by row instead if you want to judge them first.
 - **63 Documents, not 64.** The archive leaves out one Document the Runs read: India's Hindi
   rendering of the Telecommunications Act, 2023 (`doc_in_H202344`). Its PDF's text layer
   lost every Devanagari glyph, so its text is not the law's text and it is not shipped. India
@@ -187,8 +192,12 @@ Export.
 
     docker compose run --rm --no-deps regcompass-demo
 
-Expected: Australia seeded, a Run on Pillar 7, and an Export written to `/data/out`, in well
-under a minute. It writes to the same volume the interface reads, so the Run is in the **Run
+Expected, in a minute or two: Australia seeded with one Document (`doc_au_C2026C00098VOL01`,
+666 pages), a Run on Pillar 7 that ends `AU: 1 documents, 100 gated pairs -> 60 verified,
+20 no-evidence, 20 dropped, 3 groups reconciled`, and an Export that reports
+`battery GREEN: 62 rows` and writes `submission.xlsx`, `submission.csv` and the JSON files to
+`/data/out`. Most of the time goes on reading the 666-page Act once; the Run and the Export take
+seconds. It writes to the same volume the interface reads, so the Run is in the **Run
 history** list when you open http://localhost:8000. Any bundled Economy works the same way:
 
     docker compose run --rm --no-deps regcompass-demo sh -c \
@@ -228,7 +237,7 @@ the footer.
   refused with a message asking you to rename one rather than quietly becoming one Document.
   Uploading the same file twice under the same address is not an error at all; it hands back the
   Document you already have and changes nothing.
-- *"nothing exported until you accept"*: only accepted Mappings enter an Evidence Export. Use
+- *"nothing exported until you accept"*: only accepted (or corrected) Mappings enter an Evidence Export. Use
   **Accept all N…** on the Evidence screen, then confirm, to ship everything undecided.
 - *Running compose from a checkout that has its own `.env`*: Compose reads that file and the key
   in it reaches the container even when your shell has none. Add `--env-file /dev/null` to
@@ -280,15 +289,16 @@ exits with an address-already-in-use error. The port is the only thing they have
 each also wants their own `--db` and `--data-dir` if they do not want to share a Corpus.
 
 **Verify, with no key and no Ollama.** The fake Engine is offline end to end, at the Gate as
-well as at the model (`src/regcompass/engines.py:349`), so this works before the embedder has
+well as at the model (`src/regcompass/engines.py:485`, `embed_fn_for`), so this works before the embedder has
 finished downloading. Stop the server, or open a second terminal, and run:
 
     uv run regcompass seed --economy AU
     uv run regcompass run --engine fake --economy AU --pillar 7
     uv run regcompass export
 
-Expected: Australia seeded from the legislation in the repository, a Run on Pillar 7, and an
-Export written to `out/`, in a minute or two on a laptop (the seeded Act is 666 pages, and the
+Expected: Australia seeded from the legislation in the repository, a Run on Pillar 7 (60
+verified, 20 no-evidence, 20 dropped, 3 groups reconciled), and an Export of 62 rows
+(`battery GREEN: 62 rows`) written to `out/`, in a minute or two on a laptop (the seeded Act is 666 pages, and the
 fake Engine reads all of it). This is the same three commands the Docker
 demo service runs, against the same default working database `data/regcompass.db`, so start
 `serve` again afterwards and the Run is in the **Run history** list and the **Evidence** screen. Open
@@ -314,16 +324,17 @@ not build it. Describe how to reach each of the following, with the screen name 
 | What a reviewer needs to do | Where it is |
 | :---- | :---- |
 | Start a run and watch progress in plain words | **Start a Run** screen. The **Run panel** box on it takes four steps, **Economy**, **Pillar**, **Indicators** and **Engine**, and **Your Run** beside them sums up the choice with what the last Run on that setup took and cost. Press **Start Run**, read the estimate, then **Yes, start the Run**. The Run view appears below the panel and follows every Document Step by Step: **Read**, **Scan check**, **Split into sections**, **Gate**, **Map and Prove** and **Gloss** (in the code: M1 extract, M2 OCR, M4 chunk, M5 gate, M6 map + M7 verify, M3 gloss), then **Reconcile** once for the whole Run (M8). A Step with nothing to do is shown as skipped rather than going missing. **What the Run has found so far** counts Documents, Sections, Candidates kept by the Gate, Mappings proposed and Mappings proven; **Where the time went** charts each Document's time, Step by Step when you point at it; the header shows the time and what the Run spent at the Engine's declared prices (**Cost so far (our meter)** while it runs, then **Cost (our meter)** and **Engine calls**, with the provider's bill beside it). Click a Document's name for its own drill-down: its **Steps**, its Mappings by Indicator, the **Candidates the Gate kept**, and each quote marked in its source; **Back to the Run** (or `Esc`) returns. **Show raw log** opens the plain log with the code's stage names. The Run view stays on the screen after the Run finishes. |
-| Open the audit view: a result beside the source text it came from | **Evidence** screen, click any row of the **Documents** table (or press Enter). The source PDF opens on the left, the Mapping on the right, with the quote highlighted on the page image. Scanned laws render like any other: the image decoders ship inside the interface, so this works with no internet. A source that is a web page rather than a PDF (China's three statutes) shows its text on the left instead, with the Verbatim Quote marked where it sits and no page number, because a web page has none. The header names the Run on screen (id, Economy, Pillar, Engine), and the record pane prints the **Confidence** composite as a number beside its dots. |
+| Open the audit view: a result beside the source text it came from | **Evidence** screen, click any row of the **Documents** table (or press Enter). The source PDF opens on the left, the Mapping on the right, with the quote highlighted on the page image. Scanned laws render like any other: the image decoders ship inside the interface, so this works with no internet. A source that is a web page rather than a PDF (China's three statutes) shows its text on the left instead, with the Verbatim Quote marked where it sits and no page number, because a web page has none. The header names the Run on screen (id, Economy, Pillar, Engine), and the record pane prints the **Confidence** composite as a number beside its dots. **How this is scored**, beside the dots, opens the four signals it is computed from (**Meaning match** 45%, **Quote length** 25%, **Specificity** 15%, **Proof attempts** 15%), each with its raw value, weight and contribution and a line on why it counts, adding up to the Confidence shown. The Engine writes the Rationale; the pipeline computes the Confidence. |
 | Add a Document to a Corpus by hand | **Start a Run** screen, control **Add document** (also the link beside **Corpus of &lt;Economy&gt;** under **Your Run**): an optional **Law name** (the statute's own name, which the Evidence Export writes into the **Law Name** column), an optional **Source URL** on the upload lane, the file or the URL to fetch, and the **Language**. The control lists that Economy's whole **Corpus** underneath, so an upload is visible the moment it lands, before any Run. Several Documents may share one **Source URL**, which is what a ministry landing page publishing a whole collection needs. |
 | Record where an added Document is published | **Start a Run** screen, **Add document**, the **Corpus** list: a Document with no address is marked **no Source URL** and carries a **Set Source URL** field on its row. It edits the Document already in the Corpus, so nothing is fetched and no duplicate is created. |
 | See why nothing happens on a fresh install | **Start a Run** screen. An Economy with no Documents says so above the **Run panel** and names the three ways to fill it: button **Discover**, control **Add document**, or `regcompass seed --economy <code>` for the keyless demo. |
 | Follow a row to its official source at the cited article | **Evidence** screen, audit view, link **Open source, page N** on the citation line *section subsection, PDF page N*. It opens the Document's official **Source URL** in a new tab, at the cited page (`#page=N`). A web-page source carries no page number on either. The same link sits on every row of the **Comparison** screen. A Document with no Portal address recorded reads **Open source (local copy)** and opens the stored file the highlight was drawn on. |
-| Accept, reject or correct a row | **Evidence** screen, a **Documents** row, then buttons **Accept**, **Reject**, **Flag** (keys `A`, `R`, `F`) with an optional **Note**. To correct an English rendering: field **English gloss**, then your name in the field beside it and **Mark reviewed**. |
-| Work through the rows that need a person first | **Evidence** screen, view **Review queue**: every record of the Run in one list, lowest **Confidence** first, whichever Document it sits in, with a count line (*14 of 60 below 0.60 Confidence, 9 not reviewed yet.*) and a **Not reviewed only** filter. A row opens the same audit view, and `A`, `R`, `F`, `J` and `K` then step in queue order. A row the pipeline could not score reads **not scored**: it sorts first and counts as below the threshold, because nothing is known about it. |
+| Accept, reject or correct a row | **Evidence** screen, a **Documents** row, then buttons **Accept**, **Reject**, **Flag** (keys `A`, `R`, `F`) with an optional **Note**. To file a Mapping under a different Indicator: button **Correct** (key `C`), then **Correct to** (an Indicator of the Run's own Pillars), a required **Reason** of 1 to 300 characters, an optional **Your name**, and **Save correction**. The Engine's Mapping is never modified: the record reads *Engine proposed X (title), reviewer corrected to Y (title)*, and every decision on a Mapping is kept in an append-only history (`GET /api/reviews/history`). To correct an English rendering: field **English gloss**, then your name in the field beside it and **Mark reviewed**. |
+| Work through the rows that need a person first | **Evidence** screen, view **Review queue**: every record of the Run in one list, lowest **Confidence** first, whichever Document it sits in, with a count line (*14 of 60 below 0.60 Confidence, 9 not reviewed yet.*) and two filters, **Not reviewed only** and **Corrected only**. A row opens the same audit view, and `A`, `R`, `F`, `J` and `K` then step in queue order (`C` opens the Correct picker and stays on the row). A row the pipeline could not score reads **not scored**: it sorts first and counts as below the threshold, because nothing is known about it. |
 | Switch the AI engine | **Start a Run** screen, **Run panel** step **4 Engine**: one card per Engine. It opens on the Engine `config/models.yaml` declares as the default (**Engine B**, the open-weight one, marked *The registry default.*), so starting a Run never spends on the commercial Engine by accident. Each card shows the Engine's per-token price and **Key set** or **No key: add one in Settings**. |
 | Export to the RDTII schema | **Evidence** screen (or the audit view), header button **Export workbook**. The footer then offers link **Download workbook** (the organizer's `submission.xlsx`) with the CSV and the two JSON files beside it, so the export lands in your own downloads folder and not only in the server's volume. |
-| Produce the Engine Comparison file | **Comparison** screen: it opens on the Economy and Pillar of your most recent completed Run. Choose Run A and Run B (the same Economy and Pillar on the two Engines), then links **Download CSV** and **Download JSON** above the table. |
+| Produce the Engine Comparison file | **Comparison** screen: it opens on the Economy and Pillar of your most recent completed Run. Choose Run A and Run B (the same Economy and Pillar on the two Engines), then the links above the table: **Download sheet (xlsx)**, **Sheet (CSV)**, **Rows (CSV)** and **JSON**. |
+| Check how politely the crawler behaves | **Settings** screen, card **Polite crawling** (read-only, from `GET /api/settings/politeness`): each Portal's sites and minimum wait between requests, 1 connection at a time per host, a **robots.txt respected** switch that is locked on, and what happens when a Portal's robots.txt cannot be read. |
 | Clear downloads and cache before the clock starts | **Settings** screen, section **Clear downloads and cache**: pick an Economy or Everything, **Preview**, then **Clear now**. |
 | See why a Run that finished has nothing to show | **Evidence** screen, the banner above the lists. A Document whose text carries no section structure becomes one unstructured chunk, the Gate reads section chunks only, and so no Engine is ever asked about it. The banner names the Document and says to check the file rather than the Engine; the Run view says so on that Document's row (*No numbered headings found, so the whole text was one section and the Gate kept nothing.*), the same sentence is in the raw log at *M4 chunk*, on the Run Record, and in the **Export workbook** refusal. |
 | Tell a Run that died from one still going | **Run history** screen, column **Status**. A Run whose process ended without closing its record reads **Interrupted**, set when the server next starts, because the one worker thread lives in the process that has just begun. Nothing is left reading *Running* forever, and a new Run is never refused by a Run that is not there. |
@@ -340,8 +351,8 @@ events at a chosen **Speed**, with **Watch from the start**, **Pause** and **Res
 again and no Engine is called. **← Run history** goes back. Each row also carries **Compare**
 (the Comparison screen on that Economy and Pillar) and **Record** (the Run Record as a file).
 
-**Walkthrough recording:** linked from the Release page. Three to four minutes, submitted with the Word
-document.
+**Walkthrough recording:** three to four minutes, submitted with the Word document and linked
+from the GitHub Release page of the tag in **Release** below.
 
 ---
 
@@ -448,13 +459,15 @@ while a job is active.
 ## Crawling Politely
 
 Built in and **on by default**. A ministry running this tool should not have to configure it to
-avoid being blocked.
+avoid being blocked. The **Settings** screen shows these limits per Portal on the read-only card
+**Polite crawling**, read from the same configuration the crawler runs on; nothing there can be
+changed.
 
 | Setting | Value | Where it is set |
 | :---- | :---- | :---- |
-| Max requests per second per host | 1 request per `min_interval_seconds`. Default floor 1.0 s; the configured floors are 2 s (Lao PDR, India, Viet Nam, Kazakhstan, Mongolia, Russian Federation), 5 s (Malaysia, Indonesia), 6 s (Singapore) and 10 s (Australia). A Portal's published crawl-delay RAISES the floor and never lowers it. | default `src/regcompass/contracts.py:589`, per Portal `config/portals.yaml`, applied `src/regcompass/discovery.py:281` and `src/regcompass/discovery.py:313` |
-| Parallel requests per host | 1 | `src/regcompass/crawl.py:578` (`httpx.Limits(max_connections=1, max_keepalive_connections=1)`) |
-| robots.txt respected | yes | `src/regcompass/crawl.py:393` (`read_robots_policy`, the one door every fetching lane uses), RFC 9309 rule at `src/regcompass/crawl.py:319` |
+| Max requests per second per host | 1 request per `min_interval_seconds`, the per-Portal minimum wait between two requests to the same host. The configured floors are 2 s (Thailand, Lao PDR, India, Viet Nam, Kazakhstan, Mongolia, Russian Federation), 3 s (China), 5 s (Malaysia, Indonesia), 6 s (Singapore) and 10 s (Australia); a Portal with no floor of its own waits the default 1.0 s. A Portal's published crawl-delay RAISES the floor and never lowers it. | default `src/regcompass/contracts.py:606`, per Portal `config/portals.yaml`, applied `src/regcompass/discovery.py:376` (the floor) and `src/regcompass/discovery.py:408` (raised by a published crawl-delay) |
+| Parallel requests per host | 1 | `src/regcompass/crawl.py:586` (`httpx.Limits(max_connections=CONNECTIONS_PER_HOST, max_keepalive_connections=CONNECTIONS_PER_HOST)`, with `CONNECTIONS_PER_HOST = 1` at `src/regcompass/contracts.py:573`) |
+| robots.txt respected | yes | `src/regcompass/crawl.py:401` (`read_robots_policy`, the one door every fetching lane uses), RFC 9309 longest-match rule at `src/regcompass/crawl.py:269` (`RobotsPolicy.allows`) |
 
 Requests go out under an identified user agent naming the project and a contact URL. Documents
 already in the Corpus are skipped without a request.
@@ -758,9 +771,17 @@ Controlling Evidence first, then the higher Confidence, then the earlier Mapping
 deleted: the Review Decisions stay in the database and the disclosure is reported in the Export
 summary and in `supplementary.json`.
 
+**Corrected rows.** A Mapping a reviewer corrected ships under the corrected Indicator and its
+Pillar, with the reviewer's reason as its Mapping Rationale, the pipeline's Confidence, and Notes
+reading *Reviewer override: Engine proposed X; corrected to Y by &lt;reviewer&gt;*. The Indicator the
+Engine proposed gets no evidence from it: there it counts as a verified Mapping found but not
+accepted, which that Indicator's "No provision found" row says when nothing else was accepted
+for it. `supplementary.json` lists `n_corrected` and every override
+under `review_gate`.
+
 **The battery that must be green before anything ships.** Every assembled row is checked for the
 13-column contract by name and order (the contract counts 13 because the Round 1 columns are
-positionally frozen in `src/regcompass/export.py:62`, and `Language of Source`, the final round's
+positionally frozen in `src/regcompass/export.py:66` (`COLUMNS`), and `Language of Source`, the final round's
 one new organizer column, is appended after them at position 14 rather than inserted among them);
 Discovery Tag exactly NEW or KNOWN, case-sensitive; no
 empty required column; a re-check that the Verbatim Quote is still a substring of its source
@@ -871,10 +892,11 @@ and token counts; the per-Economy ones are in **Pre-run Coverage**.
   the earlier presence-only version of them; the reproduction script emits the rubric version.
 - **Confidence calibration.** Confidence is **relative, not a calibrated probability**. It is a
   mechanical composite of four model-independent anchoring signals with documented weights
-  (`src/regcompass/export.py:320`): Gate cosine similarity 0.45, quote length 0.25 saturating at
+  (`src/regcompass/export.py:403`, `confidence_score`): Gate cosine similarity 0.45, quote length 0.25 saturating at
   240 characters, a multi-Indicator specificity penalty 0.15, and a retry penalty 0.15. It never
   contains a model's own self-reported certainty; the schema has no field for one. Read it as a
-  review queue order, not as a probability that the row is right. **Our rule of thumb, not a
+  review queue order, not as a probability that the row is right. On the Evidence screen,
+  **How this is scored** beside the dots shows each signal's value, weight and contribution. **Our rule of thumb, not a
   calibrated threshold: check every row below 0.60 by hand.** The Evidence screen's **Review
   queue** view is that rule made operable: it lists the Run's records lowest first and counts how
   many sit below the threshold, so those rows are the ones a reviewer meets first. The number
@@ -891,7 +913,7 @@ and token counts; the per-Economy ones are in **Pre-run Coverage**.
     uv sync --extra live
     uv run pytest
 
-**2,255 tests**, offline and keyless. Tests that would spend money skip unless
+**2,324 tests**, offline and keyless. Tests that would spend money skip unless
 `REGCOMPASS_PAID=1` is set alongside a key, so a plain run never bills an account. Live Portal
 tests skip unless `REGCOMPASS_LIVE=1` is set, so a plain run never touches a government server.
 Gate tests probe for a reachable Ollama and skip when there is none. Docker tests that need a
@@ -1020,7 +1042,7 @@ vendored-asset notices are in `THIRD_PARTY_NOTICES.md` and interface bundle noti
 | Commit SHA | the commit the tag `final-round` points to (shown on the Release page) |
 | Docker image | `ghcr.io/ryannurtanio/regcompass-final:final-round` |
 | Live URL | https://regcompass.sidequesting.tech |
-| Backup copy | linked from the Release page |
+| Backup copy | Linked from the GitHub Release page of the tag above |
 
 The release tag you record is the version that runs on 15 October. Settings may change on the
 day; code may not.

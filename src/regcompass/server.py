@@ -87,9 +87,12 @@ from regcompass.audit import (
     GlossReviewRequest,
     RecordDetail,
     RecordSummary,
+    ReviewHistory,
+    ReviewHistoryEntry,
     ReviewQueue,
     ReviewRequest,
     build_review_queue,
+    correction_problem,
 )
 from regcompass.contracts import (
     MANUAL_STRATEGY,
@@ -418,6 +421,59 @@ def default_pillars() -> tuple[int, ...]:
     from regcompass.config import load_default_pillars
 
     return load_default_pillars()
+
+
+# The two rules the Settings card "Polite crawling" states under its list, in
+# the crawler's own terms (crawl.read_robots_policy, crawl._robots_text and
+# the max(floor, crawl-delay) spacing in discovery and crawl.fetch_one).
+CRAWL_DELAY_RULE = (
+    "A crawl-delay published in a site's robots.txt can only lengthen the wait:"
+    " the wait used is the longer of the two, never the shorter."
+)
+ROBOTS_UNREACHABLE_RULE = (
+    "If robots.txt is missing or refused (a 4xx answer) or the site cannot be"
+    " reached, the site has published no rules and the minimum wait still"
+    " applies. If robots.txt"
+    " answers with a server error, the rules may exist but cannot be read, so"
+    " each site's own policy below applies."
+)
+
+
+def robots_unavailable_words(
+    portal: "PortalConfig", today: "date | None" = None
+) -> str:
+    """What this Portal's crawler does when its robots.txt answers with a
+    server error, in plain words, derived from the same fields and the same
+    date test crawl.read_robots_policy applies: the per-Portal policy, and the
+    recorded first-failure date that starts RFC 9309's 30-day clock (lifted
+    once today - since > the grace period, i.e. from since + 30 days + 1)."""
+    from datetime import date, timedelta
+
+    from regcompass.contracts import ROBOTS_UNREACHABLE_GRACE_DAYS
+
+    if portal.robots_unavailable_policy == "proceed":
+        return (
+            "Read as publishing no rules (a recorded decision for this site)."
+            " The minimum wait still applies."
+        )
+    since = portal.robots_unreachable_since
+    if since is not None:
+        today = today or date.today()
+        grace = timedelta(days=ROBOTS_UNREACHABLE_GRACE_DAYS)
+        lifts_on = since + grace + timedelta(days=1)
+        if today - since > grace:
+            return (
+                f"Read as publishing no rules since {lifts_on.isoformat()}:"
+                f" robots.txt was first recorded failing on {since.isoformat()},"
+                f" and RFC 9309 allows that after {ROBOTS_UNREACHABLE_GRACE_DAYS}"
+                " days. The minimum wait still applies."
+            )
+        return (
+            "Nothing is fetched. robots.txt was first recorded failing on"
+            f" {since.isoformat()}; from {lifts_on.isoformat()} it is read as"
+            " publishing no rules (RFC 9309)."
+        )
+    return "Nothing is fetched until robots.txt can be read again."
 
 
 # Read-only browser: only these tables are reachable; the name is interpolated
@@ -2067,6 +2123,37 @@ def create_app(
             forget_session_key(engine.api_key_env)
         return {"engine": engine.name, "env": engine.api_key_env, "key_set": False}
 
+    @app.get("/api/settings/politeness")
+    def politeness() -> dict:
+        """The crawler's politeness limits, read-only, for the Settings card:
+        one row per Portal we can contact, built from the same Portal
+        configuration and constants the crawler uses. Nothing here can be
+        changed from the interface."""
+        from regcompass.contracts import CONNECTIONS_PER_HOST
+
+        rows = [
+            {
+                "economy": code,
+                "name": portal.official_name,
+                "host": portal.hosts[0],
+                "hosts": list(portal.hosts),
+                "min_interval_seconds": portal.min_interval_seconds,
+                "connections_per_host": CONNECTIONS_PER_HOST,
+                "robots_respected": True,
+                "robots_unavailable_setting": portal.robots_unavailable_policy,
+                "robots_unavailable_policy": robots_unavailable_words(portal),
+            }
+            for code, portal in economies().items()
+            if portal.hosts
+        ]
+        return {
+            "connections_per_host": CONNECTIONS_PER_HOST,
+            "robots_respected": True,
+            "crawl_delay_rule": CRAWL_DELAY_RULE,
+            "robots_unreachable_rule": ROBOTS_UNREACHABLE_RULE,
+            "portals": rows,
+        }
+
     # -- the Run panel -------------------------------------------------------
 
     @app.get("/api/stats")
@@ -3252,6 +3339,7 @@ def create_app(
         economy: str | None = None,
         sort: str = "confidence",
         unreviewed: bool = False,
+        corrected: bool = False,
     ) -> ReviewQueue:
         """The Review queue: every Mapping of one Run in one list, lowest
         Confidence first, with the counts the screen states above it.
@@ -3272,6 +3360,7 @@ def create_app(
                     reviews_of(source),
                     sort=sort,
                     unreviewed_only=unreviewed,
+                    corrected_only=corrected,
                 )
             except ValueError as exc:
                 raise HTTPException(400, str(exc)) from exc
@@ -3331,16 +3420,59 @@ def create_app(
     def add_review(req: ReviewRequest, run_id: str | None = None) -> Review:
         """Record the decision that stands for this Mapping of this Run. A
         second decision on the same Mapping REPLACES the first and carries the
-        later time: what the reviewer thinks now is what the export obeys."""
+        later time: what the reviewer thinks now is what the export obeys.
+        Every decision also goes into the Mapping's history.
+
+        A correction names the Indicator the Mapping belongs under (one of the
+        Run's Pillars, never the Mapping's own) and a reason; anything else is
+        refused with a 422 that says what to fix. The Mapping is not touched."""
         with review_lane(req.run_id or run_id) as source:
-            if not source.has_record(req.mapping_id):
+            record = source.mapping(req.mapping_id)
+            if record is None:
                 raise HTTPException(404, f"unknown record {req.mapping_id}")
+            comment = req.comment
+            corrected_to = None
+            if req.review_status == "corrected" or req.corrected_indicator_id:
+                problem = correction_problem(
+                    status=req.review_status,
+                    corrected_indicator_id=req.corrected_indicator_id,
+                    comment=req.comment,
+                    own_indicator_id=record.indicator_id,
+                    choices=source.correction_choices_for(record),
+                )
+                if problem is not None:
+                    raise HTTPException(422, problem)
+                comment = (req.comment or "").strip()
+                corrected_to = req.corrected_indicator_id
             return source.storage.review_set(
                 run_id=_review_run_id(source, req.mapping_id),
                 mapping_id=req.mapping_id,
                 review_status=req.review_status,
                 reviewer=req.reviewer,
-                comment=req.comment,
+                comment=comment,
+                corrected_indicator_id=corrected_to,
+            )
+
+    @app.get("/api/reviews/history", response_model=ReviewHistory)
+    def review_history(
+        mapping_id: str, run_id: str | None = None, economy: str | None = None
+    ) -> ReviewHistory:
+        """Every decision ever written for one Mapping of one Run, oldest
+        first, so a decision that was later changed is still on record. The
+        frozen bundle takes no decisions, so its history is always empty."""
+        if bundle is not None:
+            if not bundle.has_record(mapping_id):
+                raise HTTPException(404, f"unknown record {mapping_id}")
+            return ReviewHistory(run_id=None, mapping_id=mapping_id, history=[])
+        with audit_source(run_id, economy) as source:
+            if source is None or not source.has_record(mapping_id):
+                raise HTTPException(404, f"unknown record {mapping_id}")
+            resolved = _review_run_id(source, mapping_id)
+            rows = source.storage.review_history(resolved, mapping_id)
+            return ReviewHistory(
+                run_id=resolved,
+                mapping_id=mapping_id,
+                history=[ReviewHistoryEntry(**r) for r in rows],
             )
 
     @app.get("/api/reviews")
@@ -3468,11 +3600,18 @@ def create_app(
             counts = {"n_accepted": 0, "n_rejected": 0, "n_flagged": 0,
                       "n_unreviewed": n_records_total}
             reviews: dict[str, str] | None = None
+            corrections = None
             if bundle is None:
                 resolved = _review_run_id(source)
                 counts = source.storage.review_counts(resolved)
                 counts.pop("n_verified", None)
-                reviews = _review_statuses(source.storage, resolved)
+                decisions = source.storage.reviews_for_run(resolved)
+                reviews = {m: d.review_status for m, d in decisions.items()}
+                # A corrected Mapping ships under the reviewer's Indicator, so
+                # the export needs the whole decision, not the status alone.
+                corrections = {
+                    m: d for m, d in decisions.items() if d.review_status == "corrected"
+                }
             if bundle is not None:
                 try:
                     result = export_all(
@@ -3493,7 +3632,8 @@ def create_app(
 
                 try:
                     result = export_from_db(
-                        source.storage, out_dir, run_id=source.run_id, reviews=reviews
+                        source.storage, out_dir, run_id=source.run_id, reviews=reviews,
+                        corrections=corrections,
                     )
                 except ExportGateError as e:
                     raise HTTPException(422, detail={"gate_failures": e.failures})

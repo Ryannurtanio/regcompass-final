@@ -6,7 +6,8 @@ import { DecisionGlyph } from './Decision'
 /** How far one Document's review has got, as a bar split by decision and the
  *  same numbers in words, so the bar is never the only way to read it. */
 function ReviewBar({ d }: { d: DocumentSummary }) {
-  const reviewed = d.n_accepted + d.n_rejected + d.n_flagged
+  const corrected = d.n_corrected ?? 0
+  const reviewed = d.n_accepted + d.n_rejected + d.n_flagged + corrected
   const pct = (n: number) => (d.n_records ? `${(n / d.n_records) * 100}%` : '0%')
   return (
     <span className="ev-review">
@@ -14,6 +15,7 @@ function ReviewBar({ d }: { d: DocumentSummary }) {
         <i className="accepted" style={{ width: pct(d.n_accepted) }} />
         <i className="rejected" style={{ width: pct(d.n_rejected) }} />
         <i className="flagged" style={{ width: pct(d.n_flagged) }} />
+        <i className="corrected" style={{ width: pct(corrected) }} />
       </span>
       <span className="ev-review-words">
         <span className="ev-muted">
@@ -38,6 +40,13 @@ function ReviewBar({ d }: { d: DocumentSummary }) {
             <DecisionGlyph status="flagged" />
             {d.n_flagged}
             <span className="ev-sr"> flagged</span>
+          </span>
+        )}
+        {corrected > 0 && (
+          <span className="ev-count corrected">
+            <DecisionGlyph status="corrected" />
+            {corrected}
+            <span className="ev-sr"> corrected</span>
           </span>
         )}
       </span>
@@ -65,7 +74,7 @@ export default function DocumentList({
   const totals = docs.reduce(
     (t, d) => ({
       records: t.records + d.n_records,
-      reviewed: t.reviewed + d.n_accepted + d.n_rejected + d.n_flagged,
+      reviewed: t.reviewed + d.n_accepted + d.n_rejected + d.n_flagged + (d.n_corrected ?? 0),
     }),
     { records: 0, reviewed: 0 },
   )

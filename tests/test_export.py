@@ -29,6 +29,7 @@ from regcompass.export import (
     article_section,
     build_absence_rows,
     build_row,
+    confidence_parts,
     confidence_score,
     derive_scores,
     discovery_tag,
@@ -191,6 +192,43 @@ class TestConfidence:
         weak = confidence_score(0.46, 40, 5, 3)
         assert strong >= 0.70
         assert weak < 0.70
+
+
+# Values the score gave before the parts existed: the breakdown must explain
+# the number, never move it.
+_PINNED = [
+    ((0.62, 180, 1, 1), 0.79),
+    ((0.62, 180, 2, 3), 0.66),
+    ((0.55, 120, 1, 2), 0.59),
+    ((0.30, 40, 5, 3), 0.15),
+    ((0.80, 300, 1, 1), 1.0),
+    ((0.5123, 77, 3, 2), 0.46),
+    ((0.45, 239, 7, 4), 0.47),
+    ((0.75, 240, 2, 1), 0.98),
+]
+
+
+class TestConfidenceParts:
+    @pytest.mark.parametrize("args,expected", _PINNED)
+    def test_the_score_is_unchanged(self, args, expected):
+        assert repr(confidence_score(*args)) == repr(expected)
+
+    @pytest.mark.parametrize("args,expected", _PINNED)
+    def test_the_parts_add_up_to_the_score(self, args, expected):
+        parts = confidence_parts(*args)
+        assert round(sum(p["contribution"] for p in parts), 2) == confidence_score(*args)
+
+    def test_four_signals_with_their_weights_and_raw_values(self):
+        parts = confidence_parts(0.62, 180, 2, 3)
+        assert [p["signal"] for p in parts] == [
+            "similarity", "quote_length", "specificity", "attempts",
+        ]
+        assert [p["weight"] for p in parts] == [0.45, 0.25, 0.15, 0.15]
+        assert [p["raw"] for p in parts] == [0.62, 180, 2, 3]
+        assert all(p["label"] for p in parts)
+        for p in parts:
+            assert 0.0 <= p["score"] <= 1.0
+            assert p["contribution"] == pytest.approx(p["weight"] * p["score"])
 
 
 # ---------------------------------------------------------------------------

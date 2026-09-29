@@ -298,9 +298,12 @@ class Storage:
     # a database written before the value needs the same table-rebuild dance the
     # run-scoped tables use: park it, let schema.sql build the new one, copy the
     # rows back.
-    _CHECK_REBUILD = {"runs": "interrupted"}
+    # The quotes matter for `reviews`: the column corrected_indicator_id also
+    # contains the word, and only the CHECK value proves the table is current.
+    _CHECK_REBUILD = {"runs": "interrupted", "reviews": "'corrected'"}
 
     def apply_schema(self) -> None:
+        self._finish_interrupted_rebuild()
         stale = self._tables_needing_rebuild()
         if stale:
             self._park_for_rebuild(stale)
@@ -309,7 +312,63 @@ class Storage:
             self._copy_parked_rows(stale)
         for table in self._MIGRATIONS:
             self._backfill_columns(table)
+        self._backfill_review_history()
         self.conn.commit()
+
+    def _finish_interrupted_rebuild(self) -> None:
+        """Finish a rebuild a crash cut short, before anything else looks at
+        the tables.
+
+        A rebuild parks the old table under a suffix, lets schema.sql build the
+        new one, then copies the rows across. A process that died in between
+        leaves the rows in the parked table, and the next rebuild of the same
+        table would drop it. So a parked table found on open is dealt with
+        first: with no live table beside it (the crash came before schema.sql
+        ran) it simply takes its name back, and the ordinary rebuild below then
+        runs from the start; with a live table beside it (the crash came before
+        the copy) its rows are copied in now and it is dropped."""
+        rebuilt = (*self._RUN_SCOPED_TABLES, *self._CHECK_REBUILD)
+        existing = self.table_names()
+        parked = [
+            t for t in dict.fromkeys(rebuilt) if f"{t}{self._REBUILD_SUFFIX}" in existing
+        ]
+        if not parked:
+            return
+        self.conn.commit()
+        self.conn.execute("PRAGMA foreign_keys = OFF")
+        self.conn.execute("PRAGMA legacy_alter_table = ON")
+        to_copy: dict[str, list[str]] = {}
+        for table in parked:
+            aside = f"{table}{self._REBUILD_SUFFIX}"
+            if table in existing:
+                to_copy[table] = self._columns(aside)
+            else:
+                self.conn.execute(f"ALTER TABLE {aside} RENAME TO {table}")
+        self.conn.commit()
+        if to_copy:
+            self._copy_parked_rows(to_copy)  # restores both pragmas
+        else:
+            self.conn.execute("PRAGMA legacy_alter_table = OFF")
+            self.conn.execute("PRAGMA foreign_keys = ON")
+
+    def _backfill_review_history(self) -> None:
+        """Give every standing Review Decision that has no history row one,
+        taken from the decision itself. A database made before the history
+        existed would otherwise lose its earlier decision the first time a
+        reviewer changed it. Only decisions with no history at all are copied,
+        so a second open adds nothing."""
+        tables = self.table_names()
+        if "reviews" not in tables or "review_history" not in tables:
+            return
+        self.conn.execute(
+            "INSERT INTO review_history (run_id, mapping_id, review_status,"
+            " corrected_indicator_id, reviewer, decided_at, comment)"
+            " SELECT r.run_id, r.mapping_id, r.review_status,"
+            " r.corrected_indicator_id, r.reviewer, r.reviewed_at, r.comment"
+            " FROM reviews r WHERE NOT EXISTS (SELECT 1 FROM review_history h"
+            " WHERE h.run_id = r.run_id AND h.mapping_id = r.mapping_id)"
+            " ORDER BY r.rowid"
+        )
 
     def _backfill_columns(self, table: str) -> None:
         """Add the columns this table gained after its first release. CREATE
@@ -1357,7 +1416,7 @@ class Storage:
                     f"DELETE FROM source_groups WHERE group_id IN ({doomed_groups})",
                     (document_id,),
                 )
-            for table in ("reviews", "glosses"):
+            for table in ("reviews", "review_history", "glosses"):
                 if table in tables:
                     self.conn.execute(
                         f"DELETE FROM {table} WHERE {mine.format(t=table)}",
@@ -1556,7 +1615,7 @@ class Storage:
 
     _REVIEW_COLUMNS = (
         "review_id", "run_id", "mapping_id", "review_status", "reviewer",
-        "reviewed_at", "comment",
+        "reviewed_at", "comment", "corrected_indicator_id",
     )
 
     @staticmethod
@@ -1569,6 +1628,10 @@ class Storage:
             reviewer=row["reviewer"],
             reviewed_at=datetime.fromisoformat(row["reviewed_at"]),
             comment=row["comment"],
+            corrected_indicator_id=(
+                row["corrected_indicator_id"]
+                if "corrected_indicator_id" in row.keys() else None
+            ),
         )
 
     def review_set(
@@ -1581,26 +1644,48 @@ class Storage:
         comment: str | None = None,
         reviewed_at: str | None = None,
         review_id: str | None = None,
+        corrected_indicator_id: str | None = None,
     ) -> Review:
         """Record the decision that stands for this Mapping of this Run,
-        replacing any earlier one. The foreign key refuses a Mapping the Run
-        never produced, so a typo cannot create a decision about nothing."""
+        replacing any earlier one, and add it to the Mapping's history in the
+        same transaction, so the two can never disagree. The foreign key
+        refuses a Mapping the Run never produced, so a typo cannot create a
+        decision about nothing.
+
+        Whether a correction's Indicator is a valid one is the caller's rule
+        (it depends on the Run's Pillars); this stores what it is given."""
         stamped = reviewed_at or utc_now_iso()
-        self.conn.execute(
-            "INSERT INTO reviews (review_id, run_id, mapping_id, review_status,"
-            " reviewer, reviewed_at, comment) VALUES (?, ?, ?, ?, ?, ?, ?)"
-            " ON CONFLICT(run_id, mapping_id) DO UPDATE SET"
-            " review_id = excluded.review_id,"
-            " review_status = excluded.review_status,"
-            " reviewer = excluded.reviewer,"
-            " reviewed_at = excluded.reviewed_at,"
-            " comment = excluded.comment",
-            (
-                review_id or f"rev_{uuid.uuid4().hex[:12]}",
-                run_id, mapping_id, review_status, reviewer, stamped, comment,
-            ),
-        )
-        self.conn.commit()
+        try:
+            self.conn.execute(
+                "INSERT INTO reviews (review_id, run_id, mapping_id, review_status,"
+                " reviewer, reviewed_at, comment, corrected_indicator_id)"
+                " VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+                " ON CONFLICT(run_id, mapping_id) DO UPDATE SET"
+                " review_id = excluded.review_id,"
+                " review_status = excluded.review_status,"
+                " reviewer = excluded.reviewer,"
+                " reviewed_at = excluded.reviewed_at,"
+                " comment = excluded.comment,"
+                " corrected_indicator_id = excluded.corrected_indicator_id",
+                (
+                    review_id or f"rev_{uuid.uuid4().hex[:12]}",
+                    run_id, mapping_id, review_status, reviewer, stamped, comment,
+                    corrected_indicator_id,
+                ),
+            )
+            self.conn.execute(
+                "INSERT INTO review_history (run_id, mapping_id, review_status,"
+                " corrected_indicator_id, reviewer, decided_at, comment)"
+                " VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (
+                    run_id, mapping_id, review_status, corrected_indicator_id,
+                    reviewer, stamped, comment,
+                ),
+            )
+            self.conn.commit()
+        except sqlite3.Error:
+            self.conn.rollback()
+            raise
         stored = self.review_get(run_id, mapping_id)
         assert stored is not None  # just written, inside this connection
         return stored
@@ -1611,6 +1696,23 @@ class Storage:
             (run_id, mapping_id),
         ).fetchone()
         return None if row is None else self._review_from_row(row)
+
+    def review_history(self, run_id: str, mapping_id: str) -> list[dict]:
+        """Every decision ever written for this Mapping of this Run, oldest
+        first. A database from before the history existed has none to give,
+        which reads as an empty list rather than an error: reads never apply
+        the schema."""
+        try:
+            rows = self.conn.execute(
+                "SELECT history_id, run_id, mapping_id, review_status,"
+                " corrected_indicator_id, reviewer, decided_at, comment"
+                " FROM review_history WHERE run_id = ? AND mapping_id = ?"
+                " ORDER BY history_id",
+                (run_id, mapping_id),
+            ).fetchall()
+        except sqlite3.Error:
+            return []
+        return [dict(r) for r in rows]
 
     def reviews_for_run(self, run_id: str) -> dict[str, Review]:
         """mapping_id -> the Review Decision that stands, for one Run."""
@@ -1636,6 +1738,7 @@ class Storage:
             "n_accepted": statuses.count("accepted"),
             "n_rejected": statuses.count("rejected"),
             "n_flagged": statuses.count("flagged"),
+            "n_corrected": statuses.count("corrected"),
             "n_unreviewed": statuses.count(None),
         }
 
@@ -1837,6 +1940,7 @@ class Storage:
         "mapping_relationships",
         "source_groups",
         "reviews",
+        "review_history",
         "glosses",
         "mappings",
         "gate_scores",
@@ -2029,7 +2133,7 @@ class Storage:
                     self.conn.execute(
                         "DELETE FROM source_groups WHERE economy = ?", (economy,)
                     )
-                for table in ("reviews", "glosses"):
+                for table in ("reviews", "review_history", "glosses"):
                     if table in tables:
                         self._delete_mapping_owned(table, economy)
                 self.conn.execute("DELETE FROM mappings WHERE economy = ?", (economy,))

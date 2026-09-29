@@ -9,6 +9,7 @@ import {
 } from './api'
 import type { ClearReport, EngineInfo, ServerStatus } from './types'
 import ErrorNote from './ErrorNote'
+import PoliteCrawling from './PoliteCrawling'
 import { plainError, type PlainError } from './errors'
 
 /** The whole tool rather than one Economy. A value the select can carry, never
@@ -247,6 +248,8 @@ export default function SettingsPanel({ onCleared }: { onCleared?: () => void })
         </table>
         <p className="hint">The Engine for a Run is chosen on Start a Run.</p>
       </section>
+
+      <PoliteCrawling />
 
       <section className="settings-card clear-section" aria-labelledby="clear-title">
         <div className="settings-card-head">

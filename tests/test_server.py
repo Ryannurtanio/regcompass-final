@@ -592,6 +592,26 @@ class TestAuditViewOverTheWorkingDatabase:
         assert all(r["quote_preview"] for r in recs)
         assert any(r["confidence"] is not None for r in recs)
 
+    def test_each_scored_record_carries_parts_that_add_up_to_its_confidence(self, ran):
+        c, run_id, _ = ran
+        docs = c.get("/api/documents", params={"run_id": run_id}).json()
+        recs = c.get(
+            f"/api/documents/{docs[0]['document_id']}/records", params={"run_id": run_id}
+        ).json()
+        scored = [r for r in recs if r["confidence"] is not None]
+        assert scored
+        for r in scored:
+            parts = r["confidence_parts"]
+            assert [p["signal"] for p in parts] == [
+                "similarity", "quote_length", "specificity", "attempts",
+            ]
+            assert round(sum(p["contribution"] for p in parts), 2) == r["confidence"]
+        # The Review queue is built from the same rows, so it carries them too.
+        queue = c.get("/api/records", params={"run_id": run_id}).json()["records"]
+        for r in queue:
+            if r["confidence"] is not None:
+                assert round(sum(p["contribution"] for p in r["confidence_parts"]), 2) == r["confidence"]
+
     def test_the_quote_is_highlighted_from_the_stored_word_boxes(self, ran):
         c, run_id, _ = ran
         docs = c.get("/api/documents", params={"run_id": run_id}).json()
@@ -881,6 +901,34 @@ class TestExportFromTheWorkingDatabase:
         )["review_gate"]
         assert (gate["n_accepted"], gate["n_rejected"]) == (1, 1)
         assert gate["n_unreviewed"] == len(recs) - 2
+
+        # A correction is saved beside the accepted row, and the corrected
+        # Mapping ships too, under the reviewer's Indicator.
+        own = recs[1]["indicator_id"]
+        detail = c.get(
+            f"/api/records/{recs[1]['mapping_id']}", params={"run_id": run_id}
+        ).json()
+        to = next(ch["id"] for ch in detail["correction_choices"] if ch["id"] != own)
+        corrected = c.post(
+            "/api/reviews",
+            json={
+                "run_id": run_id, "mapping_id": recs[1]["mapping_id"],
+                "review_status": "corrected", "corrected_indicator_id": to,
+                "comment": "Right provision, other Indicator.",
+            },
+        )
+        assert corrected.status_code == 200, corrected.text
+        third = c.post("/api/export", params={"run_id": run_id})
+        assert third.status_code == 200, third.text
+        assert third.json()["n_corrected"] == 1
+        rows = list(csv_mod.DictReader(Path(third.json()["csv_path"]).open(encoding="utf-8-sig")))
+        substantive = [r for r in rows if r["Article / Section"] != ABSENCE_MARKER]
+        assert len(substantive) == 2
+        assert to in {r["Indicator ID"] for r in substantive}
+        gate = json.loads(
+            Path(third.json()["supplementary_path"]).read_text(encoding="utf-8")
+        )["review_gate"]
+        assert [o["mapping_id"] for o in gate["overrides"]] == [recs[1]["mapping_id"]]
 
 
 class TestBundleLaneStillWorks:

@@ -2101,6 +2101,12 @@ button.danger:disabled {
   color: var(--flag);
 }
 
+.ev-glyph.corrected,
+.ev-decision.corrected,
+.ev-count.corrected {
+  color: var(--route);
+}
+
 .ev-glyph.unreviewed,
 .ev-decision.unreviewed {
   color: var(--muted);
@@ -2233,6 +2239,12 @@ button.danger:disabled {
   align-items: baseline;
   justify-content: space-between;
   gap: var(--space-2) var(--space-5);
+}
+
+.ev-toggles {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-4);
 }
 
 .ev-toggle {
@@ -2412,6 +2424,10 @@ button.danger:disabled {
 
 .ev-bar i.flagged {
   background: var(--flag);
+}
+
+.ev-bar i.corrected {
+  background: var(--route);
 }
 
 .ev-review-words {
@@ -2766,6 +2782,81 @@ button.danger:disabled {
   font-weight: 500;
 }
 
+.ev-score-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.btn.ev-score-toggle {
+  height: 28px;
+  padding: 0 var(--space-2);
+  font-size: var(--text-sm);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.ev-score-panel {
+  margin-top: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.ev-score-panel[hidden] {
+  display: none;
+}
+
+.ev-score-panel p {
+  margin: 0;
+}
+
+.ev-score-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.ev-score-rows li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: var(--space-3);
+}
+
+.ev-score-add {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.ev-score-value {
+  grid-column: 1 / -1;
+  overflow-wrap: anywhere;
+}
+
+.ev-score-why {
+  grid-column: 1 / -1;
+  margin-top: 2px;
+  max-width: 60ch;
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+
+.ev-score-total {
+  border-top: 1px solid var(--rule);
+  padding-top: var(--space-2);
+  font-weight: 500;
+}
+
 .ev-dots {
   display: inline-flex;
   gap: 3px;
@@ -2825,13 +2916,20 @@ button.danger:disabled {
 
 .ev-actions {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
+}
+
+.btn.ev-act:disabled,
+.btn.ev-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .btn.ev-act {
   justify-content: center;
   height: 44px;
+  padding: 0 var(--space-2);
   font-weight: 600;
 }
 
@@ -2900,12 +2998,115 @@ button.danger:disabled {
   fill: var(--flag);
 }
 
+.btn.ev-act.active.correct {
+  background: var(--route-soft);
+  border-color: var(--route);
+  color: var(--route);
+}
+
+.btn.ev-act.active.correct .ev-glyph path {
+  stroke: var(--route-soft);
+}
+
+/* Correct: the picker opens above the decisions, in the same bar */
+.ev-correct {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--route);
+  border-radius: var(--radius-md);
+  background: var(--paper);
+}
+
+.ev-correct-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.ev-correct-field label {
+  font-weight: 500;
+}
+
+.ev-correct-field select,
+.ev-correct-field textarea {
+  width: 100%;
+}
+
+.ev-correct-field textarea {
+  resize: vertical;
+}
+
+.ev-correct-count {
+  align-self: flex-end;
+  color: var(--muted);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.ev-correct-count.over {
+  color: var(--fail);
+  font-weight: 600;
+}
+
+.ev-correct-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* the override, stated where the Indicator is named */
+.ev-override {
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  border-left: 3px solid var(--route);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: var(--route-soft);
+  font-size: var(--text-sm);
+}
+
+.ev-override p {
+  margin: 0;
+}
+
+.ev-override p + p {
+  margin-top: var(--space-1);
+}
+
+.ev-override-line {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.ev-override-line .ev-glyph {
+  margin-top: 2px;
+}
+
+.ev-override-reason {
+  overflow-wrap: anywhere;
+}
+
+/* the queue's Indicator column, when a reviewer moved the row */
+.ev-ind .ev-moved {
+  color: var(--route);
+  font-weight: 600;
+}
+
 /* ---- narrower screens ---------------------------------------------------- */
 
 @media (max-width: 1200px) {
   .ev-audit {
     grid-template-columns: minmax(0, 1fr) minmax(340px, 440px);
     gap: var(--space-4);
+  }
+
+  /* a narrower record pane: the four decisions go two by two */
+  .ev-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -3050,6 +3251,11 @@ button.danger:disabled {
   .ev-decide {
     padding: 12px 16px 14px;
     border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  }
+
+  .ev-correct-buttons .btn {
+    flex: 1 1 140px;
+    justify-content: center;
   }
 
   .ev-quote {
@@ -4230,6 +4436,117 @@ button.danger:disabled {
   color: var(--on-solid);
 }
 
+/* ---- Polite crawling: read-only, nothing here is a control -------------- */
+
+.polite-switch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+}
+
+.locked-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+  cursor: not-allowed;
+}
+
+.locked-switch input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+.locked-switch-track {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  border-radius: var(--radius-pill);
+  background: var(--accept);
+  opacity: 0.75;
+  flex: none;
+}
+
+.locked-switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 18px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--on-solid);
+}
+
+.locked-switch .lock-cue {
+  color: var(--muted);
+}
+
+.polite-switch .hint {
+  margin: 0;
+}
+
+.polite-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-md);
+}
+
+.polite-table th {
+  text-align: left;
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--muted);
+  padding: 0 12px 8px 0;
+  vertical-align: bottom;
+}
+
+.polite-table td {
+  border-top: 1px solid var(--rule);
+  padding: 8px 12px 8px 0;
+  vertical-align: top;
+}
+
+.polite-table td.mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.polite-table .polite-hosts {
+  display: flex;
+  flex-direction: column;
+}
+
+.polite-table .polite-code {
+  color: var(--muted);
+}
+
+.polite-table .polite-policy {
+  color: var(--muted);
+  font-size: var(--text-sm);
+  max-width: 40ch;
+}
+
+.polite-rules {
+  list-style: disc;
+  padding-left: 20px;
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  max-width: 76ch;
+}
+
+.polite-rules li {
+  border-left: 0;
+  padding: 0;
+}
+
 @media (max-width: 720px) {
   .settings-card {
     padding: 18px 16px;
@@ -4252,6 +4569,47 @@ button.danger:disabled {
   .key-table th:nth-child(2),
   .key-table td:nth-child(2) {
     display: none;
+  }
+
+  /* the Portal table becomes one stacked block per site */
+  .polite-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .polite-table,
+  .polite-table tbody,
+  .polite-table tr,
+  .polite-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .polite-table tr {
+    border-top: 1px solid var(--rule);
+    padding: 10px 0;
+  }
+
+  .polite-table td {
+    border-top: 0;
+    padding: 2px 0;
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: var(--space-2);
+  }
+
+  .polite-table td::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-family: var(--font-ui);
+    font-size: var(--text-sm);
+  }
+
+  .polite-table .polite-policy {
+    max-width: none;
   }
 }
 

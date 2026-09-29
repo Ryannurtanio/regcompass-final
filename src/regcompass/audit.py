@@ -9,7 +9,8 @@ discipline as M7: exact substring, anchored to its chunk's character range.
 Nothing here re-emits text; rects_for_span only reads offsets.
 
 Review gate: only review_status == "accepted" records enter the
-final RDTII export. The gate itself lives in export.export_all (the reviews
+final RDTII export. A "corrected" decision is a reviewer's override of the
+Engine's Indicator; the Mapping row itself is never changed. The gate itself lives in export.export_all (the reviews
 parameter); this module supplies the review records and the API surface.
 """
 
@@ -35,7 +36,12 @@ from .contracts import (
     ReviewStatus,
     WordBox,
 )
-from .export import REVIEW_CONFIDENCE_THRESHOLD, confidence_score, location_reference
+from .export import (
+    REVIEW_CONFIDENCE_THRESHOLD,
+    confidence_from_parts,
+    confidence_parts,
+    location_reference,
+)
 from .extract import format_for_extractor
 from .paths import resolve_stored_path
 
@@ -79,6 +85,7 @@ class DocumentSummary(_Model):
     n_accepted: int = Field(ge=0)
     n_rejected: int = Field(ge=0)
     n_flagged: int = Field(ge=0)
+    n_corrected: int = Field(default=0, ge=0)
 
 
 class SourceLink(_Model):
@@ -202,6 +209,20 @@ def source_format_for(path: Path | None, extractor: str | None = None) -> Source
     return "other"
 
 
+class ConfidencePart(_Model):
+    """One of the four mechanical signals behind a Mapping's Confidence: its
+    raw input, weight, 0-1 score and contribution (weight x score). The
+    contributions of a record's parts add up, after rounding, to its
+    Confidence."""
+
+    signal: Literal["similarity", "quote_length", "specificity", "attempts"]
+    label: str
+    raw: float
+    weight: float
+    score: float
+    contribution: float
+
+
 class RecordSummary(_Model):
     mapping_id: str
     indicator_id: str
@@ -214,6 +235,9 @@ class RecordSummary(_Model):
     controlling_evidence: bool
     review_status: ReviewStatus | None
     review_note: str | None = None
+    # The signals the Confidence above was computed from, when this view
+    # computed it (None when the stored record already carried a number).
+    confidence_parts: list[ConfidencePart] | None = None
     # Where this row came from, as the Evidence Export states it: the
     # Document's Source URL and the row's Location Reference, plus the link
     # the interface's "Open source" control follows.
@@ -223,6 +247,10 @@ class RecordSummary(_Model):
     # The lane that read the Document. An HTML quote is stored as page 1 of a
     # page that has no pages, so a screen reads this before calling it one.
     format: Literal["pdf", "html"] = "pdf"
+    # A reviewer's correction: the Indicator this Mapping belongs under in
+    # their judgement, with its title. indicator_id above stays the Engine's.
+    corrected_indicator_id: str | None = None
+    corrected_indicator_title: str | None = None
 
 
 class QueueRecord(RecordSummary):
@@ -248,6 +276,36 @@ class ReviewQueue(_Model):
     below_threshold: int
     unreviewed: int
     records: list[QueueRecord]
+    # How many of the Run's Mappings carry a correction, whole Run like the
+    # counts above.
+    corrected: int = 0
+
+
+class IndicatorChoice(_Model):
+    """One Indicator a reviewer may correct a Mapping to."""
+
+    id: str
+    title: str
+    pillar: int
+
+
+class ReviewHistoryEntry(_Model):
+    """One decision as it was written, kept after a later one replaced it."""
+
+    history_id: int
+    run_id: str
+    mapping_id: str
+    review_status: ReviewStatus
+    corrected_indicator_id: str | None = None
+    reviewer: str | None = None
+    decided_at: str
+    comment: str | None = None
+
+
+class ReviewHistory(_Model):
+    run_id: str | None
+    mapping_id: str
+    history: list[ReviewHistoryEntry]
 
 
 class RecordDetail(_Model):
@@ -266,6 +324,13 @@ class RecordDetail(_Model):
     # the pane to show in place of a page.
     source_format: SourceFormat = "pdf"
     source_text: str | None = None
+    # The standing correction, if any, with the corrected Indicator's title.
+    corrected_indicator_id: str | None = None
+    corrected_indicator_title: str | None = None
+    # The Indicators Correct may choose for this Mapping: every scored
+    # Indicator of the Run's Pillars except the Mapping's own. Empty where no
+    # decision can be written (the frozen bundle).
+    correction_choices: list[IndicatorChoice] = Field(default_factory=list)
 
 
 class GlossReviewRequest(_Model):
@@ -289,7 +354,9 @@ class ReviewRequest(_Model):
     review_status: ReviewStatus
     run_id: str | None = None
     reviewer: str | None = None
-    comment: str | None = None  # the reviewer's note
+    comment: str | None = None  # the reviewer's note; a correction's reason
+    # Only a correction names an Indicator: the one the Mapping belongs under.
+    corrected_indicator_id: str | None = None
 
 
 class AcceptAllRequest(_Model):
@@ -310,6 +377,7 @@ class ExportPreview(_Model):
     n_accepted: int = Field(ge=0)
     n_rejected: int = Field(ge=0)
     n_flagged: int = Field(ge=0)
+    n_corrected: int = Field(default=0, ge=0)
     n_unreviewed: int = Field(ge=0)
     accepted_mapping_ids: list[str] = Field(default_factory=list)
 
@@ -332,6 +400,7 @@ class ExportSummary(_Model):
     n_accepted: int = Field(ge=0)
     n_rejected: int = Field(default=0, ge=0)
     n_flagged: int = Field(default=0, ge=0)
+    n_corrected: int = Field(default=0, ge=0)
     n_unreviewed: int = Field(default=0, ge=0)
     n_rows: int = Field(ge=0)
     csv_path: str
@@ -593,6 +662,7 @@ class AuditBundle:
                     n_accepted=statuses.count("accepted"),
                     n_rejected=statuses.count("rejected"),
                     n_flagged=statuses.count("flagged"),
+                    n_corrected=statuses.count("corrected"),
                 )
             )
         return out
@@ -605,20 +675,23 @@ class AuditBundle:
         # manifest builder put one there.
         source_url = doc.entry.source_url
         format_tag = format_for_extractor(doc.canonical.extractor)
+        titles = indicator_titles()
         out = []
         for r in sorted(doc.records, key=lambda r: (r.indicator_id, r.mapping_id)):
             review = reviews.get(r.mapping_id)
             confidence = r.confidence
+            parts = None
             if confidence is None and (r.chunk_id, r.indicator_id) in doc.gate_cosines:
                 # The record carries None until M9 assigns the composite; the
                 # audit view computes the SAME mechanical formula from the
                 # bundle's gate cosines (never LLM-reported).
-                confidence = confidence_score(
+                parts = confidence_parts(
                     doc.gate_cosines[(r.chunk_id, r.indicator_id)],
                     len(r.verbatim_quote),
                     per_chunk[r.chunk_id],
                     r.extraction_attempts,
                 )
+                confidence = confidence_from_parts(parts)
             out.append(
                 RecordSummary(
                     mapping_id=r.mapping_id,
@@ -629,9 +702,11 @@ class AuditBundle:
                     page_number=r.page_number,
                     quote_preview=r.verbatim_quote[:QUOTE_PREVIEW_CHARS],
                     confidence=confidence,
+                    confidence_parts=parts,
                     controlling_evidence=r.controlling_evidence,
                     review_status=review.review_status if review else None,
                     review_note=review.comment if review else None,
+                    **correction_fields(review, titles),
                     source_url=source_url,
                     format=format_tag,
                     location_reference=location_reference(r, format_tag),
@@ -744,6 +819,10 @@ class DatabaseAuditSource:
     def has_record(self, mapping_id: str) -> bool:
         return self._record(mapping_id) is not None
 
+    def mapping(self, mapping_id: str) -> MappingRecord | None:
+        """One verified Mapping of this Run, as the Engine produced it."""
+        return self._record(mapping_id)
+
     def has_document(self, document_id: str) -> bool:
         return any(r.document_id == document_id for r in self.records())
 
@@ -778,6 +857,7 @@ class DatabaseAuditSource:
                     n_accepted=statuses.count("accepted"),
                     n_rejected=statuses.count("rejected"),
                     n_flagged=statuses.count("flagged"),
+                    n_corrected=statuses.count("corrected"),
                 )
             )
         return out
@@ -795,19 +875,22 @@ class DatabaseAuditSource:
         per_chunk = Counter(r.chunk_id for r in recs)
         cosines = self._gate_cosines()
         source_url, format_tag = self._source_of(document_id)
+        titles = indicator_titles()
         out: list[RecordSummary] = []
         for r in sorted(recs, key=lambda r: (r.indicator_id, r.mapping_id)):
             review = reviews.get(r.mapping_id)
             confidence = r.confidence
+            parts = None
             if confidence is None and (r.chunk_id, r.indicator_id) in cosines:
                 # Same mechanical composite the bundle lane computes, from the
                 # gate cosines this Run persisted. Never a model's own number.
-                confidence = confidence_score(
+                parts = confidence_parts(
                     cosines[(r.chunk_id, r.indicator_id)],
                     len(r.verbatim_quote),
                     per_chunk[r.chunk_id],
                     r.extraction_attempts,
                 )
+                confidence = confidence_from_parts(parts)
             out.append(
                 RecordSummary(
                     mapping_id=r.mapping_id,
@@ -818,9 +901,11 @@ class DatabaseAuditSource:
                     page_number=r.page_number,
                     quote_preview=r.verbatim_quote[:QUOTE_PREVIEW_CHARS],
                     confidence=confidence,
+                    confidence_parts=parts,
                     controlling_evidence=bool(r.controlling_evidence),
                     review_status=review.review_status if review else None,
                     review_note=review.comment if review else None,
+                    **correction_fields(review, titles),
                     source_url=source_url,
                     format=format_tag,
                     location_reference=location_reference(r, format_tag),
@@ -906,10 +991,40 @@ class DatabaseAuditSource:
     def gate_cosine_lookup(self) -> dict[tuple[str, str], float]:
         return dict(self._gate_cosines())
 
+    def run_pillars(self, record: MappingRecord) -> list[int]:
+        """The Pillars this Mapping's Run was configured with. A Mapping whose
+        Run left no Run Record (a database seeded from checkpoints, or from
+        before Runs existed) falls back to its own Indicator's Pillar, the one
+        Pillar it is certain the Run covered."""
+        run_id = self.run_id or self.storage.run_id_of_mapping(record.mapping_id)
+        pillars: list[int] = []
+        if run_id:
+            try:
+                row = self.storage.run_get(run_id)
+            except Exception:  # noqa: BLE001 - a database with no runs table
+                row = None
+            if row is not None:
+                pillars = [int(p) for p in (row.get("pillars") or [])]
+        return pillars or [int(record.indicator_id.split(".")[0])]
+
+    def correction_choices_for(self, record: MappingRecord) -> list[IndicatorChoice]:
+        return correction_choices(self.run_pillars(record), exclude=record.indicator_id)
+
     def record_detail(self, mapping_id: str, reviews: dict[str, Review]) -> RecordDetail | None:
         record = self._record(mapping_id)
         if record is None:
             return None
+        detail = self._detail(record, reviews)
+        review = reviews.get(mapping_id)
+        return detail.model_copy(
+            update={
+                **correction_fields(review, indicator_titles()),
+                "correction_choices": self.correction_choices_for(record),
+            }
+        )
+
+    def _detail(self, record: MappingRecord, reviews: dict[str, Review]) -> RecordDetail:
+        mapping_id = record.mapping_id
         chunk = self.storage.chunk_row(record.chunk_id)
         document_id = record.document_id
         return detail_for(
@@ -938,6 +1053,94 @@ class DatabaseAuditSource:
 
 
 # ---------------------------------------------------------------------------
+# Correct: the Indicators a reviewer may choose, and how a correction reads
+# ---------------------------------------------------------------------------
+
+
+#: The most a correction's reason may say. The Evidence Export carries it as
+#: the row's rationale, so it stays a sentence or two.
+CORRECTION_REASON_MAX = 300
+
+
+def indicator_titles() -> dict[str, str]:
+    """Indicator ID -> its title, from the same registry a Run maps against."""
+    from .config import load_indicators
+
+    return {ind_id: d.name for ind_id, d in load_indicators().items()}
+
+
+def correction_choices(pillars: list[int], *, exclude: str | None) -> list[IndicatorChoice]:
+    """Every scored Indicator of these Pillars, in registry order within each
+    Pillar and Pillars in the order given, less the one named in `exclude`
+    (the Mapping's own: a correction always changes something). The same list
+    the review endpoint validates against, so the picker can never offer an
+    Indicator the server would refuse."""
+    from .config import load_indicators
+
+    defs = load_indicators()
+    out: list[IndicatorChoice] = []
+    for pillar in dict.fromkeys(pillars):
+        for ind_id, d in defs.items():
+            if d.pillar == pillar and d.legislation_mapped and ind_id != exclude:
+                out.append(IndicatorChoice(id=ind_id, title=d.name, pillar=pillar))
+    return out
+
+
+def correction_fields(review: Review | None, titles: dict[str, str]) -> dict:
+    """The corrected Indicator and its title, as a record response carries
+    them; both None unless the standing decision is a correction."""
+    corrected = (
+        review.corrected_indicator_id
+        if review is not None and review.review_status == "corrected"
+        else None
+    )
+    return {
+        "corrected_indicator_id": corrected,
+        "corrected_indicator_title": titles.get(corrected) if corrected else None,
+    }
+
+
+def correction_problem(
+    *,
+    status: str,
+    corrected_indicator_id: str | None,
+    comment: str | None,
+    own_indicator_id: str,
+    choices: list[IndicatorChoice],
+) -> str | None:
+    """Why this decision cannot be saved, in plain words, or None when it can.
+    Only a correction names an Indicator, and a correction must name one of
+    `choices` and give a reason of 1 to CORRECTION_REASON_MAX characters."""
+    if status != "corrected":
+        if corrected_indicator_id:
+            return "Only a correction names an Indicator. Choose Correct to change the Indicator."
+        return None
+    if not corrected_indicator_id:
+        return "Choose the Indicator this Mapping should be under."
+    if corrected_indicator_id == own_indicator_id:
+        return (
+            f"This Mapping is already mapped to {own_indicator_id}."
+            " Choose a different Indicator to correct it to."
+        )
+    if corrected_indicator_id not in {c.id for c in choices}:
+        pillars = sorted({c.pillar for c in choices})
+        named = ", ".join(str(p) for p in pillars) if pillars else "none"
+        return (
+            f"{corrected_indicator_id} is not an Indicator this Run can use"
+            f" (Pillar {named}). Choose one from the list."
+        )
+    reason = (comment or "").strip()
+    if not reason:
+        return "Write a reason for the correction (1 to 300 characters)."
+    if len(reason) > CORRECTION_REASON_MAX:
+        return (
+            f"The reason is {len(reason)} characters long."
+            f" Keep it to {CORRECTION_REASON_MAX}."
+        )
+    return None
+
+
+# ---------------------------------------------------------------------------
 # the Review queue
 # ---------------------------------------------------------------------------
 
@@ -961,6 +1164,7 @@ def build_review_queue(
     *,
     sort: str = "confidence",
     unreviewed_only: bool = False,
+    corrected_only: bool = False,
     threshold: float = REVIEW_CONFIDENCE_THRESHOLD,
 ) -> ReviewQueue:
     """Every Mapping of one Run as a single ordered list, with the counts the
@@ -987,6 +1191,7 @@ def build_review_queue(
     # line has to say how much work there is, not how much is on screen.
     below = sum(1 for r in rows if r.confidence is None or r.confidence < threshold)
     unreviewed = sum(1 for r in rows if r.review_status is None)
+    corrected = sum(1 for r in rows if r.review_status == "corrected")
     total = len(rows)
     if sort == "confidence":
         rows.sort(key=_queue_order)
@@ -994,6 +1199,8 @@ def build_review_queue(
         rows.sort(key=lambda r: (r.document_id, r.indicator_id, r.mapping_id))
     if unreviewed_only:
         rows = [r for r in rows if r.review_status is None]
+    if corrected_only:
+        rows = [r for r in rows if r.review_status == "corrected"]
     return ReviewQueue(
         run_id=getattr(source, "run_id", None),
         threshold=threshold,
@@ -1001,4 +1208,5 @@ def build_review_queue(
         below_threshold=below,
         unreviewed=unreviewed,
         records=rows,
+        corrected=corrected,
     )

@@ -390,6 +390,16 @@ class TestApi:
         }
         assert all(d["n_records"] > 0 for d in docs)
 
+    def test_bundle_records_carry_parts_that_add_up_to_their_confidence(self, client):
+        recs = client.get(f"/api/documents/doc_{SLUG_SG}/records").json()
+        scored = [r for r in recs if r["confidence"] is not None]
+        assert scored
+        explained = [r for r in scored if r["confidence_parts"] is not None]
+        assert explained, "the bundle lane computes Confidence from Gate cosines"
+        for r in explained:
+            assert len(r["confidence_parts"]) == 4
+            assert round(sum(p["contribution"] for p in r["confidence_parts"]), 2) == r["confidence"]
+
     def test_record_detail_has_highlights(self, client):
         recs = client.get(f"/api/documents/doc_{SLUG_SG}/records").json()
         detail = client.get(f"/api/records/{recs[0]['mapping_id']}").json()

@@ -1,6 +1,28 @@
 // Mirrors the backend models in src/regcompass/audit.py (the U0 API contract).
 
-export type ReviewStatus = 'accepted' | 'rejected' | 'flagged'
+export type ReviewStatus = 'accepted' | 'rejected' | 'flagged' | 'corrected'
+
+/** Which rows the Review queue shows. The counts above it never change. */
+export type QueueFilter = 'all' | 'unreviewed' | 'corrected'
+
+/** One Indicator a reviewer may correct a Mapping to. */
+export interface IndicatorChoice {
+  id: string
+  title: string
+  pillar: number
+}
+
+/** One decision as it was written, kept after a later one replaced it. */
+export interface ReviewHistoryEntry {
+  history_id: number
+  run_id: string
+  mapping_id: string
+  review_status: ReviewStatus
+  corrected_indicator_id: string | null
+  reviewer: string | null
+  decided_at: string
+  comment: string | null
+}
 
 export interface DocumentSummary {
   document_id: string
@@ -17,6 +39,7 @@ export interface DocumentSummary {
   n_accepted: number
   n_rejected: number
   n_flagged: number
+  n_corrected: number
 }
 
 /** Where "Open source" takes a reviewer for one Mapping row. kind is
@@ -29,6 +52,17 @@ export interface SourceLink {
   page: number | null
 }
 
+/** One mechanical signal behind a Confidence: its raw input, weight, 0-1
+ *  score and contribution (weight x score). */
+export interface ConfidencePart {
+  signal: 'similarity' | 'quote_length' | 'specificity' | 'attempts'
+  label: string
+  raw: number
+  weight: number
+  score: number
+  contribution: number
+}
+
 export interface RecordSummary {
   mapping_id: string
   indicator_id: string
@@ -38,6 +72,9 @@ export interface RecordSummary {
   page_number: number | null
   quote_preview: string
   confidence: number | null
+  /** The four signals the Confidence was computed from; null when the stored
+   *  record already carried its number. */
+  confidence_parts?: ConfidencePart[] | null
   controlling_evidence: boolean
   review_status: ReviewStatus | null
   // The reviewer's note on this Mapping, null when there is none.
@@ -49,6 +86,10 @@ export interface RecordSummary {
   source_link: SourceLink | null
   /** 'html' when the Document has no pages, so page_number is not a page. */
   format: 'pdf' | 'html'
+  /** A reviewer's correction: the Indicator this Mapping belongs under in
+   *  their judgement. indicator_id stays the Engine's own. */
+  corrected_indicator_id: string | null
+  corrected_indicator_title: string | null
 }
 
 /** One row of the Review queue: a record row plus the Document it came from,
@@ -68,6 +109,7 @@ export interface ReviewQueue {
   below_threshold: number
   unreviewed: number
   records: QueueRecord[]
+  corrected: number
 }
 
 export interface HighlightRect {
@@ -88,6 +130,7 @@ export interface Review {
   reviewer: string | null
   reviewed_at: string
   comment: string | null
+  corrected_indicator_id: string | null
 }
 
 export interface MappingRecord {
@@ -143,6 +186,10 @@ export interface RecordDetail {
   source_format: SourceFormat
   /** The Piece's text, sent only when the source is not a PDF. */
   source_text: string | null
+  corrected_indicator_id: string | null
+  corrected_indicator_title: string | null
+  /** The Indicators Correct may choose: the Run's Pillars, less this one's. */
+  correction_choices: IndicatorChoice[]
 }
 
 /** One file an Evidence Export produced. `name` is a bare download name, never
@@ -158,6 +205,7 @@ export interface ExportSummary {
   n_accepted: number
   n_rejected: number
   n_flagged: number
+  n_corrected?: number
   n_unreviewed: number
   n_rows: number
   csv_path: string
@@ -180,6 +228,7 @@ export interface ExportPreview {
   n_accepted: number
   n_rejected: number
   n_flagged: number
+  n_corrected?: number
   n_unreviewed: number
   accepted_mapping_ids: string[]
 }
@@ -236,6 +285,27 @@ export interface EngineInfo {
   api_key_env: string | null
   key_set: boolean
   default: boolean
+}
+
+/** One Portal's politeness limits, read-only, as the crawler applies them. */
+export interface PortalPoliteness {
+  economy: string
+  name: string
+  host: string
+  hosts: string[]
+  min_interval_seconds: number
+  connections_per_host: number
+  robots_respected: boolean
+  robots_unavailable_setting: string
+  robots_unavailable_policy: string
+}
+
+export interface Politeness {
+  connections_per_host: number
+  robots_respected: boolean
+  crawl_delay_rule: string
+  robots_unreachable_rule: string
+  portals: PortalPoliteness[]
 }
 
 export interface IndicatorInfo {

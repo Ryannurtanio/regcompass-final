@@ -154,7 +154,7 @@ class TestTheCountsAndTheScope:
         storage.clear(None, data_dir=data)
         for table in ("documents", "chunks", "mappings", "crawl_manifest",
                       "extractions", "runs", "shortlist_windows", "document_words",
-                      "reviews"):
+                      "reviews", "review_history"):
             n = storage.conn.execute(f"SELECT COUNT(*) AS n FROM {table}").fetchone()["n"]
             assert n == 0, table
         assert _stored_files(data) == []

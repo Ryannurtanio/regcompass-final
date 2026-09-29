@@ -2,11 +2,13 @@ import type { ReviewStatus } from './types'
 
 /** A Review Decision as a shape AND a word, so it never rests on colour alone:
  *  accepted is a filled disc with a tick, rejected a ring with a cross,
- *  flagged an amber diamond with "!", and not reviewed a hollow grey ring. */
+ *  flagged an amber diamond with "!", corrected a rounded square with an
+ *  arrow (the Indicator was changed), and not reviewed a hollow grey ring. */
 const WORDS: Record<ReviewStatus | 'unreviewed', string> = {
   accepted: 'Accepted',
   rejected: 'Rejected',
   flagged: 'Flagged',
+  corrected: 'Corrected',
   unreviewed: 'Not reviewed',
 }
 
@@ -38,6 +40,19 @@ export function DecisionGlyph({ status }: { status: ReviewStatus | null }) {
           <path d="M7 0.8 L13.2 7 L7 13.2 L0.8 7 Z" fill="currentColor" />
           <path d="M7 3.9 V7.8" stroke="var(--surface)" strokeWidth="1.6" strokeLinecap="round" />
           <circle cx="7" cy="10" r="0.95" fill="var(--surface)" />
+        </>
+      )}
+      {s === 'corrected' && (
+        <>
+          <rect x="0.9" y="0.9" width="12.2" height="12.2" rx="3" fill="currentColor" />
+          <path
+            d="M3.6 7 H10 M7.6 4.5 L10.1 7 L7.6 9.5"
+            fill="none"
+            stroke="var(--surface)"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </>
       )}
       {s === 'unreviewed' && (

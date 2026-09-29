@@ -69,7 +69,7 @@ NoveltyScope = Literal["law", "provision"]
 # labelled non-section material.
 ChunkKind = Literal["section", "front_matter", "toc", "schedule", "other"]
 
-ReviewStatus = Literal["accepted", "rejected", "flagged"]
+ReviewStatus = Literal["accepted", "rejected", "flagged", "corrected"]
 
 
 class _Contract(BaseModel):
@@ -444,10 +444,15 @@ class ShortlistRow(_Contract):
 
 
 class Review(_Contract):
-    """A Review Decision: one reviewer's accept, reject or flag on one Mapping
-    of one Run, with an optional note. Only accepted Mappings enter the
-    Evidence Export. (run_id, mapping_id) identifies it: a later decision on the
-    same Mapping replaces this one rather than queueing behind it."""
+    """A Review Decision: one reviewer's accept, reject, flag or correction on
+    one Mapping of one Run, with an optional note. Only accepted and corrected
+    Mappings enter the Evidence Export, a corrected one under the reviewer's
+    Indicator. (run_id, mapping_id) identifies it: a later decision on
+    the same Mapping replaces this one rather than queueing behind it.
+
+    A correction names the Indicator the reviewer says the Mapping belongs
+    under, and its note is the required reason. The Mapping itself keeps the
+    Engine's Indicator: the correction is an override, never an overwrite."""
 
     review_id: str
     run_id: str
@@ -456,6 +461,7 @@ class Review(_Contract):
     reviewer: str | None = None
     reviewed_at: datetime
     comment: str | None = None  # the reviewer's note
+    corrected_indicator_id: str | None = None  # a correction's Indicator, else None
 
 
 class StageLogEntry(_Contract):
@@ -560,6 +566,16 @@ STRATEGY_NAMES: tuple[str, ...] = (
 # the identified agent, the published rules whenever the Portal CAN serve
 # them) is untouched, and every record says which policy let the request out.
 ROBOTS_UNAVAILABLE_POLICIES: tuple[str, ...] = ("refuse", "proceed")
+
+# How many connections a Discovery opens to one Portal at a time. The crawler
+# caps its single pooled client at this (crawl.one_connection), and the Settings
+# screen reads the same name, so the screen cannot disagree with the behaviour.
+CONNECTIONS_PER_HOST = 1
+
+# RFC 9309 section 2.3.1.4: a robots.txt that has stayed unavailable (5xx) for
+# this many days, counted from the Portal's recorded robots_unreachable_since
+# date, may be treated as publishing no rules (crawl.ROBOTS_UNREACHABLE_GRACE).
+ROBOTS_UNREACHABLE_GRACE_DAYS = 30
 
 
 class PortalConfig(_Contract):

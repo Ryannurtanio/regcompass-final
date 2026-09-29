@@ -16,9 +16,12 @@ import type {
   ExportSummary,
   Gloss,
   IndicatorInfo,
+  Politeness,
   RecordDetail,
   RecordSummary,
+  QueueFilter,
   Review,
+  ReviewHistoryEntry,
   ReviewQueue,
   ReviewStatus,
   RunEvent,
@@ -68,9 +71,20 @@ export const fetchRecords = (documentId: string, runId?: string | null) =>
 /** The Review queue: every record of the Run in one list, lowest Confidence
  *  first. A sibling of the per-Document read, which answers a narrower
  *  question and carries no counts. */
-export const fetchReviewQueue = (runId?: string | null, unreviewedOnly = false) =>
+export const fetchReviewQueue = (runId?: string | null, filter: QueueFilter = 'all') =>
   get<ReviewQueue>(
-    scoped(`/api/records?sort=confidence${unreviewedOnly ? '&unreviewed=true' : ''}`, runId),
+    scoped(
+      `/api/records?sort=confidence${
+        filter === 'unreviewed' ? '&unreviewed=true' : filter === 'corrected' ? '&corrected=true' : ''
+      }`,
+      runId,
+    ),
+  )
+
+/** Every decision ever written for one Mapping, oldest first. */
+export const fetchReviewHistory = (mappingId: string, runId?: string | null) =>
+  get<{ run_id: string | null; mapping_id: string; history: ReviewHistoryEntry[] }>(
+    scoped(`/api/reviews/history?mapping_id=${encodeURIComponent(mappingId)}`, runId),
   )
 
 export const fetchRecordDetail = (mappingId: string, runId?: string | null) =>
@@ -86,6 +100,8 @@ export const fetchStatus = () => get<ServerStatus>('/api/status')
 
 export const fetchEngines = () =>
   get<{ engines: EngineInfo[]; default_engine: string }>('/api/engines')
+
+export const fetchPoliteness = () => get<Politeness>('/api/settings/politeness')
 
 export const fetchIndicators = (pillar: number) =>
   get<{ pillar: number; indicators: IndicatorInfo[] }>(
@@ -420,6 +436,7 @@ export async function postReview(
   mappingId: string,
   status: ReviewStatus,
   comment?: string | null,
+  correction?: { indicatorId: string; reviewer?: string | null },
 ): Promise<Review> {
   const r = await apiFetch('/api/reviews', {
     method: 'POST',
@@ -429,6 +446,12 @@ export async function postReview(
       mapping_id: mappingId,
       review_status: status,
       comment: comment ? comment : null,
+      ...(correction
+        ? {
+            corrected_indicator_id: correction.indicatorId,
+            reviewer: correction.reviewer ? correction.reviewer : null,
+          }
+        : {}),
     }),
   })
   if (!r.ok) throw await failure(r)

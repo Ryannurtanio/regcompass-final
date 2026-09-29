@@ -55,6 +55,7 @@ from .contracts import (
     Engine,
     MappingRecord,
     PortalConfig,
+    Review,
     organizer_language,
 )
 from .engines import resolve_engine
@@ -373,18 +374,45 @@ def discovery_tag(record: MappingRecord, law_name: str, matrix: dict) -> tuple[s
 REVIEW_CONFIDENCE_THRESHOLD = 0.60
 
 
-def confidence_score(cosine: float, quote_len: int, n_indicators: int, attempts: int) -> float:
-    """Composite of four model-independent signals. Weights are documented
-    constants, not tuned to please: similarity 0.45 (rescaled from the
-    calibrated cosine band 0.35-0.75), quote length 0.25 (saturates at 240
-    chars: longer = safer), multi-indicator penalty 0.15 (a chunk claimed by
-    many indicators is less specific), retry penalty 0.15 (a record that
-    needed stricter retries is less trustworthy)."""
+def confidence_parts(cosine: float, quote_len: int, n_indicators: int, attempts: int) -> list[dict]:
+    """The four model-independent signals behind confidence_score, one dict
+    each: signal key, plain label, raw input, weight, the signal's 0-1 score
+    and its contribution (weight x score). Weights are documented constants,
+    not tuned to please: similarity 0.45 (rescaled from the calibrated cosine
+    band 0.35-0.75), quote length 0.25 (saturates at 240 chars: longer =
+    safer), multi-indicator penalty 0.15 (a chunk claimed by many indicators
+    is less specific), retry penalty 0.15 (a record that needed stricter
+    retries is less trustworthy). confidence_score is the rounded sum of the
+    contributions, so a breakdown shown beside a Confidence always adds up."""
     sim = max(0.0, min(1.0, (cosine - 0.35) / 0.40))
     qlen = min(1.0, quote_len / 240)
     multi = 1.0 if n_indicators <= 1 else max(0.4, 1.0 - 0.15 * (n_indicators - 1))
     retry = {1: 1.0, 2: 0.6}.get(attempts, 0.3)
-    return round(0.45 * sim + 0.25 * qlen + 0.15 * multi + 0.15 * retry, 2)
+    return [
+        {"signal": signal, "label": label, "raw": raw, "weight": weight,
+         "score": score, "contribution": weight * score}
+        for signal, label, raw, weight, score in (
+            ("similarity", "Meaning match", cosine, 0.45, sim),
+            ("quote_length", "Quote length", quote_len, 0.25, qlen),
+            ("specificity", "Specificity", n_indicators, 0.15, multi),
+            ("attempts", "Proof attempts", attempts, 0.15, retry),
+        )
+    ]
+
+
+def confidence_score(cosine: float, quote_len: int, n_indicators: int, attempts: int) -> float:
+    """Composite of the four signals confidence_parts lays out: the rounded
+    sum of their contributions, added in the same order as always so the
+    number is byte-for-byte what it was before the parts existed."""
+    return confidence_from_parts(confidence_parts(cosine, quote_len, n_indicators, attempts))
+
+
+def confidence_from_parts(parts: list[dict]) -> float:
+    """The Confidence a list of confidence_parts adds up to."""
+    total = 0.0
+    for part in parts:
+        total += part["contribution"]
+    return round(total, 2)
 
 
 # ---------------------------------------------------------------------------
@@ -443,6 +471,27 @@ def _rationale(impact: str | None) -> str:
     if len(impact) <= RATIONALE_MAX:
         return impact
     return impact[: RATIONALE_MAX - 1].rsplit(" ", 1)[0] + "…"
+
+
+def reviewer_override_note(original: str, corrected: str, reviewer: str | None) -> str:
+    """The Notes disclosure a corrected row carries, so the override is visible
+    in the workbook itself and not only in the supplementary record."""
+    who = (reviewer or "").strip() or "an unnamed reviewer"
+    return f"Reviewer override: Engine proposed {original}; corrected to {corrected} by {who}"
+
+
+def apply_correction(record: MappingRecord, correction: Review, names: dict[str, str]) -> MappingRecord:
+    """The record as it ships once a reviewer corrected its Indicator: under
+    the corrected Indicator, with the reviewer's reason as its rationale. The
+    stored Mapping is never touched; this copy exists only inside the export."""
+    corrected = correction.corrected_indicator_id
+    return record.model_copy(
+        update={
+            "indicator_id": corrected,
+            "indicator_name": names.get(corrected, record.indicator_name),
+            "impact": (correction.comment or "").strip(),
+        }
+    )
 
 
 @lru_cache(maxsize=None)
@@ -544,6 +593,8 @@ def build_row(
     language: str | None = None,
     glosses: dict | None = None,
     format_tag: FormatTag = "pdf",
+    proposed_indicator_id: str | None = None,
+    reviewer: str | None = None,
 ) -> dict:
     """One submission row (13 columns + sanctioned extras + hidden _keys used
     only by the gate battery and stripped before writing).
@@ -562,10 +613,17 @@ def build_row(
     answers.
 
     format_tag: which lane extracted the Document, which decides how the
-    Location Reference is spelled (location_reference)."""
+    Location Reference is spelled (location_reference).
+
+    proposed_indicator_id (a reviewer's correction): the Indicator the Engine
+    proposed, when the record arrives already moved to the reviewer's one
+    (apply_correction). Confidence is looked up under the proposed Indicator,
+    because that is the pair the pipeline scored, and Notes disclose the
+    override naming the reviewer."""
     portals = _portals(str(config_dir))
     tag, novelty = discovery_tag(record, doc.known_matrix_law_name or doc.law_name, matrix)
-    cosine = float(gate_cosine_lookup.get((record.chunk_id, record.indicator_id), 0.0))
+    scored_as = proposed_indicator_id or record.indicator_id
+    cosine = float(gate_cosine_lookup.get((record.chunk_id, scored_as), 0.0))
     conf = confidence_score(
         cosine,
         len(record.verbatim_quote),
@@ -603,6 +661,10 @@ def build_row(
     language_of_source, language_disclosed = resolve_language(language, portals[record.economy])
     if language_disclosed:
         notes.append(LANGUAGE_UNKNOWN_NOTE)
+    if proposed_indicator_id is not None:
+        notes.append(
+            reviewer_override_note(proposed_indicator_id, record.indicator_id, reviewer)
+        )
     gloss_cell, gloss_reviewed_by = verbatim_english_for(record.mapping_id, glosses, config_dir)
     row = {
         "Economy": portals[record.economy].official_name,
@@ -1460,6 +1522,7 @@ def export_all(
     config_dir=CONFIG_DIR,
     classifications: dict[str, ProvisionClassification] | None = None,
     reviews: dict[str, str] | None = None,
+    corrections: dict[str, Review] | None = None,
     document_meta: dict[str, dict] | None = None,
     processing_time: dict | None = None,
     generated_at: str | None = None,
@@ -1516,6 +1579,14 @@ def export_all(
     all excluded. An indicator that loses every record earns its absence row
     like any other zero, and its Notes say the evidence was not accepted.
 
+    corrections (optional): mapping_id -> the Review Decision of every
+    CORRECTED Mapping. A corrected Mapping counts as accepted, but ships under
+    the reviewer's Indicator with the reviewer's reason as its rationale and
+    the override disclosed in Notes; its Confidence stays the pipeline's. The
+    Indicator the Engine proposed gets nothing from it: it counts there as
+    evidence found and not accepted. A Mapping marked corrected with no
+    correction given is held back like any other unaccepted one.
+
     run_pillars (optional): the Pillars the Run itself was asked to search, off
     its Run Record. Given, absence rows are written for exactly those, so a Run
     with nothing accepted never claims a search of a Pillar it did not make.
@@ -1536,22 +1607,61 @@ def export_all(
     if classifications is not None:
         records = apply_classifications(records, classifications)
     passed = [r for r in records if r.verification_status == "passed"]
-    review_gate: dict[str, int] | None = None
+    review_gate: dict | None = None
     withheld: dict[tuple[str, str], int] = {}
+    # mapping_id -> the Indicator the Engine proposed, for every record that
+    # ships under a reviewer's corrected Indicator instead.
+    proposed: dict[str, str] = {}
+    reviewers: dict[str, str | None] = {}
     if reviews is not None:
+        corrections = {
+            m: c for m, c in (corrections or {}).items()
+            if reviews.get(m) == "corrected" and c.corrected_indicator_id
+        }
         for r in passed:
+            # A corrected Mapping is evidence found but not accepted FOR THE
+            # INDICATOR THE ENGINE PROPOSED, whatever it becomes elsewhere.
             if reviews.get(r.mapping_id) != "accepted":
                 key = (r.economy, r.indicator_id)
                 withheld[key] = withheld.get(key, 0) + 1
         statuses = [reviews.get(r.mapping_id) for r in passed]
+        overrides = []
+        for r in sorted(passed, key=lambda r: r.mapping_id):
+            c = corrections.get(r.mapping_id)
+            if c is None:
+                continue
+            overrides.append(
+                {
+                    "mapping_id": r.mapping_id,
+                    "original_indicator_id": r.indicator_id,
+                    "corrected_indicator_id": c.corrected_indicator_id,
+                    "reviewer": c.reviewer,
+                    "decided_at": c.model_dump(mode="json")["reviewed_at"],
+                    "reason": (c.comment or "").strip(),
+                }
+            )
         review_gate = {
             "n_verified": len(passed),
             "n_accepted": statuses.count("accepted"),
+            "n_corrected": statuses.count("corrected"),
             "n_rejected": statuses.count("rejected"),
             "n_flagged": statuses.count("flagged"),
             "n_unreviewed": statuses.count(None),
+            "overrides": overrides,
         }
-        passed = [r for r in passed if reviews.get(r.mapping_id) == "accepted"]
+        names = (
+            {k: d.name for k, d in load_indicators(config_dir).items()} if corrections else {}
+        )
+        shipped = []
+        for r in passed:
+            status = reviews.get(r.mapping_id)
+            if status == "accepted":
+                shipped.append(r)
+            elif r.mapping_id in corrections:
+                proposed[r.mapping_id] = r.indicator_id
+                reviewers[r.mapping_id] = corrections[r.mapping_id].reviewer
+                shipped.append(apply_correction(r, corrections[r.mapping_id], names))
+        passed = shipped
     # Committed review-drop lane: named records a
     # human review rejected, with reasons, in config/review_drops.json.
     # Checkpoints stay untouched (the record and its failure-free trail
@@ -1636,6 +1746,8 @@ def export_all(
             r, corpus[r.document_id], crosswalk, matrix, gate_cosine_lookup,
             per_chunk, config_dir, language=languages.get(r.document_id),
             glosses=glosses, format_tag=formats.get(r.document_id, "pdf"),
+            proposed_indicator_id=proposed.get(r.mapping_id),
+            reviewer=reviewers.get(r.mapping_id),
             **_synthetic_kwargs(r.document_id),
         )
         for r in passed
@@ -1860,7 +1972,13 @@ def export_all(
     if review_gate is not None:
         supplementary["review_gate"] = dict(
             review_gate,
-            rule="only review_status == 'accepted' records enter the export",
+            rule=(
+                "only review_status == 'accepted' or 'corrected' records enter the"
+                " export; a corrected record ships under the reviewer's Indicator"
+                " with the reviewer's reason as its rationale, the override named"
+                " in Notes and the pipeline's Confidence, and the Indicator the"
+                " Engine proposed gets no evidence from it"
+            ),
         )
     supplementary_path = outdir / "supplementary.json"
     supplementary_path.write_text(json.dumps(supplementary, indent=1), encoding="utf-8")

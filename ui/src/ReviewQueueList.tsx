@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { fetchReviewQueue } from './api'
-import type { QueueRecord, ReviewQueue } from './types'
+import type { QueueFilter, QueueRecord, ReviewQueue } from './types'
 import { useRowKeys } from './rowKeys'
 import Decision from './Decision'
 import ErrorNote from './ErrorNote'
@@ -18,14 +18,16 @@ import { plainError, type PlainError } from './errors'
 export default function ReviewQueueList({
   runId,
   reviewTick,
-  unreviewedOnly,
-  onUnreviewedOnly,
+  filter,
+  onFilter,
   onOpen,
 }: {
   runId: string | null
   reviewTick: number
-  unreviewedOnly: boolean
-  onUnreviewedOnly: (on: boolean) => void
+  // Not reviewed only and Corrected only are two views of one list, so
+  // turning one on turns the other off.
+  filter: QueueFilter
+  onFilter: (filter: QueueFilter) => void
   onOpen: (row: QueueRecord) => void
 }) {
   const [queue, setQueue] = useState<ReviewQueue | null>(null)
@@ -44,13 +46,13 @@ export default function ReviewQueueList({
 
   useEffect(() => {
     setError(null)
-    fetchReviewQueue(runId, unreviewedOnly)
+    fetchReviewQueue(runId, filter)
       .then((q) => {
         setQueue(q)
         setFocus(0)
       })
       .catch((e) => setError(plainError(e)))
-  }, [runId, unreviewedOnly, reviewTick, setFocus, retry])
+  }, [runId, filter, reviewTick, setFocus, retry])
 
   if (error) return <ErrorNote className="ev-error" error={error} onRetry={() => setRetry((n) => n + 1)} />
   if (!queue || !rows) return <div className="ev-note">Loading the queue…</div>
@@ -70,21 +72,36 @@ export default function ReviewQueueList({
           </span>{' '}
           <span className="ev-muted">Lowest Confidence first: check these by hand.</span>
         </p>
-        <label className="ev-toggle">
-          <input
-            type="checkbox"
-            data-testid="queue-unreviewed-only"
-            checked={unreviewedOnly}
-            onChange={(e) => {
-              const on = e.currentTarget.checked
-              // Hand the keyboard back to the list: a checkbox that keeps focus
-              // swallows the next Enter, which is how a row is opened.
-              e.currentTarget.blur()
-              onUnreviewedOnly(on)
-            }}
-          />
-          Not reviewed only
-        </label>
+        <span className="ev-toggles">
+          <label className="ev-toggle">
+            <input
+              type="checkbox"
+              data-testid="queue-unreviewed-only"
+              checked={filter === 'unreviewed'}
+              onChange={(e) => {
+                const on = e.currentTarget.checked
+                // Hand the keyboard back to the list: a checkbox that keeps focus
+                // swallows the next Enter, which is how a row is opened.
+                e.currentTarget.blur()
+                onFilter(on ? 'unreviewed' : 'all')
+              }}
+            />
+            Not reviewed only
+          </label>
+          <label className="ev-toggle">
+            <input
+              type="checkbox"
+              data-testid="queue-corrected-only"
+              checked={filter === 'corrected'}
+              onChange={(e) => {
+                const on = e.currentTarget.checked
+                e.currentTarget.blur()
+                onFilter(on ? 'corrected' : 'all')
+              }}
+            />
+            Corrected only{queue.corrected > 0 ? ` (${queue.corrected})` : ''}
+          </label>
+        </span>
       </div>
       <div className="ev-card">
         <div className="ev-head ev-queue-grid" aria-hidden="true">
@@ -113,7 +130,18 @@ export default function ReviewQueueList({
                   </span>
                   <span className="ev-ind">
                     <span className="ev-unit">Indicator </span>
-                    {r.indicator_id}
+                    {r.review_status === 'corrected' && r.corrected_indicator_id ? (
+                      <>
+                        <s>{r.indicator_id}</s>
+                        <span className="ev-sr"> corrected to </span>
+                        <span aria-hidden="true"> → </span>
+                        <span className="ev-moved" data-testid="queue-corrected-to">
+                          {r.corrected_indicator_id}
+                        </span>
+                      </>
+                    ) : (
+                      r.indicator_id
+                    )}
                   </span>
                   <span className={`num ev-conf${low ? ' low' : ''}`}>
                     {low && <span className="ev-low-tag">low</span>}
@@ -128,9 +156,11 @@ export default function ReviewQueueList({
           })}
           {rows.length === 0 && (
             <li className="ev-empty">
-              {unreviewedOnly
+              {filter === 'unreviewed'
                 ? 'Every Mapping of this Run carries a decision.'
-                : 'This Run produced no proven Mappings.'}
+                : filter === 'corrected'
+                  ? 'No Mapping of this Run has been corrected.'
+                  : 'This Run produced no proven Mappings.'}
             </li>
           )}
         </ol>

@@ -50,6 +50,7 @@ from .contracts import (
     MappingRecord,
     PageSpan,
     PipelineConfig,
+    Review,
 )
 from .chunk import quote_page, repair_section_labels, split_document
 from .engines import cost_usd_for, embed_fn_for, read_meter, resolve_engine, start_meter
@@ -1671,6 +1672,7 @@ def export_from_db(
     synthetic_docs: dict[str, SyntheticDoc] | None = None,
     run_id: str | None = None,
     reviews: dict[str, str] | None = None,
+    corrections: dict[str, Review] | None = None,
     progress: Callable[[str], None] = lambda s: None,
 ) -> ExportResult:
     """M9 from the database alone (no model calls): records, chunk texts and
@@ -1692,7 +1694,10 @@ def export_from_db(
 
     reviews (optional): mapping_id -> review_status. Given, the human review
     gate applies exactly as it does on the bundle lane, so the interface's
-    Export button ships the same accepted-only file whichever source it read."""
+    Export button ships the same accepted-only file whichever source it read.
+
+    corrections (optional): mapping_id -> the Review Decision of each corrected
+    Mapping, which then ships under the reviewer's Indicator (export_all)."""
     run_id = _resolved_run(storage, run_id)
     records = storage.load_mappings(run_id=run_id)
     if not any(r.verification_status == "passed" for r in records):
@@ -1842,6 +1847,7 @@ def export_from_db(
             synthetic_docs=merged_synthetic or None,
             engine=engine_of_record(storage, config_dir),
             reviews=reviews,
+            corrections=corrections,
             # This Run's Glosses, looked up BY RUN: a Gloss drafted in another
             # Run must never be read onto this Run's identically-named Mapping.
             glosses=storage.glosses_for_run(run_id),

@@ -131,14 +131,34 @@ CREATE TABLE IF NOT EXISTS reviews (
     review_id      TEXT NOT NULL,
     run_id         TEXT NOT NULL DEFAULT 'legacy',
     mapping_id     TEXT NOT NULL,
-    review_status  TEXT NOT NULL,   -- accepted|rejected|flagged; only accepted enters the final export
+    review_status  TEXT NOT NULL,   -- accepted|rejected|flagged|corrected; only accepted enters the final export
     reviewer       TEXT,
     reviewed_at    TEXT NOT NULL,   -- ISO-8601 UTC, the time of the LATEST decision
-    comment        TEXT,            -- the reviewer's note
+    comment        TEXT,            -- the reviewer's note; for a correction, its required reason
+    -- A correction's Indicator: the one the reviewer says this Mapping belongs
+    -- under. The Mapping row keeps the Engine's own; this is the override.
+    corrected_indicator_id TEXT,
     PRIMARY KEY (run_id, mapping_id),
-    CHECK (review_status IN ('accepted', 'rejected', 'flagged')),
+    CHECK (review_status IN ('accepted', 'rejected', 'flagged', 'corrected')),
     FOREIGN KEY (run_id, mapping_id) REFERENCES mappings(run_id, mapping_id)
 );
+
+-- EVERY Review Decision ever written, oldest first. `reviews` holds the one
+-- that stands; this keeps the ones it replaced, so changing a decision never
+-- loses the earlier one. Rows are only ever inserted.
+CREATE TABLE IF NOT EXISTS review_history (
+    history_id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id                 TEXT NOT NULL,
+    mapping_id             TEXT NOT NULL,
+    review_status          TEXT NOT NULL,
+    corrected_indicator_id TEXT,
+    reviewer               TEXT,
+    decided_at             TEXT NOT NULL,   -- ISO-8601 UTC
+    comment                TEXT,
+    FOREIGN KEY (run_id, mapping_id) REFERENCES mappings(run_id, mapping_id)
+);
+CREATE INDEX IF NOT EXISTS idx_review_history_mapping
+    ON review_history(run_id, mapping_id);
 
 -- ONE Gloss per Mapping per Run: the English rendering of a non-English
 -- Verbatim Quote, drafted by the Run's own Engine. The key is (run_id,

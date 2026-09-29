@@ -93,8 +93,8 @@ FIXTURE_SOURCE_KIND = "fixture"
 # table not named here refuses the pack.
 KNOWN_TABLES = frozenset({
     "documents", "chunks", "mappings", "source_groups", "mapping_relationships",
-    "reviews", "glosses", "crawl_manifest", "shortlist_windows", "document_words",
-    "gate_scores", "audit_log", "runs", "extractions", "sqlite_sequence",
+    "reviews", "review_history", "glosses", "crawl_manifest", "shortlist_windows",
+    "document_words", "gate_scores", "audit_log", "runs", "extractions", "sqlite_sequence",
 })
 
 # An absolute path into someone's home or a machine's temporary folder. The
@@ -193,6 +193,8 @@ def _prune(
         " WHERE m.run_id = {t}.run_id AND m.mapping_id = {t}.mapping_id))"
     )
     # Children before parents, so the foreign keys hold at every step.
+    if "review_history" in tables:
+        conn.execute("DELETE FROM review_history")
     conn.execute("DELETE FROM reviews")
     conn.execute(
         "DELETE FROM mapping_relationships WHERE NOT "

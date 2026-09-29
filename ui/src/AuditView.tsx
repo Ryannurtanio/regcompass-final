@@ -7,6 +7,7 @@ import {
   reviewGloss,
 } from './api'
 import type {
+  QueueFilter,
   QueueRecord,
   RecordDetail,
   RecordSummary,
@@ -18,13 +19,14 @@ import SourceTextPane from './SourceTextPane'
 import { paneFor } from './sourcePane'
 import RecordPane from './RecordPane'
 import ErrorNote from './ErrorNote'
-import { plainError, type PlainError } from './errors'
+import { ApiError, plainError, type PlainError } from './errors'
 import { isForFocusedControl, isInShell } from './keys'
 
 // What the reviewer is told when a save or a load fails. Plain words, shown
 // beside the decision buttons, and the panes stay where they are: one failed
 // save is not a reason to lose the page and the quote.
 const NOT_SAVED = 'That decision was not saved. Try again.'
+const CORRECTION_NOT_SAVED = 'That correction was not saved. Try again.'
 const GLOSS_NOT_SAVED = 'The gloss approval was not saved. Try again.'
 const DETAIL_FAILED = 'This Mapping could not be loaded. Step to another one and back to retry.'
 const LIST_FAILED = 'The Mappings could not be loaded. Go back and open them again.'
@@ -39,7 +41,7 @@ export default function AuditView({
   documentId,
   runId,
   queue = false,
-  unreviewedOnly = false,
+  queueFilter = 'all',
   startMappingId = null,
   onBack,
   onReviewSaved,
@@ -56,7 +58,8 @@ export default function AuditView({
   // flag and the previous and next keys then all follow queue order, because
   // they read the same list.
   queue?: boolean
-  unreviewedOnly?: boolean
+  // Which queue rows to step through: all, not reviewed, or corrected.
+  queueFilter?: QueueFilter
   // The row the reviewer opened, so the view lands on it rather than on the
   // top of the list.
   startMappingId?: string | null
@@ -90,11 +93,13 @@ export default function AuditView({
   // reviewer steps through one PDF's Mappings, and a web page is never handed
   // to the PDF viewer while its record is still loading.
   const [formats, setFormats] = useState<Record<string, SourceFormat>>({})
+  // The Correct picker is open for the Mapping on screen.
+  const [correcting, setCorrecting] = useState(false)
 
   useEffect(() => {
     let live = true
     const loading: Promise<Row[]> = queue
-      ? fetchReviewQueue(runId, unreviewedOnly).then((q) => q.records)
+      ? fetchReviewQueue(runId, queueFilter).then((q) => q.records)
       : fetchRecords(documentId, runId)
     loading
       .then((rs) => {
@@ -112,7 +117,7 @@ export default function AuditView({
     return () => {
       live = false
     }
-  }, [documentId, runId, queue, unreviewedOnly, startMappingId])
+  }, [documentId, runId, queue, queueFilter, startMappingId])
 
   const current = records?.[idx] ?? null
   // In queue order the PDF pane follows the row, not the Document the reviewer
@@ -131,7 +136,10 @@ export default function AuditView({
     if (!current) return
     setDetail(null)
     setNotice(null)
-    setNote(current.review_note ?? '')
+    setCorrecting(false)
+    // A correction's note is its reason, shown in the override line; it is
+    // not offered back as the note a later A, R or F would send.
+    setNote(current.review_status === 'corrected' ? '' : current.review_note ?? '')
     fetchRecordDetail(current.mapping_id, runId)
       .then((d) => {
         setDetail(d)
@@ -153,16 +161,27 @@ export default function AuditView({
     (status: ReviewStatus) => {
       if (readOnly || !current || !records) return
       setNotice(null)
+      setCorrecting(false)
       postReview(runId, current.mapping_id, status, note)
         .then((rev) => {
           setRecords(
             records.map((r) =>
               r.mapping_id === current.mapping_id
-                ? { ...r, review_status: status, review_note: rev.comment }
+                ? {
+                    ...r,
+                    review_status: status,
+                    review_note: rev.comment,
+                    corrected_indicator_id: null,
+                    corrected_indicator_title: null,
+                  }
                 : r,
             ),
           )
-          setDetail((d) => (d ? { ...d, review: rev } : d))
+          setDetail((d) =>
+            d
+              ? { ...d, review: rev, corrected_indicator_id: null, corrected_indicator_title: null }
+              : d,
+          )
           onReviewSaved()
           // keyboard-first flow: advance to the next unreviewed record
           const after = records.findIndex(
@@ -176,6 +195,58 @@ export default function AuditView({
         })
     },
     [readOnly, current, records, idx, note, runId, onReviewSaved],
+  )
+
+  // A correction stays on this Mapping after it is saved, so the reviewer
+  // sees the override line at once; A, R and F move on, Correct does not.
+  const saveCorrection = useCallback(
+    (indicatorId: string, reason: string, reviewer: string) => {
+      if (readOnly || !current || !records) return
+      setNotice(null)
+      postReview(runId, current.mapping_id, 'corrected', reason, { indicatorId, reviewer })
+        .then((rev) => {
+          const title =
+            detail?.correction_choices.find((c) => c.id === indicatorId)?.title ?? null
+          setRecords(
+            records.map((r) =>
+              r.mapping_id === current.mapping_id
+                ? {
+                    ...r,
+                    review_status: 'corrected',
+                    review_note: rev.comment,
+                    corrected_indicator_id: indicatorId,
+                    corrected_indicator_title: title,
+                  }
+                : r,
+            ),
+          )
+          setDetail((d) =>
+            d
+              ? {
+                  ...d,
+                  review: rev,
+                  corrected_indicator_id: indicatorId,
+                  corrected_indicator_title: title,
+                }
+              : d,
+          )
+          // The reason belongs to the correction; the Note field stays the
+          // reviewer's own, so a later A, R or F never saves it as a note.
+          setCorrecting(false)
+          onReviewSaved()
+        })
+        .catch((e) => {
+          console.error(e)
+          // The server's refusal is already a plain sentence (which Indicator,
+          // how long the reason is); anything else is a retry.
+          setNotice(
+            e instanceof ApiError && e.status === 422 && typeof e.detail === 'string'
+              ? e.detail
+              : CORRECTION_NOT_SAVED,
+          )
+        })
+    },
+    [readOnly, current, records, detail, runId, onReviewSaved],
   )
 
   const glossReview = useCallback(
@@ -237,6 +308,13 @@ export default function AuditView({
         case 'f':
           review('flagged')
           break
+        case 'c':
+          // Opens the picker only where there is something to correct to.
+          if (detail && detail.correction_choices.some((c) => c.id !== detail.record.indicator_id)) {
+            e.preventDefault()
+            setCorrecting(true)
+          }
+          break
         case 'ArrowLeft':
           setPage((p) => Math.max(1, p - 1))
           break
@@ -247,7 +325,7 @@ export default function AuditView({
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [readOnly, onBack, review, records])
+  }, [readOnly, onBack, review, records, detail])
 
   const pageHighlights = useMemo(
     () => (detail ? detail.highlights.filter((h) => h.page === page) : []),
@@ -308,6 +386,10 @@ export default function AuditView({
         readOnly={readOnly}
         onOpenEvidence={onOpenEvidence}
         notice={notice}
+        correcting={correcting}
+        onCorrect={() => setCorrecting(true)}
+        onCorrectCancel={() => setCorrecting(false)}
+        onCorrectSave={saveCorrection}
       />
     </div>
   )

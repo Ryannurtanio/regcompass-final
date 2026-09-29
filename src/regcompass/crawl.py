@@ -70,7 +70,13 @@ import httpx
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
 from regcompass import __version__
-from regcompass.contracts import MANUAL_STRATEGY, CrawlSeedsEconomy, CrawlTarget
+from regcompass.contracts import (
+    CONNECTIONS_PER_HOST,
+    MANUAL_STRATEGY,
+    ROBOTS_UNREACHABLE_GRACE_DAYS,
+    CrawlSeedsEconomy,
+    CrawlTarget,
+)
 from regcompass.discovery_progress import DiscoveryProgress, skip_reason
 from regcompass.observability import log_stage
 from regcompass.paths import storable_local_path
@@ -324,7 +330,7 @@ def parse_robots(robots_text: str, agent_token: str = USER_AGENT_TOKEN) -> Robot
 # no rules. This is that period, counted from the date recorded on the Portal
 # in config/portals.yaml, so the second half is data a person wrote down after
 # checking rather than a judgement the code makes on its own.
-ROBOTS_UNREACHABLE_GRACE = timedelta(days=30)
+ROBOTS_UNREACHABLE_GRACE = timedelta(days=ROBOTS_UNREACHABLE_GRACE_DAYS)
 
 
 class RobotsUnavailableError(RuntimeError):
@@ -577,7 +583,10 @@ def one_connection(
         follow_redirects=True,
         headers={"User-Agent": user_agent},
         transport=transport,
-        limits=httpx.Limits(max_connections=1, max_keepalive_connections=1),
+        limits=httpx.Limits(
+            max_connections=CONNECTIONS_PER_HOST,
+            max_keepalive_connections=CONNECTIONS_PER_HOST,
+        ),
     ) as client:
         yield client
 

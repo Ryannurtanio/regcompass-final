@@ -1,8 +1,140 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import type { ReactNode } from 'react'
-import type { Gloss, RecordDetail, RecordSummary, ReviewStatus } from './types'
+import type { ConfidencePart, Gloss, IndicatorChoice, RecordDetail, RecordSummary, ReviewStatus } from './types'
+import { breakdownRows } from './confidenceBreakdown'
 import OpenSource from './OpenSource'
 import Decision, { DecisionGlyph } from './Decision'
+import { checkCorrection, correctedBy, correctionGroups, overrideLine } from './correction'
+
+// The name a reviewer last corrected under, so they type it once. A browser
+// that keeps nothing (a private window) simply asks again.
+const NAME_KEY = 'regcompass.reviewerName'
+function rememberedName(): string {
+  try {
+    return window.localStorage.getItem(NAME_KEY) ?? ''
+  } catch {
+    return ''
+  }
+}
+function rememberName(name: string) {
+  try {
+    window.localStorage.setItem(NAME_KEY, name)
+  } catch {
+    // nothing kept; the field is simply empty next time
+  }
+}
+
+// The Correct picker: the right Indicator from the Run's own Pillars and a
+// required reason. Nothing is saved until Save correction; Cancel (or Escape)
+// leaves the Mapping exactly as it was.
+function CorrectPicker({
+  ownId,
+  choices,
+  onSave,
+  onCancel,
+}: {
+  ownId: string
+  choices: IndicatorChoice[]
+  onSave: (indicatorId: string, reason: string, reviewer: string) => void
+  onCancel: () => void
+}) {
+  const [indicator, setIndicator] = useState('')
+  const [reason, setReason] = useState('')
+  const [name, setName] = useState(rememberedName)
+  const groups = correctionGroups(choices, ownId)
+  const check = checkCorrection(indicator, reason)
+
+  const save = () => {
+    if (!check.canSave) return
+    rememberName(name.trim())
+    onSave(indicator, reason.trim(), name.trim())
+  }
+
+  return (
+    <div
+      className="ev-correct"
+      role="group"
+      aria-label="Correct the Indicator"
+      data-testid="correct-picker"
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          // Leaves the picker, not the audit view.
+          e.stopPropagation()
+          onCancel()
+        }
+      }}
+    >
+      <div className="ev-correct-field">
+        <label htmlFor="correct-indicator">Correct to</label>
+        <select
+          id="correct-indicator"
+          className="ev-input"
+          value={indicator}
+          autoFocus
+          data-testid="correct-indicator"
+          onChange={(e) => setIndicator(e.target.value)}
+        >
+          <option value="">Choose an Indicator</option>
+          {groups.map((g) => (
+            <optgroup key={g.pillar} label={g.label}>
+              {g.options.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
+      </div>
+      <div className="ev-correct-field">
+        <label htmlFor="correct-reason">Reason</label>
+        <textarea
+          id="correct-reason"
+          className="ev-input"
+          rows={3}
+          value={reason}
+          placeholder="Why this provision belongs under the Indicator you chose"
+          data-testid="correct-reason"
+          aria-describedby="correct-reason-count"
+          onChange={(e) => setReason(e.target.value)}
+        />
+        <span
+          id="correct-reason-count"
+          className={`ev-correct-count${check.over ? ' over' : ''}`}
+          aria-live="polite"
+          data-testid="correct-reason-count"
+        >
+          {check.counter}
+        </span>
+      </div>
+      <div className="ev-correct-field">
+        <label htmlFor="correct-name">Your name</label>
+        <input
+          id="correct-name"
+          className="ev-input"
+          type="text"
+          value={name}
+          placeholder="Optional: shown with the correction"
+          onChange={(e) => setName(e.target.value)}
+        />
+      </div>
+      <div className="ev-correct-buttons">
+        <button
+          type="button"
+          className="btn ev-primary"
+          disabled={!check.canSave}
+          data-testid="correct-save"
+          onClick={save}
+        >
+          Save correction
+        </button>
+        <button type="button" className="btn" data-testid="correct-cancel" onClick={onCancel}>
+          Cancel
+        </button>
+      </div>
+    </div>
+  )
+}
 
 // The composite as a shape AND as the number it is. The dots read at a glance
 // down a column of records; the number is the thing a judge asks for, and a
@@ -20,6 +152,59 @@ function ConfidenceDots({ value }: { value: number }) {
         {value.toFixed(2)}
       </span>
     </span>
+  )
+}
+
+// "How this is scored": a click-to-open panel, not a tooltip, so it works by
+// keyboard and on touch screens. It lists the four signals the pipeline
+// computed the Confidence from, each with its input, weight and share.
+function ConfidenceBreakdown({ value, parts }: { value: number; parts: ConfidencePart[] }) {
+  const [open, setOpen] = useState(false)
+  const panelId = useId()
+  const b = breakdownRows(parts, value)
+  return (
+    <div className="ev-score">
+      <div className="ev-score-line">
+        <ConfidenceDots value={value} />
+        <button
+          type="button"
+          className="btn quiet ev-score-toggle"
+          aria-expanded={open}
+          aria-controls={panelId}
+          onClick={() => setOpen((o) => !o)}
+        >
+          How this is scored
+        </button>
+      </div>
+      <div id={panelId} className="ev-score-panel" hidden={!open}>
+        <ul className="ev-score-rows">
+          {b.rows.map((r) => (
+            <li key={r.signal}>
+              <span className="ev-score-name">
+                {r.label} <span className="ev-muted">{r.weight}</span>
+              </span>
+              <span className="ev-score-add">+{r.contribution}</span>
+              <span className="ev-score-value ev-muted">{r.value}</span>
+              <span className="ev-score-why">{r.why}</span>
+            </li>
+          ))}
+          <li className="ev-score-total">
+            <span className="ev-score-name">Total</span>
+            <span className="ev-score-add">{b.total}</span>
+            <span className="ev-score-value ev-muted">{b.sum} before rounding</span>
+          </li>
+        </ul>
+        <p>
+          The Engine writes the Rationale. The pipeline computes Confidence from these four
+          signals; the Engine never reports its own confidence.
+        </p>
+        <p>Below 0.60 a Mapping is marked for review.</p>
+        <p className="ev-muted">
+          Specificity here counts all of this Run's Mappings from the same Piece; the export
+          counts only the rows it keeps, so its figure can differ slightly.
+        </p>
+      </div>
+    </div>
   )
 }
 
@@ -125,6 +310,10 @@ export default function RecordPane({
   readOnly = false,
   onOpenEvidence,
   notice = null,
+  correcting = false,
+  onCorrect,
+  onCorrectCancel,
+  onCorrectSave,
 }: {
   summary: RecordSummary
   detail: RecordDetail | null
@@ -142,10 +331,22 @@ export default function RecordPane({
   onOpenEvidence?: () => void
   // A save or load that failed, in plain words, shown by the decision.
   notice?: string | null
+  // The Correct picker is open for this Mapping.
+  correcting?: boolean
+  onCorrect?: () => void
+  onCorrectCancel?: () => void
+  onCorrectSave?: (indicatorId: string, reason: string, reviewer: string) => void
 }) {
   const status = summary.review_status
   const rec = detail?.record
   const attempts = rec?.extraction_attempts ?? 0
+  const choices = detail?.correction_choices ?? []
+  const canCorrect =
+    detail !== null && correctionGroups(choices, summary.indicator_id).length > 0
+  const correctedId = status === 'corrected' ? summary.corrected_indicator_id : null
+  const correctedTitle =
+    summary.corrected_indicator_title ?? detail?.corrected_indicator_title ?? null
+  const review = detail?.review?.mapping_id === summary.mapping_id ? detail.review : null
 
   return (
     <section className="ev-record" aria-label="Mapping" data-testid="record-pane">
@@ -194,6 +395,28 @@ export default function RecordPane({
             </span>
             <OpenSource link={summary.source_link} />
           </div>
+          {correctedId && (
+            <div className="ev-override" data-testid="record-override">
+              <p className="ev-override-line">
+                <DecisionGlyph status="corrected" />
+                <span>
+                  {overrideLine(
+                    { id: summary.indicator_id, title: summary.indicator_name },
+                    { id: correctedId, title: correctedTitle },
+                  )}
+                </span>
+              </p>
+              {review && (
+                <p className="ev-muted">{correctedBy(review.reviewer, review.reviewed_at)}</p>
+              )}
+              {summary.review_note && (
+                <p className="ev-override-reason">
+                  <span className="ev-muted">Reason: </span>
+                  {summary.review_note}
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         <QuoteBlock text={rec ? rec.verbatim_quote : summary.quote_preview} />
@@ -218,7 +441,13 @@ export default function RecordPane({
           <MetaRow
             label="Confidence"
             value={
-              summary.confidence !== null ? <ConfidenceDots value={summary.confidence} /> : 'Not scored'
+              summary.confidence === null ? (
+                'Not scored'
+              ) : summary.confidence_parts ? (
+                <ConfidenceBreakdown value={summary.confidence} parts={summary.confidence_parts} />
+              ) : (
+                <ConfidenceDots value={summary.confidence} />
+              )
             }
           />
           <MetaRow
@@ -265,6 +494,15 @@ export default function RecordPane({
             {notice}
           </p>
         )}
+        {correcting && canCorrect && onCorrectSave && onCorrectCancel && (
+          <CorrectPicker
+            key={summary.mapping_id}
+            ownId={summary.indicator_id}
+            choices={choices}
+            onSave={onCorrectSave}
+            onCancel={onCorrectCancel}
+          />
+        )}
         <div className="ev-note-field">
           <label htmlFor="review-note">Note</label>
           <input
@@ -308,6 +546,21 @@ export default function RecordPane({
           >
             {status === 'flagged' && <DecisionGlyph status="flagged" />}
             Flag <kbd>F</kbd>
+          </button>
+          <button
+            type="button"
+            className={`btn ev-act correct${status === 'corrected' ? ' active' : ''}`}
+            aria-pressed={status === 'corrected'}
+            aria-expanded={correcting}
+            disabled={!canCorrect}
+            title={
+              detail !== null && !canCorrect ? 'No other Indicator of this Run to correct to' : undefined
+            }
+            data-testid="decide-correct"
+            onClick={() => onCorrect?.()}
+          >
+            {status === 'corrected' && <DecisionGlyph status="corrected" />}
+            Correct <kbd>C</kbd>
           </button>
         </div>
       </div>
