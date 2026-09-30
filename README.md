@@ -43,13 +43,13 @@ so every other Indicator takes the mappings-only path: its Mappings export in fu
 cell is left blank rather than guessed.
 
 **Economies covered:** Australia, Malaysia, Singapore, Indonesia, Thailand, Lao PDR, Viet Nam,
-China, India, Kazakhstan, Mongolia, Russian Federation. Every one of them is configured in
+China, India, Kazakhstan, Mongolia, Russian Federation, Timor-Leste. Every one of them is configured in
 `config/portals.yaml`; adding another is an edit to that file, with no code change. Six of them
 were pre-run on both declared Engines for Pillars 6 and 7, from a Corpus fetched from the
 official source: **Australia, Malaysia, Singapore, China, Indonesia and India** (see **Pre-run
 Coverage**).
 
-**Ready for the live test.** Any of the nine live-test Economies can be mapped today. What
+**Ready for the live test.** Any of the ten live-test Economies can be mapped today. What
 differs is how much of its law Discovery reaches on its own. The honest state on 29 September
 2026:
 
@@ -66,7 +66,8 @@ differs is how much of its law Discovery reaches on its own. The honest state on
   - the baseline laws plus official addresses seeded per law, with no crawler: China, Thailand,
     Mongolia and the Russian Federation;
   - seeded official addresses only, because no 2025 baseline exists: Viet Nam (two laws from the
-    Official Gazette) and Kazakhstan (one law, in an unofficial English translation). A draw whose
+    Official Gazette), Kazakhstan (one law, in an unofficial English translation) and Timor-Leste
+    (laws from the Ministry of Justice's copy of the Jornal da República, in Portuguese). A draw whose
     Indicators those laws do not serve fetches nothing, and the Discovery report says to upload
     the laws by hand.
 
@@ -103,7 +104,7 @@ and it reaches the same interface.
 ### 2. Set up the environment
 
 Docker, with the `compose` plugin, is the only prerequisite. Nothing is installed on the host:
-Python, the OCR engine, all eleven vendored OCR language files, the built interface, the sample
+Python, the OCR engine, all twelve vendored OCR language files, the built interface, the sample
 legislation a Corpus can be seeded from and the frozen evidence bundle are all inside the image,
 and the embedder is pulled automatically at first start. There is no separate install step, so
 go on to step 4.
@@ -488,7 +489,7 @@ changed.
 
 | Setting | Value | Where it is set |
 | :---- | :---- | :---- |
-| Max requests per second per host | 1 request per `min_interval_seconds`, the per-Portal minimum wait between two requests to the same host. The configured floors are 2 s (Thailand, Lao PDR, India, Viet Nam, Kazakhstan, Mongolia, Russian Federation), 3 s (China), 5 s (Malaysia, Indonesia), 6 s (Singapore) and 10 s (Australia); a Portal with no floor of its own waits the default 1.0 s. A Portal's published crawl-delay RAISES the floor and never lowers it. | default `src/regcompass/contracts.py:635`, per Portal `config/portals.yaml`, applied `src/regcompass/discovery.py:564` (the floor) and `src/regcompass/discovery.py:596` (raised by a published crawl-delay); a Discovery by Pillar applies the same floor per host (`src/regcompass/discovery.py:1320`) |
+| Max requests per second per host | 1 request per `min_interval_seconds`, the per-Portal minimum wait between two requests to the same host. The configured floors are 2 s (Thailand, Lao PDR, India, Viet Nam, Kazakhstan, Mongolia, Russian Federation), 3 s (China, Timor-Leste), 5 s (Malaysia, Indonesia), 6 s (Singapore) and 10 s (Australia); a Portal with no floor of its own waits the default 1.0 s. A Portal's published crawl-delay RAISES the floor and never lowers it. | default `src/regcompass/contracts.py:635`, per Portal `config/portals.yaml`, applied `src/regcompass/discovery.py:564` (the floor) and `src/regcompass/discovery.py:596` (raised by a published crawl-delay); a Discovery by Pillar applies the same floor per host (`src/regcompass/discovery.py:1320`) |
 | Parallel requests per host | 1 | `src/regcompass/crawl.py:782` (`httpx.Limits(max_connections=CONNECTIONS_PER_HOST, max_keepalive_connections=CONNECTIONS_PER_HOST)`, with `CONNECTIONS_PER_HOST = 1` at `src/regcompass/contracts.py:602`) |
 | robots.txt respected | yes | `src/regcompass/crawl.py:580` (`read_robots_policy`, the one door every fetching lane uses, read for each host a Discovery by Pillar asks), RFC 9309 longest-match rule at `src/regcompass/crawl.py:447` (`RobotsPolicy.allows`) |
 
@@ -638,7 +639,7 @@ same pins in `THIRD_PARTY_NOTICES.md`). `eng`, `msa` and `lao` were vendored ear
 provenance is the digest below; `ind`, `tha` and `rus` were taken from tag `4.1.0` and each was
 verified against that tag's GitHub blob SHA on download (16 September 2026); `chi_sim`, `vie`,
 `kaz`, `mon` and `hin` were taken from the same tag and verified the same way (29 September
-2026).
+2026), and `por` (Portuguese, read for Timor-Leste's "Other") likewise (30 September 2026).
 
 | File | Language | Bytes | SHA-256 | Source |
 |---|---|---|---|---|
@@ -653,13 +654,15 @@ verified against that tag's GitHub blob SHA on download (16 September 2026); `ch
 | `vendor/tessdata/kaz.traineddata` | Kazakh | 7,528,853 | `34cbd9204b1ff3cc813d50b29e3c0ae3752bcc201f261a4a393ceca3895aea9d` | tag 4.1.0, blob SHA verified |
 | `vendor/tessdata/mon.traineddata` | Mongolian | 8,646,663 | `186dcb2ef79e0dc1ab88da2231926d79070c20176bf7416a19389331f68faf65` | tag 4.1.0, blob SHA verified |
 | `vendor/tessdata/hin.traineddata` | Hindi | 11,895,564 | `bd2e65a2184af08a167b0be2439e91fa5edbc4394399ca2f692b843ae26e78d6` | tag 4.1.0, blob SHA verified |
+| `vendor/tessdata/por.traineddata` | Portuguese ("Other", Timor-Leste) | 8,159,939 | `711de9dbb8052067bd42f16b9119967f30bada80d57e2ef24f65d09f531adb04` | tag 4.1.0, blob SHA verified |
 
-All eleven files are inside the Docker image and are tested in the container.
+All twelve files are inside the Docker image and are tested in the container.
 
 **Every language on the organizer's list now has its own data.** A scanned page in Chinese,
 Vietnamese, Hindi, Kazakh or Mongolian is read in its own script, each with English as a second
 language because official gazettes carry English headers and Latin digits beside the national
-script (`languages.TESSERACT_BY_LANGUAGE`). A page still falls to the next rung, or to manual
+script (`languages.TESSERACT_BY_LANGUAGE`); a Timor-Leste page in "Other" is read as Portuguese
+(`por+eng`). A page still falls to the next rung, or to manual
 review with the reason attached, when its own quality measures are low; the flag is about what
 the page yielded, not about a missing file. Adding a language is a file, a row in the table
 above, and a row in `languages.TESSERACT_BY_LANGUAGE`.
@@ -688,8 +691,8 @@ Pillar, Discovery is the Economy's fixed seed list, exactly as before.
 1. **Baseline stage.** The Baseline Law List, `config/baseline_laws.json`, names for each Economy
    and Indicator the laws the RDTII Round 1 and Round 2 Databases cite, with their reference
    addresses: ten Economies (Australia, Malaysia, Singapore, China, India, Indonesia, Lao PDR,
-   Mongolia, Russian Federation, Thailand), all twelve Pillars. Viet Nam and Kazakhstan have no
-   2025 baseline, and that is recorded rather than invented. The list is built from the
+   Mongolia, Russian Federation, Thailand), all twelve Pillars. Viet Nam, Kazakhstan and Timor-Leste
+   have no 2025 baseline, and that is recorded rather than invented. The list is built from the
    Databases by `scripts/extract_known_matrix.py`, which writes the KNOWN matrix from the same
    rows, so Discovery and the Discovery Tag read one list. Discovery takes the laws citing the
    drawn Indicators (every Indicator of the Pillar when none are ticked), those cited by more of
@@ -707,7 +710,7 @@ clamped to 1 to 30; the interface uses 12. One deadline covers the whole Discove
 (`discovery_drawn_budget_seconds`, read from `config/pipeline.yaml` when that file sets it), of
 which the baseline stage may use at most 600 (`discovery_baseline_budget_seconds`). Each address
 gets one attempt of 25 seconds (60 seconds for the Russian Federation's plain-http hosts,
-`fetch_timeout_seconds` in `config/portals.yaml`), a host that does not answer is not asked again
+`fetch_timeout_seconds` in `config/portals.yaml`, and 60 seconds for Timor-Leste's gazette issues), a host that does not answer is not asked again
 in that Discovery, and the baseline stage tries at most twice the cap in addresses. Every politeness rule under
 **Crawling Politely** applies, with `robots.txt` read for each host asked.
 
@@ -735,10 +738,11 @@ each checked by a live request on 29 September 2026):
 | Mongolia | `legalinfo.mn` | Law on Personal Data Protection; Law on Cybersecurity (whole law pages, server HTML) |
 | Russian Federation | `kremlin.ru`, `pravo.gov.ru` (plain http); `eec.eaeunion.org` (Eurasian Economic Commission, https) | Federal Law No. 152-FZ On Personal Data (kremlin.ru print page and pravo.gov.ru); Federal Law No. 149-FZ On Information, Information Technologies and the Protection of Information (pravo.gov.ru); kremlin.ru print pages for nine more federal laws the 2025 baseline cites; the Eurasian Economic Union acts that bind it (Treaty Annexes 8 and 9 and Section X, Board Decision No. 30 with its Annex 9, the Customs Code) |
 | Kazakhstan | `natlex.ilo.org` (ILO NATLEX, intergovernmental repository of official texts); `eec.eaeunion.org` (Eurasian Economic Commission) | Law No. 94-V On Personal Data and their Protection (the Ministry of Justice's unofficial English translation, amended to 30 December 2021) and the Entrepreneurial Code No. 375-V, both in English, so their Language is English; the Eurasian Economic Union acts that bind it (Treaty Annex 8, Section XXII with Annex 25, Section X and Annex 9, Board Decision No. 30 with its Annex 9, the Customs Code) |
+| Timor-Leste | `www.mj.gov.tl`, `mj.gov.tl` (the Ministry of Justice's copy of the Jornal da República, the official gazette); `timor-leste.gov.tl` (Government); `anc.tl` (Autoridade Nacional de Comunicações, the telecommunications regulator) | At least one law for each of the twelve Pillars (21 addresses, checked on 30 September 2026), among them Decree-Law No. 10/2024 on Trade Defence Measures and No. 12/2024 on Electronic Commerce, the Public Procurement Code (Decree-Law No. 1/2025), the Private Investment Law (Law No. 15/2017), the Copyright Code (Law No. 14/2022), the telecommunications Decree-Law No. 15/2012, the Media Law (Law No. 5/2014), the Customs Code (Decree-Law No. 14/2017), the National Payments System (Decree-Law No. 17/2015) and the Constitution (Article 38, personal data); Portuguese gazette issues with a text layer, each title naming the issue and the file pages its law sits on, and the regulator's English guidelines. No law is in force for patents, trade secrets, personal data protection or cybersecurity |
 
 China, Thailand, Mongolia and the Russian Federation also reach the baseline laws whose addresses
-sit on their official hosts. A seeded law serves only the Indicators it is listed for; Viet Nam
-and Kazakhstan have nothing else to fetch.
+sit on their official hosts. A seeded law serves only the Indicators it is listed for; Viet Nam,
+Kazakhstan and Timor-Leste have nothing else to fetch.
 
 ### Portals
 
@@ -756,6 +760,7 @@ and Kazakhstan have nothing else to fetch.
 | Kazakhstan | `adilet.zan.kz`; `natlex.ilo.org`; `eec.eaeunion.org` | Russian, Kazakh, English | **Not yet.** No baseline; Discovery by Pillar fetches two seeded laws from ILO NATLEX, in English, and the Eurasian Economic Union acts from the Eurasian Economic Commission. Add by URL or upload for the rest. | The act route answers a small shell whose own comment says the full text is withheld from non-browser clients on purpose, so that the system is cited rather than drained. A headless browser would render around that ask, so we do not. Since 29 Sep 2026 two laws are seeded from ILO NATLEX, whose download addresses its rules allow, and the Union acts from `eec.eaeunion.org`, whose rules allow its `/upload/` files; its detail pages sit behind a browser check and are never browsed. Russian and Kazakh OCR data are vendored. |
 | Mongolia | `legalinfo.mn` | Mongolian, English | **Not yet.** Discovery by Pillar fetches the baseline laws on official hosts and two seeded law pages; no crawler. Add by URL or upload for the rest. | Every act list, search included, arrives through an undocumented POST endpoint returning pre-rendered markup; the page advertised as an API reference is an article, not an API. A law page, `/mn/detail?lawId=N`, is whole server HTML, so laws are seeded by that address. Mongolian OCR data is vendored. |
 | Russian Federation | `pravo.gov.ru`, `kremlin.ru` (plain http); `eec.eaeunion.org` | Russian | **Not yet.** Discovery by Pillar fetches the baseline laws on those hosts and the seeded laws, the Eurasian Economic Union acts among them; no crawler. Add by URL or upload for the rest. | Port 443 to Russian government hosts is blocked on our network path; port 80 answers. `publication.pravo.gov.ru` publishes image-only scanned amendments, not consolidated law, so it is not used. `kremlin.ru` (the President's acts bank, `/acts/bank/N/print` is the whole current text) and `pravo.gov.ru` (the Official Internet Portal of Legal Information) are whitelisted and asked over plain http only, with a 60-second timeout; `eec.eaeunion.org`, the Eurasian Economic Commission, answers over https and is asked that way. Russian OCR data is vendored. |
+| Timor-Leste | `www.mj.gov.tl` (Jornal da República); `timor-leste.gov.tl`; `anc.tl` | Other (Portuguese), English | **Not yet.** No baseline; Discovery by Pillar fetches seeded laws from the Ministry of Justice's copy of the Jornal da República, at least one for each Pillar. Add by URL or upload for the rest. | The gazette's own host, `www.jornal.gov.tl`, does not resolve and the National Parliament's site does not answer, so laws are seeded at the Ministry of Justice's gazette address, one PDF per issue with a text layer; its `robots.txt` allows those files and asks for a 10-second crawl-delay, which Discovery honours. Portuguese is not one of the organizer's eleven values, so a Timor-Leste Document exports as "Other"; Portuguese OCR data is vendored and read for it, and the splitter reads its `Artigo N.º` headings. |
 
 The Portal list is a whitelist enforced at export: a row whose Source URL host is not one of
 these fails the export battery unless the reviewer explicitly marked the Document as an official
@@ -997,7 +1002,7 @@ and token counts; the per-Economy ones are in **Pre-run Coverage**.
 
 ## Known Limitations
 
-- **OCR in every organizer language, proven on few scans.** Data for all eleven vendored
+- **OCR in every organizer language, proven on few scans.** Data for all twelve vendored
   languages is in the image, but only the Lao and Chinese lanes have been read on real scanned
   laws here (Chinese by the RapidOCR rung); the Chinese, Vietnamese, Kazakh, Mongolian and Hindi data were added on
   29 September 2026 and are tested for presence and routing, not yet for quality on a real scan.
@@ -1005,16 +1010,18 @@ and token counts; the per-Economy ones are in **Pre-run Coverage**.
   what it could not read, but a badly scanned page produces a page that is flagged, not a page
   that is mapped. A measured character error rate is reported as null rather than guessed,
   because it needs a hand-checked reference.
-- **What Discovery by Pillar cannot reach.** Six of the twelve Economies have no Portal crawler,
+- **What Discovery by Pillar cannot reach.** Seven of the thirteen Economies have no Portal crawler,
   for reasons recorded per Portal: the national law database forbids automated collection
   (China), rules that forbid the only route to the document list (Viet Nam, Kazakhstan), no
-  published route at all (Mongolia), a Portal that serves only scanned amendments (Russian
+  published route at all (Mongolia), a gazette with no crawler written for it yet (Timor-Leste,
+  one PDF per issue), a Portal that serves only scanned amendments (Russian
   Federation), and a Portal whose search and law-text services both fail for its own
   application's requests (Thailand). Discovery by Pillar reaches them through the baseline laws
   whose addresses sit on their official hosts and through the laws seeded per Economy. A
   baseline link can be dead, point off the official hosts, or carry another law; each is
-  reported with its reason and not stored. Viet Nam and Kazakhstan have no 2025 baseline, so a
-  draw outside their seeded laws fetches nothing, and the operator uploads the laws by hand.
+  reported with its reason and not stored. Viet Nam, Kazakhstan and Timor-Leste have no 2025
+  baseline, so a draw outside their seeded laws fetches nothing, and the operator uploads the laws
+  by hand.
   The Thai and Kazakh seeded texts are unofficial English translations published by the
   government (Thailand) and on ILO NATLEX (Kazakhstan), and their rows say so in Language of
   Source. India's Portal cannot serve its own `robots.txt`, and it discovers under the
@@ -1072,7 +1079,7 @@ and token counts; the per-Economy ones are in **Pre-run Coverage**.
     uv sync --extra live
     uv run pytest
 
-**2,745 tests**, offline and keyless. Tests that would spend money skip unless
+**2,775 tests**, offline and keyless. Tests that would spend money skip unless
 `REGCOMPASS_PAID=1` is set alongside a key, so a plain run never bills an account. Live Portal
 tests skip unless `REGCOMPASS_LIVE=1` is set, so a plain run never touches a government server.
 Gate tests probe for a reachable Ollama and skip when there is none. Docker tests that need a

@@ -553,6 +553,36 @@ each page, replaced with a placeholder so no per-session secret is committed.
   document" against the same whitelist. `tests/test_portal_id.py` holds that
   path open.
 
+## Timor-Leste - www.mj.gov.tl, the Jornal da República (strategy: manual)
+
+Verified 30 Sep 2026. Timor-Leste has no 2025 baseline and no Portal crawler: a
+Discovery by Pillar fetches the laws seeded at their official addresses in
+`config/crawl_seeds.yaml`, at least one for each of the twelve Pillars.
+
+The official gazette's own host, `www.jornal.gov.tl`, does not resolve (on https or
+http), and the National Parliament's site, `www.parlamento.tl`, did not answer on
+port 443 or 80. The Ministry of Justice publishes the Jornal da República at
+`https://www.mj.gov.tl/jornal/public/docs/{year}/serie_1/{issue}.pdf`: one PDF per
+issue, with a Portuguese text layer, often holding several acts, so each seed's
+title names the issue and the file pages its law sits on. Its robots.txt is the
+Drupal default: `/jornal/public/docs/` allowed, `Crawl-delay: 10`, which Discovery
+honours over our 3 s floor. `mj.gov.tl` without `www` serves the same robots.txt
+and some official English translations under `/jornal/lawsTL/`.
+`timor-leste.gov.tl` (the Constitution, Portuguese and English) and `anc.tl` (the
+telecommunications regulator's guidelines, English) publish no robots.txt (404).
+`bancocentral.tl` answers 302 to its home page for every path we asked, robots.txt
+included, so it is not listed.
+
+Portuguese is not on the organizer's list, so a Timor-Leste Document's Language is
+"Other"; for this Economy "Other" is read with Portuguese OCR data (`por+eng`) and
+shortlisted by meaning, since the English keyword vocabulary scores Portuguese
+text zero. The splitter reads `Artigo N.º` headings (also `Artigo Nº`,
+`Artigo N.o`, Tetum `Artigu N.º`, and `Artigo N.º-A` for an article inserted by
+amendment). No law is in force for patents or trade secrets (the Industrial
+Property Code passed Parliament on 22 Sep 2026 and awaits promulgation), for
+personal data protection or for cybersecurity; those are uploaded by hand once
+published.
+
 ## Politeness (encoded in src/regcompass/crawl.py)
 
 - **We say who we are.** Every Discovery request goes out under

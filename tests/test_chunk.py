@@ -1112,6 +1112,30 @@ LAO_0144 = (
 )
 
 
+# A Timor-Leste Decree-Law as the Jornal da República prints it: the article
+# word and number alone on the line ("Artigo 1.º"), the title on the next.
+PORTUGUESE = (
+    "Assim,\n"
+    "O Governo decreta, nos termos do n.o 3 do artigo 115.º da\n"
+    "Constituição da República, para valer como lei, o seguinte:\n"
+    "Artigo 1.º\n"
+    "Objeto\n"
+    "O presente diploma cria o subsídio de risco para os\n"
+    "trabalhadores que exercem funções no Instituto de Gestão de\n"
+    "Equipamentos e Apoio ao Desenvolvimento de Infraestruturas.\n"
+    "Artigo 2.º\n"
+    "Subsídio de risco\n"
+    "1. O subsídio de risco criado pelo artigo anterior constitui\n"
+    "uma prestação pecuniária com natureza de suplemento\n"
+    "remuneratório.\n"
+    "Artigo 3.º\n"
+    "Beneficiários\n"
+    "São beneficiários do subsídio de risco os trabalhadores que\n"
+    "exerçam funções no IGEADI, nos termos do\n"
+    "Artigo 2.º da Lei n.º 8/2004, de 16 de junho.\n"
+)
+
+
 class TestMoreDraftingTraditions:
     def test_mongolian_articles(self):
         doc = _doc(MONGOLIAN)
@@ -1162,6 +1186,42 @@ class TestMoreDraftingTraditions:
         assert report.fallback_used is False
         assert _section_labels(chunks) == ["s. 7", "s. 8", "s. 8-1", "s. 9"]
         assert_partition(chunks, doc)
+
+    def test_portuguese_articles(self):
+        doc = _doc(PORTUGUESE)
+        chunks, report = split_document(doc)
+        assert report.fallback_used is False
+        assert _section_labels(chunks) == ["s. 1", "s. 2", "s. 3"]
+        # a sentence wrapped just before a cross-reference is not a heading
+        assert "Artigo 2.º da Lei n.º 8/2004" in sections(chunks)[2].text
+        assert_partition(chunks, doc)
+
+    @pytest.mark.parametrize(
+        "heading",
+        ["Artigo {n}.º", "Artigo {n}º", "Artigo {n}.o", "Artigo {n}.°", "ARTIGO {n}.º",
+         "Artigo {n}", "Artigu {n}.º", "Artigo {n}.º\u00a0"],
+    )
+    def test_every_portuguese_and_tetum_numbering_form(self, heading):
+        body = "O presente diploma aplica-se aos prestadores de serviços.\n"
+        text = "".join(f"{heading.format(n=n)}\nObjeto\n{body}" for n in range(1, 4))
+        chunks, report = split_document(_doc(text))
+        assert report.fallback_used is False
+        assert _section_labels(chunks) == ["s. 1", "s. 2", "s. 3"]
+
+    def test_a_portuguese_article_inserted_by_amendment_is_its_own_article(self):
+        """"Artigo 6.º-A" sits between articles 6 and 7."""
+        body = "O município tem centro administrativo na vila.\n"
+        text = "".join(f"Artigo {n}\nMunicípio\n{body}" for n in ("5.º", "6.º", "6.º-A", "7.º"))
+        doc = _doc(text)
+        chunks, _ = split_document(doc)
+        assert _section_labels(chunks) == ["s. 5", "s. 6", "s. 6A", "s. 7"]
+        assert_partition(chunks, doc)
+
+    def test_a_title_on_the_heading_line_is_kept(self):
+        body = "O presente diploma aplica-se aos prestadores de serviços.\n"
+        text = "".join(f"Artigo {n}.º Objeto\n{body}" for n in range(1, 4))
+        chunks, _ = split_document(_doc(text))
+        assert _section_labels(chunks) == ["s. 1", "s. 2", "s. 3"]
 
     def test_a_hyphenated_number_in_prose_is_not_an_article(self):
         body = "The operator shall keep a record of the processing.\n"

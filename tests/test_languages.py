@@ -26,6 +26,7 @@ from regcompass.languages import (
 LAO = "ມາດຕາ 5 ຫຼັກການກ່ຽວກັບວຽກງານທຸລະກໍາທາງເອເລັກໂຕຣນິກ"
 THAI = "มาตรา ๕ ธุรกรรมทางอิเล็กทรอนิกส์"
 ENGLISH = "Section 5. A licensee shall protect personal data held under this Act."
+PORTUGUESE = "Artigo 5.º\nO presente diploma aplica-se aos prestadores de serviços da sociedade da informação."
 
 
 class TestTesseractLanguages:
@@ -49,9 +50,14 @@ class TestTesseractLanguages:
             ("Hindi", "IN", "hin+eng"),
             ("Kazakh", "KZ", "kaz+eng"),
             ("Mongolian", "MN", "mon+eng"),
+            # Timor-Leste's "Other" is Portuguese (its Tetum is written in
+            # the same alphabet), read with the Portuguese data.
+            ("Other", "TL", "por+eng"),
+            (None, "TL", "por+eng"),
+            ("English", "TL", "eng"),
             # A Language with no vendored traineddata falls back to English
             # rather than crashing tesseract with a missing file.
-            ("Other", "TL", "eng"),
+            ("Other", "KH", "eng"),
             (None, "SG", "eng"),
         ],
     )
@@ -126,6 +132,15 @@ class TestKeywordTier:
     )
     def test_non_english_languages_drop_the_keyword_tier(self, language):
         assert not keyword_tier_applies(language, ENGLISH)
+
+    def test_timor_leste_portuguese_is_shortlisted_by_meaning(self):
+        """Timor-Leste's "Other" is Portuguese, which the English vocabulary
+        scores zero, so its Documents take the meaning-only lane; Malaysia's
+        "Other" and Timor-Leste's own English texts keep both tiers."""
+        assert not keyword_tier_applies("Other", PORTUGUESE, economy="TL")
+        assert not keyword_tier_applies(None, PORTUGUESE, economy="TL")
+        assert keyword_tier_applies("English", ENGLISH, economy="TL")
+        assert keyword_tier_applies("Other", ENGLISH, economy="MY")
 
     def test_a_mislabelled_document_is_caught_by_the_script_test(self):
         """A Document labelled English whose text is Lao still routes to the

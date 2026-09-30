@@ -20,6 +20,9 @@ tesseract map cannot key on the Language alone: it takes the Economy as a
 second key. "Other" in Malaysia means Malay, which is why MY keeps the
 `eng+msa` string it has always used, and Malaysia stays on the English keyword
 path because its acts are English-bodied with Malay provisions beside them.
+"Other" in Timor-Leste means Portuguese (Tetum beside it is written in the same
+alphabet): it is read as `por+eng`, and its Documents are shortlisted by
+meaning alone, since the English vocabulary scores a Portuguese text zero.
 
 Script-specific tokenizers and keyword translation stay out of scope (the Q18
 decision); this module only decides which existing lane a Document takes.
@@ -53,6 +56,12 @@ DEFAULT_TESSERACT = "eng"
 MALAYSIA_ECONOMY = "MY"
 MALAYSIA_TESSERACT = "eng+msa"
 _MALAYSIA_DEFAULT_LANGUAGES = (None, "English", "Other")
+
+# Timor-Leste's own string: its laws are Portuguese, which the organizer's
+# list has no word for, so "Other" there is Portuguese.
+TIMOR_LESTE_ECONOMY = "TL"
+TIMOR_LESTE_TESSERACT = "por+eng"
+_TIMOR_LESTE_DEFAULT_LANGUAGES = (None, "Other")
 
 # Languages written in a script of their own, outside the Latin alphabet. A
 # text layer of one of these that is nearly all Latin letters is not the
@@ -96,6 +105,8 @@ def tesseract_languages(language: str | None, economy: str | None = None) -> str
     a Document predates the column). `economy` disambiguates "Other"."""
     if economy == MALAYSIA_ECONOMY and language in _MALAYSIA_DEFAULT_LANGUAGES:
         return MALAYSIA_TESSERACT
+    if economy == TIMOR_LESTE_ECONOMY and language in _TIMOR_LESTE_DEFAULT_LANGUAGES:
+        return TIMOR_LESTE_TESSERACT
     if language is None:
         return DEFAULT_TESSERACT
     return TESSERACT_BY_LANGUAGE.get(language, DEFAULT_TESSERACT)
@@ -108,6 +119,8 @@ def tesseract_language_note(language: str | None, economy: str | None = None) ->
     if language is None or language in TESSERACT_BY_LANGUAGE:
         return None
     if economy == MALAYSIA_ECONOMY and language in _MALAYSIA_DEFAULT_LANGUAGES:
+        return None
+    if economy == TIMOR_LESTE_ECONOMY and language in _TIMOR_LESTE_DEFAULT_LANGUAGES:
         return None
     return (
         f"Language {language!r} has no vendored tesseract data;"
@@ -189,6 +202,8 @@ def keyword_tier_applies(
     language: str | None,
     text: str | None = None,
     non_latin_share_max: float = NON_LATIN_SHARE_MAX,
+    *,
+    economy: str | None = None,
 ) -> bool:
     """Whether the Gate's English keyword tier can read this Document.
 
@@ -205,7 +220,10 @@ def keyword_tier_applies(
     Pillar's cosine top-k passes the two-tier Gate and fails this one. The
     budget is identical either way (the same gate_bm25_top_k caps both), and
     meaning-only never returns nothing, which is what the two-tier rule does on
-    a script it cannot tokenize."""
+    a script it cannot tokenize. Timor-Leste's "Other" is Portuguese, so the
+    Economy sends it meaning-only too."""
+    if economy == TIMOR_LESTE_ECONOMY and language in _TIMOR_LESTE_DEFAULT_LANGUAGES:
+        return False
     if language is not None and language not in KEYWORD_TIER_LANGUAGES:
         return False
     if text and non_latin_share(text) > non_latin_share_max:

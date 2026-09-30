@@ -510,8 +510,8 @@ class TestAFlaggedScanIsAnEvent:
         c, _, ids = _two_document_app(tmp_path)
         real = pipeline_mod.extract_with_stats
 
-        def poorly_read(raw, fmt, doc_id):
-            canonical, stats = real(raw, fmt, doc_id)
+        def poorly_read(raw, fmt, doc_id, *a, **k):
+            canonical, stats = real(raw, fmt, doc_id, *a, **k)
             if doc_id != ids[0]:
                 return canonical, stats
             quality = OcrQuality(mean_word_confidence=0.41, manual_review=True)

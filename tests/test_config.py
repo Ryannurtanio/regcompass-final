@@ -15,9 +15,10 @@ from regcompass.config import (
 
 ROUND1_INDICATORS = {"6.1", "6.2", "6.3", "6.4", "7.1", "7.2", "7.3", "7.4", "7.5"}
 
-# The three Round 1 Economies plus the nine the organizers may draw on 15 Oct.
+# The three Round 1 Economies plus the ten the organizers may draw on 15 Oct
+# (the slide's eight, and Kazakhstan and Viet Nam from the Word template).
 EXPECTED_ECONOMIES = {
-    "SG", "AU", "MY", "ID", "TH", "LA", "VN", "CN", "IN", "KZ", "MN", "RU",
+    "SG", "AU", "MY", "ID", "TH", "LA", "VN", "CN", "IN", "KZ", "MN", "RU", "TL",
 }
 
 

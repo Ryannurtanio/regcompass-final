@@ -185,14 +185,21 @@ class StyleProfile:
 # only with at least one real digit, so the roman articles I and II of an
 # amending act are never read as numbers. _article_word_heading reads it.
 # A Russian article inserted by amendment, "Статья 8-1", is an article of its
-# own (num_ru), not article 8 with a title that starts "-1".
+# own (num_ru), not article 8 with a title that starts "-1". Portuguese
+# "Artigo 5.º" (Timor-Leste, Tetum "Artigu") carries an ordinal mark after the
+# number, which _article_word_heading reads (_PT_ORDINAL_RE).
 ARTICLE_WORD_RE = re.compile(
     r"^\s{0,2}(?:"
     r"Статья\s+(?P<num_ru>\d{1,3}-\d{1,3})(?=\.|\s*$)"
-    r"|(?:ມາດຕາ|ນາດຕາ|มาตรา|Pasal|Статья|Điều)\s+(?P<num>\d{1,3}[A-Z]{0,2})(?![0-9A-Za-z])"
+    r"|(?:ມາດຕາ|ນາດຕາ|มาตรา|Pasal|Статья|Điều|Artigo|ARTIGO|Artigu|ARTIGU)"
+    r"\s+(?P<num>\d{1,3}[A-Z]{0,2})(?![0-9A-Za-z])"
     r"|Pas[a4][l1IJ]\s*(?P<misread>(?=[0-9OTLlIt]*\d)[0-9OTLlIt]{1,3}[A-C]?)\s*$"
     r")"
 )
+# The Portuguese ordinal mark after an article number, as the Jornal da
+# República prints it or its text layers read it: "5.º", "5º", "5.°", "5.o".
+# "6.º-A" is an article inserted by amendment, numbered 6A.
+_PT_ORDINAL_RE = re.compile(r"(?:\.?[º°]|\.o(?![A-Za-z]))(?:-(?P<letter>[A-Z])(?![A-Za-z]))?")
 # What the text layers print for a digit: O for 0; I, l, L, t for 1; T for 7.
 _MISREAD_DIGITS = str.maketrans("OTLlIt", "071111")
 # Chinese puts its article word AROUND the number: "第十二条 ...". The number
@@ -265,6 +272,10 @@ def _article_word_heading(line: str, m: re.Match) -> tuple[str, str] | None:
         tail = m.group("title").strip()
     else:
         tail = line[m.end(name):].strip()
+        ordinal = _PT_ORDINAL_RE.match(tail)
+        if ordinal:
+            num += ordinal.group("letter") or ""
+            tail = tail[ordinal.end():].strip()
         if num.isdigit() and re.fullmatch(r"\d{1,2}", tail) and len(num + tail) <= 3:
             return num + tail, ""
     if tail and not any(ch.isalnum() for ch in tail):

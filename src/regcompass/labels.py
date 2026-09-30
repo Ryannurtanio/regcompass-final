@@ -13,9 +13,9 @@ from __future__ import annotations
 import re
 
 # Economies whose statutes number Articles: 条 (CN), Pasal (ID), ມາດຕາ (LA),
-# Điều (VN), Статья (KZ, RU), зүйл (MN). Thailand's มาตรา is "Section" in its
-# official English translations and stays "s.".
-ARTICLE_ECONOMIES = frozenset({"CN", "ID", "LA", "VN", "KZ", "RU", "MN"})
+# Điều (VN), Статья (KZ, RU), зүйл (MN), Artigo (TL). Thailand's มาตรา is
+# "Section" in its official English translations and stays "s.".
+ARTICLE_ECONOMIES = frozenset({"CN", "ID", "LA", "VN", "KZ", "RU", "MN", "TL"})
 
 _SECTION_WORD_RE = re.compile(r"(?<![A-Za-z])s\.\s*(?=\S)")
 

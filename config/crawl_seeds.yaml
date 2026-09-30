@@ -796,3 +796,100 @@ seeds:
         law: "Customs Code of the Eurasian Economic Union (Annex 1 to the Treaty of 11 April 2017)"
         indicators: ["12.5", "12.6"]
         urls: ["https://eec.eaeunion.org/upload/iblock/93c/TK-EAES.pdf"]
+  TL:
+    # The Jornal da República as the Ministry of Justice publishes it: one PDF
+    # per issue with a Portuguese text layer, often several acts to an issue,
+    # so each title names the issue and the file pages its law sits on. Each
+    # answered 200 application/pdf to one request (30 Sep 2026). No law is in
+    # force for patents or trade secrets (the Industrial Property Code passed
+    # Parliament on 22 Sep 2026 and awaits promulgation), for personal data or
+    # for cybersecurity: the Constitution and the nearest sector laws serve
+    # those Indicators.
+    rate_limit_seconds: 3
+    families:
+      trade_defence_and_ecommerce:
+        law: "Decree-Law No. 10/2024 on Trade Defence Measures (file pages 5 to 17) and Decree-Law No. 12/2024 on the General Legal Regime of Electronic Commerce and Electronic Signatures (file pages 21 to 40), Jornal da República Série I No. 7 of 2024"
+        indicators: ["1.4", "10.2", "7.2", "7.3", "7.4", "8.1", "8.2", "8.4", "11.4", "12.2", "12.3", "12.8", "12.9"]
+        urls: ["https://www.mj.gov.tl/jornal/public/docs/2024/serie_1/SERIE_I_NO_7.pdf"]
+      procurement:
+        law: "Decree-Law No. 1/2025, Public Procurement and Public Contracts Code, Jornal da República Série I No. 2 of 2025 (Portuguese, with the Tetum text after it)"
+        indicators: ["2.1", "2.2", "2.3", "10.3"]
+        urls: ["https://www.mj.gov.tl/jornal/public/docs/2025/serie_1/SERIE_I_NO_2.pdf"]
+      private_investment:
+        law: "Law No. 15/2017, Private Investment Law, Jornal da República Série I No. 33 of 2017 (file pages 2 to 9)"
+        indicators: ["3.1", "3.2", "3.4", "3.5", "5.2", "12.01"]
+        urls: ["https://www.mj.gov.tl/jornal/public/docs/2017/serie_1/SERIE_I_NO_33.pdf"]
+      private_investment_regulation:
+        law: "Government Decree No. 2/2018, Regulation of the Private Investment Law, Jornal da República Série I No. 8 of 2018 (file pages 1 to 13)"
+        indicators: ["3.4", "3.5"]
+        urls: ["https://www.mj.gov.tl/jornal/public/docs/2018/serie_1/SERIE_I_NO_8.pdf"]
+      commercial_companies:
+        law: "Law No. 10/2017, Commercial Companies Law, Jornal da República Série I No. 19 Supplement of 2017 (file pages 1 to 54)"
+        indicators: ["3.3", "3.5"]
+        urls: ["https://www.mj.gov.tl/jornal/public/docs/2017/serie_1/SERIE_I_NO_19_SUPLEMENTO.pdf"]
+      commercial_licensing:
+        law: "Decree-Law No. 89/2023 on the Sectoral Licensing of Commercial Activities, Jornal da República Série I No. 48 of 2023 (file pages 1 to 12)"
+        indicators: ["3.5", "10.2", "12.3"]
+        urls: ["https://www.mj.gov.tl/jornal/public/docs/2023/serie_1/SERIE_I_NO_48.pdf"]
+      copyright:
+        law: "Law No. 14/2022, Copyright and Related Rights Code, Jornal da República Série I No. 51-A of 2022 (file pages 19 to 50)"
+        indicators: ["4.5", "4.6", "8.1"]
+        urls: ["https://www.mj.gov.tl/jornal/public/docs/2022/serie_1/SERIE_I_NO_51_A.pdf"]
+      telecommunications:
+        law: "Decree-Law No. 15/2012 on the Regulation of the Telecommunications Sector, Jornal da República Série I No. 12 of 2012 (file pages 9 to 43)"
+        indicators: ["5.1", "5.3", "5.4", "5.5", "5.7", "7.5", "9.1", "11.1", "11.2", "12.7"]
+        urls: ["https://www.mj.gov.tl/jornal/public/docs/2012/serie_1/serie1_no12.pdf"]
+      telecommunications_amendment:
+        law: "Decree-Law No. 31/2024, first amendment to Decree-Law No. 15/2012 (spectrum licences), Jornal da República Série I No. 36-C of 2024 (file pages 2 to 4)"
+        indicators: ["5.5"]
+        urls: ["https://www.mj.gov.tl/jornal/public/docs/2024/serie_1/SERIE_I_NO_36_C.pdf"]
+      sim_registration:
+        law: "Autoridade Nacional de Comunicações, Guidelines on the Registration of SIM Cards for Prepaid Mobile Services (2020)"
+        indicators: ["5.5", "8.3"]
+        language: English
+        urls: ["https://anc.tl/media/2020/06/ANC-Guidelines-on-the-Registration-of-SIM-Cards-for-Prepaid-Mobile-Services.pdf"]
+      operator_registration:
+        law: "Autoridade Nacional de Comunicações, Guidelines on Registration of telecommunications operators (2021)"
+        indicators: ["5.5"]
+        language: English
+        urls: ["https://anc.tl/media/2021/07/ANC_Guidelines_on_Registration.pdf"]
+      constitution:
+        law: "Constitution of the Democratic Republic of Timor-Leste (Article 38, protection of personal data)"
+        indicators: ["6.1", "6.2", "6.3", "6.4", "7.1", "7.5"]
+        urls: ["https://timor-leste.gov.tl/wp-content/uploads/2010/03/Constituicao_RDTL_PT.pdf"]
+      criminal_procedure:
+        law: "Criminal Procedure Code as republished in the annex to Law No. 15/2023, Jornal da República Série I No. 19 Supplement I of 2023 (file pages 42 to 107)"
+        indicators: ["7.5"]
+        urls: ["https://www.mj.gov.tl/jornal/public/docs/2023/serie_1/SERIE_I_NO_19_SUPLEMENTO_I.pdf"]
+      media:
+        law: "Law No. 5/2014, Media Law, Jornal da República Série I No. 39 of 2014 (file pages 1 to 10)"
+        indicators: ["3.1", "9.1", "9.4"]
+        urls: ["https://www.mj.gov.tl/jornal/public/docs/2014/serie_1/SERIE_I_NO_39.pdf"]
+      advertising:
+        law: "Decree-Law No. 51/2011, Legal Regime of Advertising Activities, Jornal da República Série I No. 45 of 2011 (file pages 22 to 28)"
+        indicators: ["9.3"]
+        urls: ["https://www.mj.gov.tl/jornal/public/docs/2011/serie_1/serie1_no45.pdf"]
+      customs_code:
+        law: "Decree-Law No. 14/2017, Customs Code, Jornal da República Série I No. 13 Supplement of 2017"
+        indicators: ["10.1", "10.2", "10.4", "12.5"]
+        urls: ["https://www.mj.gov.tl/jornal/public/docs/2017/serie_1/SERIE_I_NO_13_SUP.pdf"]
+      taxes_and_duties:
+        law: "Law No. 8/2008, Taxes and Duties Act, Jornal da República Série I No. 26 of 2008 (file pages 1 to 34)"
+        indicators: ["10.2", "12.5", "12.6"]
+        urls: ["https://www.mj.gov.tl/jornal/public/docs/2008/serie_1/serie1_no26.pdf"]
+      quality_institute:
+        law: "Decree-Law No. 10/2018, Statute of the Quality Institute of Timor-Leste (standards and metrology), Jornal da República Série I No. 14-B of 2018 (file pages 54 to 60)"
+        indicators: ["11.1", "11.3"]
+        urls: ["https://www.mj.gov.tl/jornal/public/docs/2018/serie_1/SERIE_I_No_14_B.pdf"]
+      payments:
+        law: "Decree-Law No. 17/2015 on the National Payments System, Jornal da República Série I No. 23 of 2015 (file pages 20 to 30)"
+        indicators: ["12.4.1", "12.4.2", "12.4.3", "12.4.4", "12.4.5", "12.4.6", "12.4.7"]
+        urls: ["https://www.mj.gov.tl/jornal/public/docs/2015/serie_1/SERIE_I_NO_23.pdf"]
+      financial_system:
+        law: "Law No. 10/2026, General Regime of the Financial System and Banking Activity, Jornal da República Série I No. 32 of 2026 (file pages 1 to 103)"
+        indicators: ["6.1", "6.2", "6.3", "12.4.1", "12.4.2", "12.4.3", "12.4.4", "12.4.5", "12.4.6", "12.4.7"]
+        urls: ["https://www.mj.gov.tl/jornal/public/docs/2026/serie_1/SERIE_I_NO_32.pdf"]
+      consumer_protection:
+        law: "Law No. 8/2016, Consumer Protection Law, Jornal da República Série I No. 26-A of 2016 (file pages 1 to 9)"
+        indicators: ["12.9"]
+        urls: ["https://www.mj.gov.tl/jornal/public/docs/2016/serie_1/SERIE_I_NO_26A.pdf"]

@@ -165,14 +165,21 @@ class TestOcrQualityDecision:
     CFG = PipelineConfig()
 
     def test_a_language_with_no_vendored_data_is_always_manual_review(self):
-        """"Other" outside Malaysia (Tetum, Portuguese, Khmer) has no vendored
+        """"Other" outside Malaysia and Timor-Leste (Khmer, say) has no vendored
         traineddata, so its pages are read as English whatever they say. A
         high mean confidence over misread glyphs must not pass as a clean read."""
-        q = ocr_quality_for(0.97, None, self.CFG, ocr_policy("Other", "TL"), "eng", False)
+        q = ocr_quality_for(0.97, None, self.CFG, ocr_policy("Other", "KH"), "eng", False)
         assert q.manual_review is True
         assert q.manual_review_reason is not None
         assert "Other" in q.manual_review_reason
         assert "eng" in q.manual_review_reason
+
+    def test_timor_leste_portuguese_is_read_with_its_own_data(self):
+        """Timor-Leste's "Other" is Portuguese, vendored as por: a good read
+        is not forced to review, and the Latin-script proxies still apply."""
+        policy = ocr_policy("Other", "TL")
+        assert policy.manual_review_reason is None
+        assert policy.dictionary_proxy is True
 
     @pytest.mark.parametrize("language", ["Chinese", "Hindi", "Kazakh", "Mongolian", "Vietnamese"])
     def test_every_live_test_script_is_read_with_its_own_data(self, language):
@@ -530,7 +537,7 @@ def garbage_layer_spy(monkeypatch):
     recorder; nothing forces the OCR decision, so the pipeline must make it."""
     import regcompass.pipeline as pipeline_mod
 
-    def garbage_extract(raw, fmt, doc_id, engine="pdfplumber"):
+    def garbage_extract(raw, fmt, doc_id, engine="pdfplumber", **_):
         from regcompass.extract import ExtractionStats
 
         return CanonicalText(
@@ -655,7 +662,7 @@ class TestGarbageLayerReadInItsEconomysScripts:
 
         dropped = "] 417\n, ;\n1. (1) , ,\n(2) ,\n(i) ;\n(ii) ,\n418 [ 2\n(3) ,\n- -\n2. , ,\n" * 20
 
-        def dropped_extract(raw, fmt, doc_id, engine="pdfplumber"):
+        def dropped_extract(raw, fmt, doc_id, engine="pdfplumber", **_):
             return CanonicalText(
                 document_id=doc_id, source_sha256="b" * 64, extractor="pdfplumber",
                 extractor_version="x", full_text=dropped,
@@ -673,3 +680,36 @@ class TestGarbageLayerReadInItsEconomysScripts:
         )
         assert seen["languages"] == "hin+eng"
         assert seen["policy"].rapidocr_escalation is False
+
+
+# ---------------------------------------------------------------------------
+# Timor-Leste: the Jornal da República prints two columns, so the reading lane
+# asks for column-by-column extraction for that Economy and no other.
+# ---------------------------------------------------------------------------
+
+
+class TestColumnsFollowTheEconomy:
+    def _columns_asked(self, tmp_path, monkeypatch, economy):
+        import regcompass.pipeline as pipeline_mod
+
+        asked: list[bool] = []
+        real = pipeline_mod.extract_with_stats
+
+        def spy(raw, fmt, doc_id, *args, columns=False, **kwargs):
+            asked.append(columns)
+            return real(raw, fmt, doc_id, *args, columns=columns, **kwargs)
+
+        monkeypatch.setattr(pipeline_mod, "extract_with_stats", spy)
+        storage = Storage(tmp_path / f"cols_{economy}.db")
+        storage.apply_schema()
+        run_document(
+            storage, f"doc_{economy.lower()}_cols", TELECOM, economy, (7,), FAKE_ENGINE,
+            "run_one", completion_fn=fake_completion, embed_fn=fake_embed, language="English",
+        )
+        return asked
+
+    def test_timor_leste_reads_columns(self, tmp_path, monkeypatch):
+        assert self._columns_asked(tmp_path, monkeypatch, "TL") == [True]
+
+    def test_every_other_economy_reads_as_before(self, tmp_path, monkeypatch):
+        assert self._columns_asked(tmp_path, monkeypatch, "SG") == [False]

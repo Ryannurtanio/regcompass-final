@@ -84,7 +84,7 @@ class TestTheCommittedConfiguration:
 
         portals = load_portals()
         seeds = load_crawl_seeds()
-        for economy in ("TH", "VN", "RU", "MN", "KZ"):
+        for economy in ("TH", "VN", "RU", "MN", "KZ", "TL"):
             families = [f for f in seeds[economy].families.values() if f.urls]
             assert families, economy
             for family in families:
@@ -158,6 +158,43 @@ class TestTheCommittedConfiguration:
         assert th["electronic_transactions"].covers(12)
         assert not th["electronic_transactions"].covers(7)
         assert seeds["KZ"].families["data_protection"].covers(7)
+
+
+class TestTimorLeste:
+    """Timor-Leste has no 2025 baseline and no Portal crawler: a Discovery by
+    Pillar fetches the laws seeded at their official addresses, the Ministry
+    of Justice's copy of the Jornal da República above all."""
+
+    def test_the_portal_lists_the_official_hosts_and_portuguese_first(self):
+        portal = load_portals()["TL"]
+        assert portal.official_name == "Timor-Leste"
+        assert portal.live_test_pool and not portal.prepared
+        assert portal.strategy == "manual" and not portal.manual_only
+        assert portal.languages[0] == "Other" and "English" in portal.languages
+        assert {"www.mj.gov.tl", "mj.gov.tl", "timor-leste.gov.tl", "anc.tl"} <= set(portal.hosts)
+        # The gazette's own name does not resolve and Parliament does not
+        # answer; neither is listed.
+        assert not {"www.jornal.gov.tl", "jornal.gov.tl", "www.parlamento.tl"} & set(portal.hosts)
+        assert portal.min_interval_seconds >= 3
+
+    def test_every_pillar_has_a_seeded_law(self):
+        families = load_crawl_seeds()["TL"].families.values()
+        for pillar in range(1, 13):
+            assert any(f.urls and f.covers(pillar) for f in families), pillar
+
+    def test_portuguese_is_read_with_its_own_data_and_by_meaning(self):
+        from regcompass.languages import keyword_tier_applies, tesseract_languages
+
+        default = load_portals()["TL"].languages[0]
+        assert tesseract_languages(default, "TL") == "por+eng"
+        assert not keyword_tier_applies(default, "Artigo 1.º Objeto", economy="TL")
+
+    def test_english_texts_are_seeded_as_english(self):
+        for family in load_crawl_seeds()["TL"].families.values():
+            if any("anc.tl" in url for url in family.urls):
+                assert family.language == "English"
+            if family.language == "English":
+                assert all("jornal/public/docs" not in url for url in family.urls)
 
 
 class TestIndonesianStatutePdfs:

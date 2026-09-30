@@ -604,3 +604,39 @@ portals:
       the Union acts that bind the Russian Federation: Board Decision No. 30
       with its Annex 9, the Treaty's Annexes 8 and 9 and Section X, and the
       Customs Code. That host answers over https, so it is not an http host.
+  TL:
+    official_name: Timor-Leste
+    # Portuguese is "Other" on the organizer's list; English for the
+    # regulator's own guidelines and official translations.
+    languages: [Other, English]
+    hosts:
+      # The Ministry of Justice's copy of the Jornal da República, the
+      # official gazette (the gazette's own name, www.jornal.gov.tl, does
+      # not resolve), under both of its names.
+      - www.mj.gov.tl
+      - mj.gov.tl
+      # The Government's site: the Constitution in Portuguese and English.
+      - timor-leste.gov.tl
+      # Autoridade Nacional de Comunicações, the telecommunications regulator.
+      - anc.tl
+    fetch_timeout_seconds: 60  # gazette issues of up to 5 MB
+    strategy: manual
+    prepared: false
+    live_test_pool: true
+    min_interval_seconds: 3  # mj.gov.tl publishes crawl-delay 10, which raises it there
+    notes: >-
+      Added 30 Sep 2026; Timor-Leste has no 2025 baseline and no Portal
+      crawler, so a Discovery by Pillar fetches the laws seeded at their
+      official addresses in crawl_seeds.yaml. Laws are Portuguese (some
+      Tetum beside them), read as "Other" with Portuguese OCR data (por+eng)
+      and shortlisted by meaning. The Jornal da República is published by
+      the Ministry of Justice at www.mj.gov.tl/jornal/public/docs/{year}/
+      serie_1/{issue}.pdf: one PDF per issue with a text layer, often
+      holding several acts, so each seed's title names the issue and the
+      file pages its law sits on. robots.txt (Drupal default) allows
+      /jornal/public/docs/ and asks for crawl-delay 10, which Discovery
+      honours. timor-leste.gov.tl and anc.tl publish no robots.txt (404).
+      Checked and not listed: www.jornal.gov.tl (no DNS), www.parlamento.tl
+      (no answer on 443 or 80), bancocentral.tl (every path answers 302 to
+      the home page). Any other law, including the Industrial Property Code
+      once it is published, is uploaded by hand.

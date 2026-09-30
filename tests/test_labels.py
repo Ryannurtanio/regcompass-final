@@ -11,7 +11,7 @@ def test_chinese_and_indonesian_labels_read_as_articles():
 
 
 def test_other_article_economies():
-    for eco in ("LA", "VN", "KZ", "RU", "MN"):
+    for eco in ("LA", "VN", "KZ", "RU", "MN", "TL"):
         assert drafting_label("s. 5", eco) == "Art. 5"
 
 

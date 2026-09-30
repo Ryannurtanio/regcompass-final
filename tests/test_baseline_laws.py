@@ -99,7 +99,7 @@ class TestBaselineLawList:
 class TestKnownMatrixCoverage:
     def test_matrix_covers_the_ten_economies_and_records_vn_kz(self):
         assert set(MATRIX["database"]) == BASELINE_ECONOMIES
-        assert MATRIX["no_baseline_economies"] == ["KZ", "VN"]
+        assert MATRIX["no_baseline_economies"] == ["KZ", "TL", "VN"]
 
 
 class TestUnicodeNormLaw:
@@ -206,7 +206,7 @@ class TestDiscoveryTagAcrossEconomies:
         assert discovery_tag(rec("ID", "7.2", "s. 27"), "Dokumen", MATRIX)[0] == "NEW"
         assert discovery_tag(rec("ID", "7.2", "s. 27"), "Dokumen", MATRIX, url)[0] == "KNOWN"
 
-    @pytest.mark.parametrize("economy", ["VN", "KZ"])
+    @pytest.mark.parametrize("economy", ["VN", "KZ", "TL"])
     def test_no_baseline_economy_rows_are_new_with_the_note(self, economy):
         record = rec(economy, "7.1", "Article 3")
         row = row_for(record, "Law on Personal Data Protection", "https://vbpl.vn/doc/1")

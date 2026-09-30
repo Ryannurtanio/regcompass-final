@@ -906,7 +906,7 @@ class TestTheOperatorSuppliedEconomies:
     @pytest.mark.parametrize(
         "economy,name",
         [("VN", "Viet Nam"), ("KZ", "Kazakhstan"),
-         ("MN", "Mongolia"), ("RU", "Russian Federation")],
+         ("MN", "Mongolia"), ("RU", "Russian Federation"), ("TL", "Timor-Leste")],
     )
     def test_discovery_refuses_and_names_the_add_lane(
         self, storage, tmp_path, economy, name
@@ -917,7 +917,7 @@ class TestTheOperatorSuppliedEconomies:
         assert name in message and "Add document" in message
         assert storage.runs_list(kind="discovery") == [], "no record for work never started"
 
-    @pytest.mark.parametrize("economy", ["VN", "KZ", "MN", "RU", "CN"])
+    @pytest.mark.parametrize("economy", ["VN", "KZ", "MN", "RU", "CN", "TL"])
     def test_the_refusal_says_no_strategy_is_configured_not_that_it_is_forbidden(
         self, storage, tmp_path, economy
     ):
@@ -947,7 +947,7 @@ class TestTheOperatorSuppliedEconomies:
         assert "upload" in message.lower()
         assert "no Discovery strategy configured" not in message
 
-    @pytest.mark.parametrize("economy", ["VN", "KZ", "MN", "CN"])
+    @pytest.mark.parametrize("economy", ["VN", "KZ", "MN", "CN", "TL"])
     def test_their_hosts_are_whitelisted_so_an_operator_needs_no_override(
         self, economy
     ):

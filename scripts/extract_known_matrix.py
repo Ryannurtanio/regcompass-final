@@ -39,7 +39,7 @@ ROUND_2_SHEETS = {
 }
 # Economies in the live-test pool that no 2025 baseline covers: their rows are
 # NEW by definition. Recorded, never invented.
-NO_BASELINE = ["KZ", "VN"]
+NO_BASELINE = ["KZ", "TL", "VN"]
 
 ROUND_1_SHEET_CODES = [code for code, _ in ROUND_1_SHEETS.values()]
 

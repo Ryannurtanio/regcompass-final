@@ -62,6 +62,50 @@ SQUASH_FRAC_MAX = 0.02
 TIGHT_X_TOLERANCE = 1.5
 
 
+# Economies whose gazette sets its acts in two columns: the Jornal da República
+# (Timor-Leste). Read line by line, such a page interleaves the columns and every
+# sentence mixes two articles, so for these Economies a page whose words leave a
+# clear gutter is read left column first, then right. Every other Economy's
+# stream is untouched. Their stored streams need no key of their own: the OCR
+# language string in the extraction key (por+eng) is already Timor-Leste's alone.
+TWO_COLUMN_ECONOMIES = frozenset({"TL"})
+# A page is two columns when a vertical line in the middle 30 percent of its
+# width crosses at most this share of its words (running heads span the page),
+# with at least COLUMN_MIN_SIDE of the words on each side of it.
+COLUMN_MIN_WORDS = 40
+COLUMN_MAX_CROSSING = 0.05
+COLUMN_MIN_SIDE = 0.25
+
+
+def reads_columns(economy: str | None) -> bool:
+    """Whether this Economy's PDF pages are read column by column."""
+    return (economy or "").upper() in TWO_COLUMN_ECONOMIES
+
+
+def column_gutter(width: float, words: list[dict]) -> float | None:
+    """The x of the gutter between two columns of words, or None when the page
+    is not laid out in two columns. Deterministic: the line crossing the fewest
+    words wins, the one nearest the middle breaking a tie."""
+    n = len(words)
+    if n < COLUMN_MIN_WORDS:
+        return None
+    best: tuple[tuple[int, float], float] | None = None
+    for x in range(int(width * 0.35), int(width * 0.65) + 1):
+        crossing = sum(1 for w in words if w["x0"] < x < w["x1"])
+        key = (crossing, abs(x - width / 2))
+        if best is None or key < best[0]:
+            best = (key, float(x))
+    assert best is not None
+    (crossing, _), x = best
+    left = sum(1 for w in words if w["x1"] <= x)
+    right = sum(1 for w in words if w["x0"] >= x)
+    if crossing > max(3, COLUMN_MAX_CROSSING * n):
+        return None
+    if left < COLUMN_MIN_SIDE * n or right < COLUMN_MIN_SIDE * n:
+        return None
+    return x
+
+
 def squash_fraction(text: str) -> float:
     """Fraction of characters sitting in >= 30-char runs with no space: the
     mechanical detector for fused inter-word gaps."""
@@ -117,7 +161,11 @@ def extract_with_stats(
     format_tag: FormatTag,
     document_id: str,
     engine: PdfEngine = "pdfplumber",
+    *,
+    columns: bool = False,
 ) -> tuple[CanonicalText, ExtractionStats]:
+    """columns=True reads a two-column page column by column (reads_columns);
+    the alternate lane has no word positions and reads as before."""
     sniffed = sniff_format(raw)
     if sniffed != format_tag:
         raise ExtractionError(f"format tag '{format_tag}' does not match sniffed content '{sniffed}'")
@@ -125,7 +173,7 @@ def extract_with_stats(
         return _extract_html(raw, document_id)
     if engine == "pdfplumber":
         try:
-            return _extract_pdfplumber(raw, document_id)
+            return _extract_pdfplumber(raw, document_id, columns=columns)
         except ExtractionError:
             raise
         except Exception:
@@ -157,7 +205,9 @@ def _build_spans(page_texts: list[str]) -> tuple[str, list[PageSpan]]:
     return PAGE_SEPARATOR.join(parts), spans
 
 
-def _extract_pdfplumber(raw: bytes, document_id: str) -> tuple[CanonicalText, ExtractionStats]:
+def _extract_pdfplumber(
+    raw: bytes, document_id: str, *, columns: bool = False
+) -> tuple[CanonicalText, ExtractionStats]:
     import pdfplumber
 
     stats = ExtractionStats()
@@ -167,8 +217,22 @@ def _extract_pdfplumber(raw: bytes, document_id: str) -> tuple[CanonicalText, Ex
         words: list[list[dict]] = []
         with pdfplumber.open(BytesIO(raw)) as pdf:
             for page in pdf.pages:
-                texts.append(page.extract_text(**tolerance) or "")
-                words.append(page.extract_words(**tolerance))
+                page_words = page.extract_words(**tolerance)
+                gutter = column_gutter(page.width, page_words) if columns else None
+                if gutter is None:
+                    texts.append(page.extract_text(**tolerance) or "")
+                    words.append(page_words)
+                    continue
+                # Each character goes to the column its centre sits in, so a
+                # running head across the gutter is split, never lost.
+                sides = [
+                    page.filter(lambda o, g=gutter, left=left: o.get("object_type") != "char"
+                                or ((o["x0"] + o["x1"]) / 2 < g) == left)
+                    for left in (True, False)
+                ]
+                side_texts = [side.extract_text(**tolerance) or "" for side in sides]
+                texts.append("\n".join(t for t in side_texts if t))
+                words.append([w for side in sides for w in side.extract_words(**tolerance)])
         return texts, words
 
     page_texts, page_words = _pull({})

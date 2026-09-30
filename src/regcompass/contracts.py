@@ -632,7 +632,7 @@ class PortalConfig(_Contract):
     # Discovery strategy has been wired for them yet and which they will lose.
     manual_only: bool = False
     prepared: bool = False  # the Corpus has actually been fetched and checked
-    live_test_pool: bool = False  # one of the nine Economies the organizers may draw
+    live_test_pool: bool = False  # one of the ten Economies the organizers may draw
     # The politeness FLOOR for this Portal: the least time Discovery may leave
     # between two requests to the same host. A published robots.txt crawl-delay
     # RAISES it and never lowers it, so this is a promise, not a target.

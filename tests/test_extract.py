@@ -266,3 +266,68 @@ class TestSquashRetryLane:
         golden streams define downstream ground truth."""
         assert sg[1][1].squash_retry is False
         assert my[1][1].squash_retry is False
+
+
+# ---------------------------------------------------------------------------
+# Two-column pages (Timor-Leste): the Jornal da República sets its acts in two
+# columns. Read line by line, a page interleaves them and every sentence mixes
+# two articles; for an Economy whose gazette prints columns, a page whose words
+# leave a clear gutter is read left column first, then right.
+# ---------------------------------------------------------------------------
+
+LEFT = [
+    "Artigo 1", "Objeto", "O presente diploma estabelece o regime",
+    "juridico geral do comercio eletronico", "e das assinaturas eletronicas.",
+    "Artigo 2", "Definicoes", "Para efeitos do presente diploma",
+    "considera-se prestador de servicos", "qualquer pessoa singular ou coletiva.",
+]
+RIGHT = [
+    "Artigo 3", "Ambito", "O presente diploma aplica-se aos", "prestadores estabelecidos em",
+    "territorio nacional e no estrangeiro.", "Artigo 4", "Principios",
+    "A atividade de comercio eletronico", "rege-se pelos principios da", "liberdade e da boa-fe.",
+]
+
+
+def _two_column_pdf() -> bytes:
+    rows = []
+    for i, (left, right) in enumerate(zip(LEFT, RIGHT)):
+        y = 700 - 14 * i
+        rows.append(b"BT /F1 9 Tf 72 %d Td (%s) Tj ET" % (y, left.encode()))
+        rows.append(b"BT /F1 9 Tf 320 %d Td (%s) Tj ET" % (y, right.encode()))
+    return _mk_pdf(b"\n".join(rows))
+
+
+def _one_column_pdf() -> bytes:
+    rows = [
+        b"BT /F1 9 Tf 72 %d Td (%s) Tj ET" % (700 - 14 * i, (a + " " + b).encode())
+        for i, (a, b) in enumerate(zip(LEFT, RIGHT))
+    ]
+    return _mk_pdf(b"\n".join(rows))
+
+
+class TestTwoColumnPages:
+    def test_line_by_line_interleaves_the_columns(self):
+        text = extract(_two_column_pdf(), "pdf", "doc_test_cols").full_text
+        assert "Artigo 1" in text and "Artigo 3" in text
+        assert text.index("Artigo 3") < text.index("Artigo 2")
+
+    def test_a_column_economy_reads_each_column_whole(self):
+        canonical, _ = extract_with_stats(_two_column_pdf(), "pdf", "doc_test_cols", columns=True)
+        text = canonical.full_text
+        assert "\n".join(LEFT) in text and "\n".join(RIGHT) in text
+        assert text.index("Artigo 2") < text.index("Artigo 3")
+        for w in canonical.words:
+            assert text[w.char_start:w.char_end] == w.text
+        assert len(canonical.words) == len(extract(_two_column_pdf(), "pdf", "x").words)
+
+    def test_a_one_column_page_is_read_as_before(self):
+        raw = _one_column_pdf()
+        plain = extract(raw, "pdf", "doc_test_one").full_text
+        assert extract_with_stats(raw, "pdf", "doc_test_one", columns=True)[0].full_text == plain
+
+    def test_only_timor_leste_reads_columns(self):
+        from regcompass.extract import reads_columns
+
+        assert reads_columns("TL")
+        for economy in ("AU", "SG", "MY", "ID", "LA", "VN", "KZ", None):
+            assert not reads_columns(economy)

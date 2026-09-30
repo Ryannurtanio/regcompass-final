@@ -36,7 +36,7 @@ regeneration, refresh `tests/golden/EVIDENCE.sha256` (command in
   manifest. Reads the database and data folder only. `regcompass load-data` unpacks it; see
   `docs/RELEASE_DATA.md`.
 - `rehearse_discovery.py` - rehearses Discovery for every Economy in the live-test pool (ID,
-  IN, LA, CN, TH, MN, VN, RU, KZ) and every Pillar with no Engine call. Each cell (one Economy,
+  IN, LA, CN, TH, MN, VN, RU, KZ, TL) and every Pillar with no Engine call. Each cell (one Economy,
   one Pillar) runs Discovery by Pillar in a fresh data folder, reads each Document, splits it
   into sections and runs the Gate, then stops where the Engine would first be called; a guard
   removes every Engine key from the process and refuses any completion. One Economy at a time

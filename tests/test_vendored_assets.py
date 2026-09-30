@@ -56,13 +56,14 @@ def test_every_file_matches_its_pin():
         assert hashlib.sha256(raw).hexdigest() == sha, f"{rel}: sha256 does not match the table"
 
 
-CODES = ("eng", "msa", "lao", "ind", "tha", "rus", "chi_sim", "vie", "kaz", "mon", "hin")
+CODES = ("eng", "msa", "lao", "ind", "tha", "rus", "chi_sim", "vie", "kaz", "mon", "hin", "por")
 
 
 def test_the_languages_this_round_needs_are_present():
     """The Prepared Economies that are not English (Indonesia, Thailand, Lao
     PDR), the Russian Federation, and every other national script of the
-    live-test pool: Chinese, Vietnamese, Kazakh, Mongolian, Hindi."""
+    live-test pool: Chinese, Vietnamese, Kazakh, Mongolian, Hindi, and
+    Timor-Leste's Portuguese."""
     rows = table_rows()
     for code in CODES:
         assert f"vendor/tessdata/{code}.traineddata" in rows

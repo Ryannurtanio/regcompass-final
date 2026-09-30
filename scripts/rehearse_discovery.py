@@ -37,7 +37,7 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 from urllib.parse import urlsplit
 
-POOL = ("ID", "IN", "LA", "CN", "TH", "MN", "VN", "RU", "KZ")
+POOL = ("ID", "IN", "LA", "CN", "TH", "MN", "VN", "RU", "KZ", "TL")
 PILLARS = tuple(range(1, 13))
 DEFAULT_CAP = 12
 # A laptop runs this: one Economy at a time unless asked, and every OCR

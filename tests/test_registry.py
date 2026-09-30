@@ -364,6 +364,7 @@ class TestEconomyRegistryShape:
         assert portals["VN"].official_name == "Viet Nam"
         assert portals["RU"].official_name == "Russian Federation"
         assert portals["LA"].un_name == "Lao People's Democratic Republic"
+        assert portals["TL"].official_name == "Timor-Leste"
 
     def test_every_language_is_on_the_organizers_list(self):
         for code, portal in load_portals().items():
@@ -372,7 +373,7 @@ class TestEconomyRegistryShape:
                 assert language in ORGANIZER_LANGUAGES, (code, language)
 
     def test_every_live_test_economy_has_a_portal(self):
-        pool = {"TH", "VN", "ID", "CN", "IN", "KZ", "LA", "MN", "RU"}
+        pool = {"TH", "VN", "ID", "CN", "IN", "KZ", "LA", "MN", "RU", "TL"}
         portals = load_portals()
         assert pool <= set(portals)
         assert {c for c, p in portals.items() if p.live_test_pool} == pool

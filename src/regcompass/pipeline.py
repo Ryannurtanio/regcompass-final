@@ -62,6 +62,7 @@ from .extract import (
     extraction_provenance,
     load_extraction,
     ocr_quality_columns,
+    reads_columns,
     sniff_format,
     store_extraction,
 )
@@ -928,7 +929,9 @@ def run_document(
     else:
         # M1 extract (M2 OCR escalation when the born-digital text is unusable)
         with log_stage(storage, stage="m1_extract", method=f"{fmt}:auto", input_data=raw) as sr:
-            canonical, stats = extract_with_stats(raw, fmt, doc_id)
+            canonical, stats = extract_with_stats(
+                raw, fmt, doc_id, columns=reads_columns(economy)
+            )
             hook.step_finished(
                 doc_id, READ,
                 {"pages": len(canonical.pages), "chars": len(canonical.full_text)},
@@ -1103,7 +1106,7 @@ def run_document(
     # meaning alone rather than excluded chunk by chunk.
     hook.step_started(doc_id, GATE)
     keyword_tier = keyword_tier_applies(
-        language, canonical.full_text, config.gate_non_latin_share_max
+        language, canonical.full_text, config.gate_non_latin_share_max, economy=economy
     )
     gate_method = "bge-m3+bm25" if keyword_tier else "bge-m3"
     with log_stage(storage, stage="m5_gate", method=gate_method, input_data=doc_id) as sr:

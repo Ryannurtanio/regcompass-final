@@ -66,6 +66,7 @@ from regcompass.extract import (
     extraction_key,
     load_extraction,
     ocr_quality_columns,
+    reads_columns,
     sniff_format,
     store_extraction,
 )
@@ -538,7 +539,9 @@ def ingest_economy(
                     canonical = None  # stored before garbage layers were recognised
                 reused = canonical is not None
                 if canonical is None:
-                    canonical, _ = extract_with_stats(raw, fmt, doc_id)
+                    canonical, _ = extract_with_stats(
+                        raw, fmt, doc_id, columns=reads_columns(economy)
+                    )
                     scanned = fmt == "pdf" and should_ocr(canonical)
                     garbage = (
                         fmt == "pdf" and not scanned
