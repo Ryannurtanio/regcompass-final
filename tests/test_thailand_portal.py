@@ -249,7 +249,10 @@ class TestTheThailandPortalIsConfigured:
     def test_the_portal_declares_the_live_host_the_language_and_the_floor(self):
         portal = load_portals()["TH"]
         assert portal.official_name == "Thailand"
-        assert portal.hosts == [HOST], "the live library, not the dead placeholder"
+        assert portal.hosts[0] == HOST, "the live library, not the dead placeholder"
+        assert not any(
+            h.endswith("law.go.th") or "ratchakitcha" in h for h in portal.hosts
+        ), "never requested"
         assert portal.languages[0] == "Thai"
         assert portal.min_interval_seconds == 2.0
         assert portal.live_test_pool is True
@@ -282,10 +285,14 @@ class TestTheThailandPortalIsConfigured:
             assert host not in whitelisted
         assert "www.law.go.th" in (load_portals()["TH"].notes or "")
 
-    def test_thailand_carries_no_crawl_seeds(self):
+    def test_thailand_carries_no_crawler_seeds(self):
         """A seed that cannot resolve to a Document would be a claim the
-        Portal does not honour. Seeds land the day a strategy does."""
-        assert "TH" not in load_crawl_seeds()
+        Portal does not honour. Thailand's only seeds are fixed MDES
+        addresses, each fetched once when it was seeded; no search or act
+        code is seeded for a Portal with no crawler."""
+        families = load_crawl_seeds()["TH"].families.values()
+        assert all(f.urls and not f.acts and not f.queries for f in families)
+        assert all(f.urls[0].startswith("https://mdes.go.th/law/detail/") for f in families)
 
 
 # ---------------------------------------------------------------------------

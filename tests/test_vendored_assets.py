@@ -18,17 +18,22 @@ README = ROOT / "README.md"
 NOTICES = ROOT / "THIRD_PARTY_NOTICES.md"
 
 ROW = re.compile(
-    r"^\|\s*`(?P<path>vendor/tessdata/[a-z]{3}\.traineddata)`\s*\|"
+    r"^\|\s*`(?P<path>vendor/tessdata/[a-z_]+\.traineddata)`\s*\|"
     r"[^|]*\|\s*(?P<size>[\d,]+)\s*\|\s*`(?P<sha>[0-9a-f]{64})`\s*\|",
     re.M,
 )
 
 
 def table_rows() -> dict[str, tuple[int, str]]:
-    return {
-        m.group("path"): (int(m.group("size").replace(",", "")), m.group("sha"))
-        for m in ROW.finditer(README.read_text(encoding="utf-8"))
-    }
+    """Pins from the README's artifact table and from the notices' own table
+    (the language data added for the live test is pinned there first); a file
+    pinned in both must carry the same pin."""
+    rows: dict[str, tuple[int, str]] = {}
+    for doc in (README, NOTICES):
+        for m in ROW.finditer(doc.read_text(encoding="utf-8")):
+            pin = (int(m.group("size").replace(",", "")), m.group("sha"))
+            assert rows.setdefault(m.group("path"), pin) == pin, f"{m.group('path')}: two pins disagree"
+    return rows
 
 
 def test_the_table_covers_every_vendored_file():
@@ -51,17 +56,31 @@ def test_every_file_matches_its_pin():
         assert hashlib.sha256(raw).hexdigest() == sha, f"{rel}: sha256 does not match the table"
 
 
+CODES = ("eng", "msa", "lao", "ind", "tha", "rus", "chi_sim", "vie", "kaz", "mon", "hin")
+
+
 def test_the_languages_this_round_needs_are_present():
-    """The three Prepared Economies that are not English (Indonesia, Thailand,
-    Lao PDR) plus the Thailand fallback (Russian Federation)."""
+    """The Prepared Economies that are not English (Indonesia, Thailand, Lao
+    PDR), the Russian Federation, and every other national script of the
+    live-test pool: Chinese, Vietnamese, Kazakh, Mongolian, Hindi."""
     rows = table_rows()
-    for code in ("eng", "msa", "lao", "ind", "tha", "rus"):
+    for code in CODES:
         assert f"vendor/tessdata/{code}.traineddata" in rows
 
 
 def test_the_notices_name_them_and_their_licence():
     text = NOTICES.read_text(encoding="utf-8")
     assert "Apache-2.0" in text
-    for code in ("eng", "msa", "lao", "ind", "tha", "rus"):
+    for code in CODES:
         assert f"`{code}`" in text, f"{code} is not listed in THIRD_PARTY_NOTICES.md"
     assert "tessdata_best" in text
+
+
+def test_every_organizer_language_with_a_script_of_its_own_is_routed_to_its_data():
+    from regcompass.contracts import ORGANIZER_LANGUAGES
+    from regcompass.languages import tesseract_languages
+
+    rows = table_rows()
+    for language in ORGANIZER_LANGUAGES:
+        for code in tesseract_languages(language, "XX").split("+"):
+            assert f"vendor/tessdata/{code}.traineddata" in rows, (language, code)

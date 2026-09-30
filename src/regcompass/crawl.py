@@ -64,7 +64,7 @@ from datetime import date, timedelta
 from functools import partial
 from pathlib import Path
 from typing import Callable
-from urllib.parse import quote, unquote, urlsplit
+from urllib.parse import quote, unquote, urljoin, urlsplit
 
 import httpx
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
@@ -73,6 +73,7 @@ from regcompass import __version__
 from regcompass.contracts import (
     CONNECTIONS_PER_HOST,
     MANUAL_STRATEGY,
+    is_never_requested,
     ROBOTS_UNREACHABLE_GRACE_DAYS,
     CrawlSeedsEconomy,
     CrawlTarget,
@@ -108,6 +109,12 @@ IMPERSONATING_METHODS = frozenset({"curl_cffi", "playwright"})
 # WAF / throttle answers that justify escalating to the next ladder rung.
 # A 404 is NOT here: it means the same thing on every rung and is final.
 _BLOCK_STATUSES = frozenset({401, 403, 429, 503})
+REFUSING_STATUSES = _BLOCK_STATUSES
+# Refusals a host gives one kind of page and not another (a bot challenge on
+# its search and detail pages while its downloads answer): a Discovery keeps
+# these per host and first path segment. A 503, like a request that got no
+# answer, still closes the whole host for that Discovery.
+PATH_REFUSING_STATUSES = frozenset({401, 403, 429})
 
 _TRANSPORT_ATTEMPTS = 3  # per-fetch transport retry cap (tenacity)
 
@@ -120,6 +127,9 @@ SG_ACT = "https://sso.agc.gov.sg/Act/{code}"
 # which runs DSpace 7 and publishes this API for reading.
 IN_API = "https://indiacode.gov.in/server/api"
 IN_SEARCH = f"{IN_API}/discover/search/objects"
+# The old India Code hosts. They now refuse (HTTP 403), so a link on them is
+# looked up by title on the Portal's new host instead of being fetched.
+IN_LEGACY_HOSTS = frozenset({"www.indiacode.nic.in", "indiacode.nic.in"})
 # Indonesia: the Audit Board's national regulation database. A statute's own PDF
 # lives under /Download/{file id}/{file name}, and the file id is NOT the id in
 # the /Details/ page URL, so a Document URL cannot be computed from a detail id.
@@ -148,7 +158,19 @@ def robots_host(economy: str, config_dir=None) -> str | None:
 
 
 class LadderExhaustedError(RuntimeError):
-    """Every rung of the escalation ladder was blocked or died."""
+    """Every rung of the escalation ladder was blocked or died. `statuses`
+    holds each rung's refusing HTTP status, or None for a rung that died."""
+
+    def __init__(self, message: str, statuses: tuple = ()):
+        super().__init__(message)
+        self.statuses = tuple(statuses)
+
+    @property
+    def refused(self) -> bool:
+        """Every rung answered, each with a refusal of this kind of page."""
+        return bool(self.statuses) and all(
+            s in PATH_REFUSING_STATUSES for s in self.statuses
+        )
 
 
 class DiscoveryError(RuntimeError):
@@ -165,6 +187,177 @@ class FetchResult:
     content: bytes
     content_type: str | None
     method: str  # httpx | curl_cffi | playwright
+    # Where a redirect answer points, for a fetch that does not follow it
+    # itself (fetch_hop). None for every other answer.
+    location: str | None = None
+
+
+# How many redirects a fetch that follows them by hand will take.
+MAX_REDIRECTS = 5
+
+
+class NeverRequestedHostError(RuntimeError):
+    """A request was about to go to a host we never ask. Raised BEFORE it is
+    sent, by every client this module opens."""
+
+
+class RedirectOffHostError(RuntimeError):
+    """A redirect pointed off the hosts this fetch may ask, so it was not
+    followed and the address it named was never requested."""
+
+    def __init__(self, url: str, target: str):
+        self.url = url
+        self.target = target
+        super().__init__(
+            f"{url} redirects to {urlsplit(target).netloc}, which is not an"
+            " official host for this Economy; not followed"
+        )
+
+
+class NotAskedError(RuntimeError):
+    """A request that was not made, by a Discovery's own rule rather than the
+    Portal's answer. The fetch loop leaves the row pending for a later call
+    instead of settling it as failed."""
+
+
+class HostUnreachableError(NotAskedError):
+    """This host already failed to answer in this Discovery, so it is not
+    asked again."""
+
+
+class DeadlineReachedError(NotAskedError):
+    """The Discovery's time budget is spent, so nothing more is asked."""
+
+
+def _is_timeout(exc: BaseException) -> bool:
+    """A request that ran out of time, on any rung's client library."""
+    return isinstance(exc, (httpx.TimeoutException, TimeoutError)) or (
+        "timeout" in type(exc).__name__.lower() or "timed out" in str(exc).lower()
+    )
+
+
+def _host(url: str) -> str:
+    return (urlsplit(url).hostname or urlsplit(url).netloc or "").lower()
+
+
+def refuse_never_requested(url: str) -> None:
+    """Raise before any request to a host on the never-requested list."""
+    if is_never_requested(_host(url)):
+        raise NeverRequestedHostError(
+            f"{_host(url)} is never requested; {url} was not asked for"
+        )
+
+
+def _guard_request(request: httpx.Request) -> None:
+    """httpx request hook: fires for every request a client sends, redirects
+    included, so a redirect to a never-requested host is refused unsent."""
+    refuse_never_requested(str(request.url))
+
+
+_GUARD_HOOKS = {"request": [_guard_request]}
+
+
+def fetch_hop(
+    url: str,
+    *,
+    client: httpx.Client | None = None,
+    timeout: float = 25.0,
+    transport: httpx.BaseTransport | None = None,
+) -> FetchResult:
+    """ONE request under the identified user agent, ONE attempt, redirects
+    NOT followed: a 3xx comes back with its `location`, so the caller decides
+    whether the next address may be asked at all (follow_guarded)."""
+    refuse_never_requested(url)
+    if client is not None:
+        r = client.get(url, follow_redirects=False)
+    else:
+        with httpx.Client(
+            timeout=timeout,
+            follow_redirects=False,
+            headers={"User-Agent": IDENTIFIED_USER_AGENT},
+            transport=transport,
+            event_hooks=_GUARD_HOOKS,
+        ) as c:
+            r = c.get(url)
+    location = r.headers.get("location") if r.is_redirect else None
+    return FetchResult(
+        url=url,
+        final_url=str(r.url),
+        http_status=r.status_code,
+        content=r.content,
+        content_type=r.headers.get("content-type"),
+        method="httpx",
+        location=urljoin(url, location) if location else None,
+    )
+
+
+def fetch_curl_cffi_hop(url: str, *, timeout: float = 25.0) -> FetchResult:
+    """The impersonating rung as ONE request with redirects not followed, for
+    the lanes that follow redirects by hand (follow_guarded)."""
+    refuse_never_requested(url)
+    from curl_cffi import requests as cffi_requests
+
+    r = cffi_requests.get(url, impersonate="chrome", timeout=timeout, allow_redirects=False)
+    location = r.headers.get("location") if 300 <= r.status_code < 400 else None
+    return FetchResult(
+        url=url, final_url=str(r.url), http_status=r.status_code, content=r.content,
+        content_type=r.headers.get("content-type"), method="curl_cffi",
+        location=urljoin(url, location) if location else None,
+    )
+
+
+def hop_for(
+    strategy_name: str,
+    *,
+    client: httpx.Client | None = None,
+    timeout: float = 25.0,
+) -> Callable[[str], FetchResult]:
+    """One-request fetch for a lane that follows redirects by hand: the
+    identified httpx request, and for an Economy on the escalation ladder the
+    impersonating curl_cffi request after a refusal (never a browser, which
+    would follow redirects itself)."""
+
+    def hop(url: str) -> FetchResult:
+        fr = fetch_hop(url, client=client, timeout=timeout)
+        if strategy_name == "curl_cffi_ladder" and fr.http_status in _BLOCK_STATUSES:
+            try:
+                return fetch_curl_cffi_hop(url, timeout=timeout)
+            except ImportError:
+                return fr
+        return fr
+
+    return hop
+
+
+def follow_guarded(
+    url: str,
+    hop: Callable[[str], FetchResult],
+    *,
+    allowed: set[str] | frozenset[str] | None,
+    max_redirects: int = MAX_REDIRECTS,
+) -> FetchResult:
+    """Fetch `url` with `hop` (one request, redirects not followed), following
+    each redirect by hand. Every address is checked BEFORE it is requested:
+    a never-requested host is refused always, and with `allowed` given, a
+    redirect to any host outside it is refused (RedirectOffHostError)."""
+    current = url
+    for _ in range(max_redirects + 1):
+        refuse_never_requested(current)
+        if current != url and allowed is not None and _host(current) not in allowed:
+            raise RedirectOffHostError(url, current)
+        fr = hop(current)
+        location = getattr(fr, "location", None)
+        if 300 <= fr.http_status < 400 and location:
+            nxt = urljoin(current, location)
+            if is_never_requested(_host(nxt)):
+                raise RedirectOffHostError(url, nxt)
+            current = nxt
+            continue
+        return FetchResult(
+            url=url, final_url=current, http_status=fr.http_status,
+            content=fr.content, content_type=fr.content_type, method=fr.method,
+        )
+    raise FetchFailedError(f"more than {max_redirects} redirects from {url}")
 
 
 # The error a manifest row carries when robots.txt refused it. A refusal is not
@@ -215,6 +408,11 @@ class RateLimiter:
         self._clock = clock
         self._sleep = sleep
         self._last: dict[str, float] = {}
+
+    def remaining(self, url: str) -> float:
+        """How long wait(url) would sleep now."""
+        last = self._last.get(urlsplit(url).netloc)
+        return 0.0 if last is None else max(0.0, self.min_interval - (self._clock() - last))
 
     def wait(self, url: str) -> None:
         host = urlsplit(url).netloc
@@ -350,13 +548,14 @@ class RobotsUnavailableError(RuntimeError):
         *,
         since: date | None = None,
         lifts_on: date | None = None,
+        scheme: str = "https",
     ):
         self.host = host
         self.status = status
         self.since = since
         self.lifts_on = lifts_on
         opening = (
-            f"https://{host}/robots.txt answered HTTP {status}, so the Portal's"
+            f"{scheme}://{host}/robots.txt answered HTTP {status}, so the Portal's"
             " published rules cannot be read. RFC 9309 asks a crawler to assume"
             " complete disallow while robots.txt is unavailable, so nothing is"
             " requested from this Portal."
@@ -405,6 +604,7 @@ def read_robots_policy(
     unreachable_since: date | None = None,
     today: date | None = None,
     unavailable_policy: str = "refuse",
+    scheme: str = "https",
 ) -> RobotsReading:
     """The ONE place the robots rules are decided, for every lane that makes a
     request: Discovery and the single-URL add lane both come through here, so
@@ -419,9 +619,12 @@ def read_robots_policy(
     is read as no rules published; the reading then also carries the status and
     the policy, because a decision that is not on the record is not a
     disclosure. Neither exception touches a Portal that CAN serve its rules,
-    and neither lowers the spacing floor."""
+    and neither lowers the spacing floor.
+
+    `scheme` is https everywhere except a host its Portal lists under
+    `http_hosts`, whose robots.txt is read over http like its Documents."""
     try:
-        text = _robots_text(host, fetch)
+        text = _robots_text(host, fetch, scheme)
     except RobotsUnavailableError as exc:
         if unavailable_policy == "proceed":
             return RobotsReading(
@@ -451,11 +654,23 @@ def read_robots_policy(
             exc.status,
             since=unreachable_since,
             lifts_on=unreachable_since + ROBOTS_UNREACHABLE_GRACE + timedelta(days=1),
+            scheme=scheme,
         ) from exc
     return RobotsReading(RobotsPolicy() if text is None else parse_robots(text))
 
 
-def _robots_text(host: str, fetch: Callable[[str], FetchResult]) -> str | None:
+def robots_scheme(url: str, http_hosts) -> str:
+    """The scheme to read a URL's robots.txt over: http for a plain-http URL
+    on a host its Portal lists under `http_hosts`, https for everything else."""
+    parts = urlsplit(url)
+    if parts.scheme == "http" and (parts.hostname or "").lower() in set(http_hosts or ()):
+        return "http"
+    return "https"
+
+
+def _robots_text(
+    host: str, fetch: Callable[[str], FetchResult], scheme: str = "https"
+) -> str | None:
     """The Portal's robots.txt body, or None when it published no rules.
 
     The three answers RFC 9309 distinguishes, and what each means here:
@@ -470,11 +685,11 @@ def _robots_text(host: str, fetch: Callable[[str], FetchResult]) -> str | None:
     to fetch a Document a reviewer named.
     """
     try:
-        fr = fetch(f"https://{host}/robots.txt")
+        fr = fetch(f"{scheme}://{host}/robots.txt")
     except Exception:  # noqa: BLE001 - a dead connection is not a published rule
         return None
     if fr.http_status >= 500:
-        raise RobotsUnavailableError(host, fr.http_status)
+        raise RobotsUnavailableError(host, fr.http_status, scheme=scheme)
     if fr.http_status >= 400:
         return None
     return fr.content.decode("utf-8", errors="replace")
@@ -583,6 +798,7 @@ def one_connection(
         follow_redirects=True,
         headers={"User-Agent": user_agent},
         transport=transport,
+        event_hooks=_GUARD_HOOKS,
         limits=httpx.Limits(
             max_connections=CONNECTIONS_PER_HOST,
             max_keepalive_connections=CONNECTIONS_PER_HOST,
@@ -598,12 +814,13 @@ def fetch_httpx(
     transport: httpx.BaseTransport | None = None,
     wait_max: float = 10.0,
     client: httpx.Client | None = None,
+    attempts: int = _TRANSPORT_ATTEMPTS,
 ) -> FetchResult:
     """Plain httpx GET under the identified user agent (AU documents, MY PDFs,
     discovery JSON, and the first rung of the SG ladder). `client` reuses one
     Discovery's single connection instead of opening a fresh one per request."""
 
-    @_transport_retrying(wait_max=wait_max)
+    @_transport_retrying(attempts=attempts, wait_max=wait_max)
     def _get() -> httpx.Response:
         if client is not None:
             return client.get(url)
@@ -612,6 +829,7 @@ def fetch_httpx(
             follow_redirects=True,
             headers={"User-Agent": IDENTIFIED_USER_AGENT},
             transport=transport,
+            event_hooks=_GUARD_HOOKS,
         ) as c:
             return c.get(url)
 
@@ -626,17 +844,39 @@ def fetch_httpx(
     )
 
 
-def fetch_curl_cffi(url: str, *, timeout: float = 120.0) -> FetchResult:
+def fetch_curl_cffi(
+    url: str,
+    *,
+    timeout: float = 120.0,
+    before_request: Callable[[str], None] | None = None,
+) -> FetchResult:
     """SG ladder rung 1: browser TLS/JA3 impersonation, no browser process.
     The most byte-stable option (no DOM, no re-flow). curl_cffi's own retry
     stays at its default 0; transport retries are NOT layered here because a
     WAF block manifests as a status, which the ladder handles."""
     from curl_cffi import requests as cffi_requests
 
-    r = cffi_requests.get(url, impersonate="chrome", timeout=timeout, allow_redirects=True)
+    # Redirects followed by hand, so a never-requested host is refused before
+    # it is asked, on this rung as on every other.
+    current = url
+    for _ in range(MAX_REDIRECTS + 1):
+        refuse_never_requested(current)
+        if before_request is not None:
+            # A bounded Discovery's deadline, checked before every hop.
+            before_request(current)
+        r = cffi_requests.get(
+            current, impersonate="chrome", timeout=timeout, allow_redirects=False
+        )
+        location = r.headers.get("location")
+        if 300 <= r.status_code < 400 and location:
+            current = urljoin(current, location)
+            continue
+        break
+    else:
+        raise FetchFailedError(f"more than {MAX_REDIRECTS} redirects from {url}")
     return FetchResult(
         url=url,
-        final_url=r.url,
+        final_url=str(r.url),
         http_status=r.status_code,
         content=r.content,
         content_type=r.headers.get("content-type"),
@@ -644,16 +884,46 @@ def fetch_curl_cffi(url: str, *, timeout: float = 120.0) -> FetchResult:
     )
 
 
-def fetch_playwright(url: str, *, timeout_ms: int = 90_000) -> FetchResult:
+def _route_guard(route) -> None:
+    """Playwright route handler: every request the page makes is fetched here
+    with redirects NOT followed, so a redirect's target is seen before the
+    browser asks for it. A never-requested host, asked for directly or named by
+    a redirect, is aborted unsent."""
+    url = route.request.url
+    if is_never_requested(_host(url)):
+        route.abort()
+        return
+    response = route.fetch(max_redirects=0)
+    location = response.headers.get("location")
+    if 300 <= response.status < 400 and location:
+        if is_never_requested(_host(urljoin(url, location))):
+            route.abort()
+            return
+    route.fulfill(response=response)
+
+
+def fetch_playwright(
+    url: str,
+    *,
+    timeout_ms: int = 90_000,
+    before_request: Callable[[str], None] | None = None,
+) -> FetchResult:
     """SG ladder rung 2 / AU fallback: a real headless browser's TLS + headers.
     response.body() is the raw main-document response bytes as the server sent
     them, NOT the rendered DOM, so the byte-for-byte guarantee holds."""
     from playwright.sync_api import sync_playwright
 
+    if before_request is not None:
+        # Checked before a browser is launched at all.
+        before_request(url)
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         try:
             page = browser.new_page(user_agent=BROWSER_USER_AGENT)
+            # Every request the page makes, redirects included, is checked
+            # before it leaves: a never-requested host is aborted unsent.
+            page.route("**/*", _route_guard)
+            refuse_never_requested(url)
             resp = page.goto(url, timeout=timeout_ms, wait_until="domcontentloaded")
             if resp is None:
                 raise RuntimeError(f"no response object for {url}")
@@ -685,24 +955,39 @@ SG_LADDER: tuple[tuple[str, Callable[[str], FetchResult]], ...] = (
 def fetch_with_ladder(
     url: str,
     rungs: tuple[tuple[str, Callable[[str], FetchResult]], ...] = SG_LADDER,
+    *,
+    stop_on_timeout: bool = False,
 ) -> FetchResult:
     """Try each rung in order; escalate on WAF-block statuses or a dead rung.
     A non-block HTTP failure (404, 500) is an ANSWER: returned as-is for the
-    caller to record, because it would be the same on every rung."""
+    caller to record, because it would be the same on every rung.
+
+    A refusal of ours (a never-requested host, a redirect off the allowed
+    hosts) is never escalated: no rung may ask what the first one refused.
+    With `stop_on_timeout`, a rung that ran out of time ends the ladder too:
+    a silent host does not answer a browser either."""
     errors: list[str] = []
+    statuses: list[int | None] = []
     for name, fn in rungs:
         try:
             fr = fn(url)
+        except (NeverRequestedHostError, RedirectOffHostError, NotAskedError):
+            raise
         except Exception as exc:  # a dead rung must not kill the ladder
+            if stop_on_timeout and _is_timeout(exc):
+                raise
             errors.append(f"{name}: {type(exc).__name__}: {exc}")
+            statuses.append(None)
             continue
         if fr.http_status in _BLOCK_STATUSES:
             errors.append(f"{name}: HTTP {fr.http_status} (blocked)")
+            statuses.append(fr.http_status)
             continue
         return fr
     raise LadderExhaustedError(
         f"all rungs blocked for {url}: {'; '.join(errors)}."
-        " Next step: Patchright headful (documented rung 3)."
+        " Next step: Patchright headful (documented rung 3).",
+        statuses=tuple(statuses),
     )
 
 
@@ -714,9 +999,13 @@ JsonGetter = Callable[[str, dict | None], tuple[int, object]]
 
 
 def _default_get_json(
-    url: str, params: dict | None = None, *, client: httpx.Client | None = None
+    url: str,
+    params: dict | None = None,
+    *,
+    client: httpx.Client | None = None,
+    attempts: int = _TRANSPORT_ATTEMPTS,
 ) -> tuple[int, object]:
-    @_transport_retrying()
+    @_transport_retrying(attempts=attempts)
     def _get() -> httpx.Response:
         if client is not None:
             return client.get(url, params=params)
@@ -724,6 +1013,7 @@ def _default_get_json(
             timeout=60.0,
             follow_redirects=True,
             headers={"User-Agent": IDENTIFIED_USER_AGENT},
+            event_hooks=_GUARD_HOOKS,
         ) as c:
             return c.get(url, params=params)
 
@@ -985,6 +1275,29 @@ def _in_title_key(title: str) -> str:
     fuzzy pick would quietly crawl the wrong statute."""
     key = " ".join(title.split()).strip().rstrip(".").casefold()
     return _IN_LEADING_THE.sub("", key)
+
+
+# An RDTII citation of an Indian statute: an optional "Government of India,"
+# lead, the short title, an optional act number and the year
+# ("Government of India, Information Technology Act No.21 2000").
+_IN_CITATION = re.compile(
+    r"^(?:government of india,?\s+)?(?:the\s+)?"
+    r"(?P<title>[A-Z](?:[^,()]|\([^()]*\))*?\b(?:Act|Code))"
+    r"(?:\s*,?\s*No\.?\s*[\dIVXLC]+)?\s*,?\s+(?P<year>1[89]\d\d|20\d\d)\.?$",
+    re.IGNORECASE,
+)
+
+
+def in_citation_title(name: str) -> str:
+    """The India Code title form of an RDTII citation of an Act or Code
+    ("Government of India, Information Technology Act No.21 2000" becomes
+    "The Information Technology Act, 2000"), for the exact title search. A
+    name of any other shape is returned as it is: the search stays exact."""
+    cited = " ".join(name.split())
+    match = _IN_CITATION.match(cited)
+    if not match:
+        return cited
+    return f"The {match.group('title')}, {match.group('year')}"
 
 
 def _in_original_pdfs(item: dict) -> list[tuple[str, str]]:
@@ -1521,6 +1834,34 @@ def session_fetch(strategy: Strategy, client: httpx.Client) -> Callable[[str], F
     return strategy.fetch
 
 
+def bounded_session_fetch(
+    strategy: Strategy,
+    client: httpx.Client,
+    *,
+    timeout: float,
+    gate: Callable[[str], None] | None = None,
+) -> Callable[[str], FetchResult]:
+    """This Strategy's fetch for a Discovery with a deadline: one attempt per
+    rung, a short timeout on each, and a ladder that stops at a timeout
+    instead of climbing to a browser for a host that is simply silent."""
+    if strategy.fetch is None:
+        raise ValueError(f"{strategy.description}; there is nothing to fetch")
+    one_try = partial(fetch_httpx, client=client, attempts=1)
+    if strategy.fetch is fetch_httpx:
+        return one_try
+    if strategy.fetch is fetch_with_ladder:
+        rungs = (
+            ("httpx", one_try),
+            ("curl_cffi", partial(fetch_curl_cffi, timeout=timeout, before_request=gate)),
+            (
+                "playwright",
+                partial(fetch_playwright, timeout_ms=int(timeout * 1000), before_request=gate),
+            ),
+        )
+        return partial(fetch_with_ladder, rungs=rungs, stop_on_timeout=True)
+    return strategy.fetch
+
+
 def session_get_json(client: httpx.Client) -> JsonGetter:
     """The discovery JSON getter on the same single connection."""
     return partial(_default_get_json, client=client)
@@ -1546,6 +1887,7 @@ def fetch_one(
     robots: RobotsPolicy | None = None,
     config_dir=None,
     robots_reading: Callable[["RobotsReading"], None] = lambda reading: None,
+    allowed_hosts: set[str] | frozenset[str] | list[str] | None = None,
 ) -> FetchResult:
     """ONE polite fetch of ONE URL a reviewer supplied ("Add document" by
     Source URL).
@@ -1567,9 +1909,24 @@ def fetch_one(
     receives that reading whenever the Portal's robots.txt was unreadable and
     something other than its published rules let this request past: the 30-day
     rule, or the Portal's own configured policy. The caller records it."""
+    # Redirects are followed by hand, each address checked before it is
+    # asked: never a never-requested host, and with `allowed_hosts` given,
+    # never a host outside them.
     if fetch is None:
-        strategy = strategy_for_economy(economy, config_dir)
-        fetch = fetch_httpx if strategy.fetch is None else strategy.fetch
+        from regcompass.config import CONFIG_DIR as _DIR
+        from regcompass.config import load_portals as _portals
+
+        known = _portals(config_dir or _DIR).get(economy)
+        fetch = hop_for(known.strategy if known is not None else "httpx", timeout=60.0)
+    hop = fetch
+    allowed = set(allowed_hosts) if allowed_hosts is not None else None
+
+    def guarded(target: str) -> FetchResult:
+        return follow_guarded(target, hop, allowed=allowed)
+
+    fetch = guarded
+
+    refuse_never_requested(url)
     host = urlsplit(url).netloc
     if robots is None:
         from regcompass.config import CONFIG_DIR as _CONFIG_DIR
@@ -1585,6 +1942,7 @@ def fetch_one(
             unavailable_policy=(
                 known.robots_unavailable_policy if known is not None else "refuse"
             ),
+            scheme=robots_scheme(url, known.http_hosts if known is not None else ()),
         )
         robots = reading.policy
         if reading.note:
@@ -1606,6 +1964,19 @@ def fetch_one(
     return fr
 
 
+def _not_asked(exc: NotAskedError, rows, hook, progress) -> bool:
+    """Tell the hook each row a Discovery chose not to ask for, left pending.
+    True when the loop must stop (the deadline), False to go on."""
+    code = "time_limit" if isinstance(exc, DeadlineReachedError) else "fetch_error"
+    for row in rows:
+        progress(f"M10 crawl | not asked ({exc}): {row['url']}")
+        if code == "time_limit":
+            hook.skipped(row["url"], "limit", str(exc))
+        else:
+            hook.skipped(row["url"], "fetch_error", skip_reason("fetch_error", str(exc)))
+    return isinstance(exc, DeadlineReachedError)
+
+
 def crawl_economy(
     economy: str,
     storage: Storage,
@@ -1620,6 +1991,7 @@ def crawl_economy(
     robots: RobotsPolicy | None = None,
     progress: Callable[[str], None] = lambda s: None,
     hook: DiscoveryProgress | None = None,
+    gate: Callable[[str], None] | None = None,
 ) -> CrawlReport:
     """Discover seed targets, then fetch every pending manifest row for this
     economy. Resume is free: fetched rows are skipped, failed rows stay failed
@@ -1686,10 +2058,25 @@ def crawl_economy(
             progress(f"M10 crawl | robots.txt disallows, skipped: {url}")
             hook.skipped(url, "robots", skip_reason("robots"))
             continue
-        limiter.wait(url)
+        try:
+            # A bounded Discovery's own rules (its deadline, the hosts that
+            # did not answer), checked before the politeness wait.
+            if gate is not None:
+                gate(url)
+            limiter.wait(url)
+        except NotAskedError as exc:
+            if not _not_asked(exc, pending[i:] if isinstance(exc, DeadlineReachedError) else [row], hook, progress):
+                continue
+            break
         with log_stage(storage, stage="m10_crawl", method=f"{economy}:fetch", input_data=url) as rec:
             try:
                 fr = fetch(url)
+            except NotAskedError as exc:
+                # Not a failure of the Portal's: the row stays pending.
+                rec.decision = f"not asked: {type(exc).__name__}"
+                if not _not_asked(exc, pending[i:] if isinstance(exc, DeadlineReachedError) else [row], hook, progress):
+                    continue
+                break
             except Exception as exc:
                 error = f"{type(exc).__name__}: {exc}"
                 storage.manifest_mark_failed(url, error=error[:500])

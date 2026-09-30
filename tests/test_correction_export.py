@@ -25,7 +25,7 @@ from fastapi.testclient import TestClient
 
 from regcompass.export import ABSENCE_MARKER, COLUMNS, EXTRA_COLUMNS
 from regcompass.storage import Storage
-from regcompass.workbook import SHEET, WORKBOOK_COLUMNS, template_path
+from regcompass.workbook import FIRST_ROW, LAST_ROW, SHEET, WORKBOOK_COLUMNS, template_path
 
 from test_reviews import DOC_ID, QUOTES, _app, _seed_document, _seed_run
 
@@ -94,25 +94,32 @@ class TestTheCorrectedRow:
         assert row["Source URL"] == "https://sso.agc.gov.sg/Act/SEED1999"
         assert row["Economy"] == "Singapore"
 
+    # The Mapping accepted as-is below is on 7.3: a 7.1 or 7.2 Mapping on this
+    # Telecommunications Act ships no row at all (7.1 and 7.2 are answered once
+    # per Economy, by a framework law of the right family).
     def test_keeps_the_pipeline_confidence(self, client):
         c, run_id, ids = client
-        _decide(c, run_id, ids[0], "accepted")
+        _decide(c, run_id, ids[2], "accepted")
         _, _, rows, _ = _export(c, run_id)
-        accepted_confidence = _row_for_quote(rows, QUOTES[0])["Confidence"]
-        _correct(c, run_id, ids[0], "7.5")
+        accepted_confidence = _row_for_quote(rows, QUOTES[2])["Confidence"]
+        _correct(c, run_id, ids[2], "7.5")
         _, _, rows, _ = _export(c, run_id)
-        assert _row_for_quote(rows, QUOTES[0])["Confidence"] == accepted_confidence
+        assert _row_for_quote(rows, QUOTES[2])["Confidence"] == accepted_confidence
 
     def test_the_disclosure_joins_the_existing_notes(self, client):
         c, run_id, ids = client
-        _decide(c, run_id, ids[0], "accepted")
+        _decide(c, run_id, ids[2], "accepted")
         _, _, rows, _ = _export(c, run_id)
-        before = _row_for_quote(rows, QUOTES[0])["Notes"]
-        _correct(c, run_id, ids[0], "7.5")
+        before = _row_for_quote(rows, QUOTES[2])["Notes"]
+        _correct(c, run_id, ids[2], "7.5")
         _, _, rows, _ = _export(c, run_id)
-        notes = _row_for_quote(rows, QUOTES[0])["Notes"]
-        disclosure = "Reviewer override: Engine proposed 7.1; corrected to 7.5 by ryan"
-        assert notes == (f"{before}; {disclosure}" if before else disclosure)
+        notes = _row_for_quote(rows, QUOTES[2])["Notes"]
+        disclosure = "Reviewer override: Engine proposed 7.3; corrected to 7.5 by ryan"
+        # A scoring-trap flag belongs to the Indicator the row ships under: the
+        # 7.3 flag goes once the row is corrected to 7.5; every other note stays.
+        kept = before.split("; Check before submitting: ")[0]
+        assert "Check before submitting" not in notes
+        assert notes == (f"{kept}; {disclosure}" if kept else disclosure)
 
     def test_an_unnamed_reviewer_is_named_as_such(self, client):
         c, run_id, ids = client
@@ -133,13 +140,15 @@ class TestTheCorrectedRow:
 
     def test_joins_an_indicator_that_already_has_accepted_evidence(self, client):
         c, run_id, ids = client
-        _decide(c, run_id, ids[1], "accepted")  # 7.2, its own provision
-        _correct(c, run_id, ids[0], "7.2")
+        _decide(c, run_id, ids[3], "accepted")  # 7.4, its own provision
+        _correct(c, run_id, ids[0], "7.4")
         _, _, rows, _ = _export(c, run_id)
-        under_72 = [r for r in _provisions(rows) if r["Indicator ID"] == "7.2"]
-        assert sorted(r["Verbatim Snippet"] for r in under_72) == sorted(QUOTES[:2])
+        under_74 = [r for r in _provisions(rows) if r["Indicator ID"] == "7.4"]
+        assert sorted(r["Verbatim Snippet"] for r in under_74) == sorted(
+            [QUOTES[0], QUOTES[3]]
+        )
         assert not [
-            r for r in rows if r["Indicator ID"] == "7.2" and r["Article / Section"] == ABSENCE_MARKER
+            r for r in rows if r["Indicator ID"] == "7.4" and r["Article / Section"] == ABSENCE_MARKER
         ]
 
 
@@ -212,13 +221,16 @@ class TestTheTemplateIsUnchanged:
             ]
         # The corrected row sits under 7.5, and the Pillar formula reads it.
         entry = [
-            r for r in range(9, 110)
+            r for r in range(FIRST_ROW, LAST_ROW + 1)
             if ws.cell(row=r, column=WORKBOOK_COLUMNS.index("Verbatim Snippet") + 1).value
             == QUOTES[0]
         ]
         assert len(entry) == 1
         assert ws.cell(row=entry[0], column=WORKBOOK_COLUMNS.index("Indicator ID") + 1).value == "7.5"
-        assert ws.cell(row=entry[0], column=width).value == tws.cell(row=entry[0], column=width).value
+        # the template's formula, moved up with the deleted example rows
+        assert ws.cell(row=entry[0], column=width).value == tws.cell(
+            row=entry[0] + 2, column=width
+        ).value.replace(f"$E{entry[0] + 2}", f"$E{entry[0]}")
 
 
 class TestTheExportPreview:

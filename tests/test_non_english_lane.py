@@ -165,27 +165,28 @@ class TestOcrQualityDecision:
     CFG = PipelineConfig()
 
     def test_a_language_with_no_vendored_data_is_always_manual_review(self):
-        """China is a Live-test Economy and no Chinese traineddata is vendored,
-        so its pages are read as English whatever they say. A high mean
-        confidence over misread glyphs must not pass as a clean read."""
-        q = ocr_quality_for(0.97, None, self.CFG, ocr_policy("Chinese", "CN"), "eng", False)
+        """"Other" outside Malaysia (Tetum, Portuguese, Khmer) has no vendored
+        traineddata, so its pages are read as English whatever they say. A
+        high mean confidence over misread glyphs must not pass as a clean read."""
+        q = ocr_quality_for(0.97, None, self.CFG, ocr_policy("Other", "TL"), "eng", False)
         assert q.manual_review is True
         assert q.manual_review_reason is not None
-        assert "Chinese" in q.manual_review_reason
+        assert "Other" in q.manual_review_reason
         assert "eng" in q.manual_review_reason
-        assert q.cer_proxy_flag is True
-        assert q.dictionary_hit_rate is None
 
-    @pytest.mark.parametrize("language", ["Hindi", "Kazakh", "Mongolian", "Vietnamese"])
-    def test_every_unvendored_language_carries_the_reason(self, language):
-        q = ocr_quality_for(0.99, None, self.CFG, ocr_policy(language, "XX"), "eng", False)
-        assert q.manual_review is True
-        assert q.manual_review_reason and language in q.manual_review_reason
+    @pytest.mark.parametrize("language", ["Chinese", "Hindi", "Kazakh", "Mongolian", "Vietnamese"])
+    def test_every_live_test_script_is_read_with_its_own_data(self, language):
+        """Each of these is vendored now, so a good read is not forced to
+        review; the measured proxies still decide."""
+        policy = ocr_policy(language, "XX")
+        assert policy.manual_review_reason is None
+        q = ocr_quality_for(0.90, None, self.CFG, policy, "xxx+eng", False)
+        assert q.manual_review_reason is None
 
     def test_chinese_still_escalates_to_rapidocr(self):
         """The escalation is a SEPARATE question from the English dictionary:
-        RapidOCR reads Chinese, and a page tesseract read without Chinese data
-        is exactly the page it should see."""
+        RapidOCR reads Chinese, so a page tesseract reads with low confidence
+        has a second reader."""
         policy = ocr_policy("Chinese", "CN")
         assert policy.rapidocr_escalation is True
         assert policy.dictionary_proxy is False
@@ -507,3 +508,168 @@ class TestAFailedGlossLaneIsVisible:
         said = [ln for ln in lines if "no English rendering" in ln]
         assert said, lines
         assert str(result.glosses_unavailable) in said[0]
+
+
+# ---------------------------------------------------------------------------
+# a text layer that is not the Document's text goes to OCR
+# ---------------------------------------------------------------------------
+
+# The stored text layer of Lao PDR's Decree on Electronic Commerce No. 296: a
+# legacy Lao font whose glyphs are mapped onto Latin letters.
+LAO_LEGACY_FONT = (
+    "iimijCSC;Jn1nsun\n"
+    "rl\"l1Jf1iUl\"ljC9C;Jrllm;un CCJ.JlJ mlJ~ 2\"1EJ, rlilJCC';JrltJ:'jlJ ~1Jfo qi rl\"li.JtJ;Jrl\"l1J\n"
+    "~fli CC;J::; ;;inf\\, lClEJUil~~9jU1ijC8C;Jll 'te1sun.\n"
+    "JJinm 3 nil.J3:Vlt.Jioo,i1u\n"
+    "1. ~ii, m.J\"lrnf):i tJn~u @D fltJn~u inr1,cDumu21EJ ~uii, @ muu;3mum,:imc;Sn\n"
+) * 6
+
+
+def garbage_layer_spy(monkeypatch):
+    """The text layer comes back as the legacy-font garbage and OCR is a
+    recorder; nothing forces the OCR decision, so the pipeline must make it."""
+    import regcompass.pipeline as pipeline_mod
+
+    def garbage_extract(raw, fmt, doc_id, engine="pdfplumber"):
+        from regcompass.extract import ExtractionStats
+
+        return CanonicalText(
+            document_id=doc_id,
+            source_sha256="b" * 64,
+            extractor="pdfplumber",
+            extractor_version="x",
+            full_text=LAO_LEGACY_FONT,
+            pages=[PageSpan(page_number=1, char_start=0, char_end=len(LAO_LEGACY_FONT))],
+        ), ExtractionStats()
+
+    seen = spy_ocr(monkeypatch)
+    monkeypatch.setattr(pipeline_mod, "should_ocr", should_ocr_real())
+    monkeypatch.setattr(pipeline_mod, "extract_with_stats", garbage_extract)
+    return seen
+
+
+def should_ocr_real():
+    from regcompass.shortlist import should_ocr
+
+    return should_ocr
+
+
+class TestGarbageTextLayerGoesToOcr:
+    def test_the_run_reads_a_legacy_font_pdf_with_ocr(self, tmp_path, monkeypatch):
+        seen = garbage_layer_spy(monkeypatch)
+        storage = Storage(tmp_path / "garbage.db")
+        storage.apply_schema()
+        lines: list[str] = []
+        run_document(
+            storage, "doc_la_decree_296", TELECOM, "LA", (7,), FAKE_ENGINE, "run_one",
+            completion_fn=fake_completion, embed_fn=fake_embed, language="Lao",
+            progress=lines.append,
+        )
+        assert seen["languages"] == "lao+eng"
+        assert any("text layer unusable" in line and "Lao script" in line for line in lines)
+
+    def test_the_same_layer_under_english_is_left_alone(self, tmp_path, monkeypatch):
+        """Latin letters are what an English Document's layer should hold."""
+        seen = garbage_layer_spy(monkeypatch)
+        storage = Storage(tmp_path / "garbage.db")
+        storage.apply_schema()
+        run_document(
+            storage, "doc_sg_x", TELECOM, "SG", (7,), FAKE_ENGINE, "run_one",
+            completion_fn=fake_completion, embed_fn=fake_embed, language="English",
+        )
+        assert "languages" not in seen
+
+    def test_a_stored_garbage_layer_is_read_again(self, tmp_path, monkeypatch):
+        """A stream stored before garbage layers were recognised is not reused:
+        the Document is read again and its OCR replaces it."""
+        import hashlib
+
+        from regcompass.extract import extraction_key, load_extraction, store_extraction
+        from regcompass.languages import ocr_policy, tesseract_languages
+
+        storage = Storage(tmp_path / "garbage.db")
+        storage.apply_schema()
+        raw = TELECOM.read_bytes()
+        key = extraction_key(
+            hashlib.sha256(raw).hexdigest(), ocr_languages=tesseract_languages("Lao", "LA"),
+            policy=ocr_policy("Lao", "LA"), config=PipelineConfig(),
+        )
+        stale = CanonicalText(
+            document_id="doc_la_decree_296", source_sha256=hashlib.sha256(raw).hexdigest(),
+            extractor="pdfplumber", extractor_version="x", full_text=LAO_LEGACY_FONT,
+            pages=[PageSpan(page_number=1, char_start=0, char_end=len(LAO_LEGACY_FONT))],
+        )
+        store_extraction(storage, key, stale, source_format="pdf")
+        seen = garbage_layer_spy(monkeypatch)
+        run_document(
+            storage, "doc_la_decree_296", TELECOM, "LA", (7,), FAKE_ENGINE, "run_one",
+            completion_fn=fake_completion, embed_fn=fake_embed, language="Lao",
+        )
+        assert seen["languages"] == "lao+eng"
+        assert load_extraction(storage, key, "doc_la_decree_296").ocr_applied is True
+
+
+# ---------------------------------------------------------------------------
+# a Document with no headings at all still reaches the Gate, in passages
+# ---------------------------------------------------------------------------
+
+NOTICE = (
+    "The Ministry reminds all service providers that personal information collected in the\n"
+    "course of providing an online service shall be stored on servers located within the\n"
+    "territory and shall not be transferred abroad without the approval of the Ministry.\n"
+    "Providers shall notify the Ministry of any breach of personal data within seventy-two\n"
+    "hours of its discovery, and shall keep a record of every transfer for five years.\n\n"
+) * 8
+
+
+class TestUnstructuredDocumentThroughTheRun:
+    def test_passages_are_gated_mapped_and_cited(self, tmp_path):
+        path = tmp_path / "notice.txt"
+        path.write_text(NOTICE, encoding="utf-8")
+        storage = Storage(tmp_path / "notice.db")
+        storage.apply_schema()
+        records = run_document(
+            storage, "doc_xx_notice", path, "SG", (7,), FAKE_ENGINE, "run_notice",
+            indicators=("7.2", "7.4"),
+            completion_fn=fake_completion, embed_fn=fake_embed, language="English",
+        )
+        labels = [
+            r["section_label"] for r in storage.conn.execute(
+                "SELECT section_label FROM chunks WHERE document_id = ? ORDER BY char_start",
+                ("doc_xx_notice",),
+            )
+        ]
+        assert labels and all(re.fullmatch(r"Passage \d+", label) for label in labels)
+        passed = [r for r in records if r.verification_status == "passed"]
+        assert passed, "no passage reached the Engine"
+        assert all(re.fullmatch(r"Passage \d+", r.section) for r in passed)
+
+
+class TestGarbageLayerReadInItsEconomysScripts:
+    def test_an_indian_gazette_filed_as_english_is_read_with_hindi(self, tmp_path, monkeypatch):
+        """doc_in_H202344: a Hindi gazette whose Devanagari never reached the
+        text layer, filed under English. OCR reads it with Hindi, which India
+        publishes in, and not with English alone."""
+        import regcompass.pipeline as pipeline_mod
+        from regcompass.extract import ExtractionStats
+
+        dropped = "] 417\n, ;\n1. (1) , ,\n(2) ,\n(i) ;\n(ii) ,\n418 [ 2\n(3) ,\n- -\n2. , ,\n" * 20
+
+        def dropped_extract(raw, fmt, doc_id, engine="pdfplumber"):
+            return CanonicalText(
+                document_id=doc_id, source_sha256="b" * 64, extractor="pdfplumber",
+                extractor_version="x", full_text=dropped,
+                pages=[PageSpan(page_number=1, char_start=0, char_end=len(dropped))],
+            ), ExtractionStats()
+
+        seen = spy_ocr(monkeypatch)
+        monkeypatch.setattr(pipeline_mod, "should_ocr", should_ocr_real())
+        monkeypatch.setattr(pipeline_mod, "extract_with_stats", dropped_extract)
+        storage = Storage(tmp_path / "in.db")
+        storage.apply_schema()
+        run_document(
+            storage, "doc_in_h202344", TELECOM, "IN", (7,), FAKE_ENGINE, "run_one",
+            completion_fn=fake_completion, embed_fn=fake_embed, language="English",
+        )
+        assert seen["languages"] == "hin+eng"
+        assert seen["policy"].rapidocr_escalation is False

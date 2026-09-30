@@ -21,6 +21,7 @@ import RecordPane from './RecordPane'
 import ErrorNote from './ErrorNote'
 import { ApiError, plainError, type PlainError } from './errors'
 import { isForFocusedControl, isInShell } from './keys'
+import { DEFAULT_QUEUE_SORT, orderQueue, type QueueSort } from './queueOrder'
 
 // What the reviewer is told when a save or a load fails. Plain words, shown
 // beside the decision buttons, and the panes stay where they are: one failed
@@ -42,6 +43,7 @@ export default function AuditView({
   runId,
   queue = false,
   queueFilter = 'all',
+  queueSort = DEFAULT_QUEUE_SORT,
   startMappingId = null,
   onBack,
   onReviewSaved,
@@ -60,6 +62,8 @@ export default function AuditView({
   queue?: boolean
   // Which queue rows to step through: all, not reviewed, or corrected.
   queueFilter?: QueueFilter
+  // Stepping through the queue follows the order the list was read in.
+  queueSort?: QueueSort
   // The row the reviewer opened, so the view lands on it rather than on the
   // top of the list.
   startMappingId?: string | null
@@ -99,7 +103,7 @@ export default function AuditView({
   useEffect(() => {
     let live = true
     const loading: Promise<Row[]> = queue
-      ? fetchReviewQueue(runId, queueFilter).then((q) => q.records)
+      ? fetchReviewQueue(runId, queueFilter).then((q) => orderQueue(q.records, queueSort))
       : fetchRecords(documentId, runId)
     loading
       .then((rs) => {
@@ -117,7 +121,7 @@ export default function AuditView({
     return () => {
       live = false
     }
-  }, [documentId, runId, queue, queueFilter, startMappingId])
+  }, [documentId, runId, queue, queueFilter, queueSort, startMappingId])
 
   const current = records?.[idx] ?? null
   // In queue order the PDF pane follows the row, not the Document the reviewer

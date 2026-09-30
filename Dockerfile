@@ -6,7 +6,7 @@ FROM python:3.12-slim
 # Tesseract is the OCR ENGINE binary for the M2 escalation lane. The vendored
 # tessdata under vendor/ is language data, not the engine, so the package must
 # be installed here (tesseract-ocr-eng covers the born-digital demo corpus;
-# the vendored eng/msa/lao/ind/tha/rus traineddata files, picked per Document
+# the vendored traineddata files under vendor/tessdata, picked per Document
 # from its Language, are what the code actually reads).
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \

@@ -44,6 +44,7 @@ from .export import (
 )
 from .extract import format_for_extractor
 from .paths import resolve_stored_path
+from .wording import plain_rationale
 
 QUOTE_PREVIEW_CHARS = 160
 # Two words share a line when their vertical overlap is at least half the
@@ -312,6 +313,9 @@ class RecordDetail(_Model):
     record: MappingRecord
     section_label: str | None
     highlights: list[HighlightRect]
+    # The rationale as a reader sees it (wording.plain_rationale): the RDTII's
+    # own words in place of the prompt's "rung". record.impact stays verbatim.
+    impact_display: str | None = None
     highlight_available: bool
     quote_char_start: int | None
     quote_char_end: int | None
@@ -541,6 +545,7 @@ def detail_for(
             source_text = record.verbatim_quote
     return RecordDetail(
         record=record,
+        impact_display=plain_rationale(record.impact, record.indicator_id),
         section_label=section_label,
         highlights=highlights,
         highlight_available=bool(highlights),

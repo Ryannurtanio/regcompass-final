@@ -1,9 +1,10 @@
 """The Evidence Export as the organizer's own workbook (M9 / final round).
 
 Lanes: the vendored template is a byte-identical copy of the organizers' file;
-the writer fills Output Data from row 9 and never past row 109, leaving the
-Pillar formula, the four validations, the autofilter and the other six sheets
-exactly as the organizers wrote them; Indicator IDs are TEXT cells (4.01 and
+the writer deletes the two example rows as the Instructions ask, shifting the
+Pillar formula, the four validations, the autofilter and the Coverage Matrix
+bounds up with them exactly as a spreadsheet application would, then fills
+Output Data from row 7 and never past row 107; Indicator IDs are TEXT cells (4.01 and
 12.4.1 must survive); Language of Source is one of the organizer's eleven
 values, with "Other" plus a Notes disclosure when nothing honest is known; over
 the 101-row cap, accepted rows are picked round-robin over Economies by
@@ -136,14 +137,15 @@ def pillar_from_formula(value: str) -> int | str:
 
 
 class TestWriteWorkbook:
-    def test_rows_land_from_row_9_in_the_organizers_column_order(self, tmp_path):
+    def test_rows_land_from_row_7_in_the_organizers_column_order(self, tmp_path):
         rows = [wb_row(), wb_row(**{"Indicator ID": "7.3", "Article / Section": "Art. 60"})]
         result, wb = written(tmp_path, rows)
         ws = wb[SHEET]
         assert result.n_rows == 2 and result.rows_cut == 0
-        assert ws["A9"].value == "Indonesia"
-        assert ws["F10"].value == "Art. 60"
-        assert ws["N9"].value == "Bahasa Indonesia"
+        assert FIRST_ROW == 7
+        assert ws["A7"].value == "Indonesia"
+        assert ws["F8"].value == "Art. 60"
+        assert ws["N7"].value == "Bahasa Indonesia"
         for col, header in enumerate(WORKBOOK_COLUMNS, start=1):
             value = ws.cell(row=FIRST_ROW, column=col).value
             if header == "Confidence":
@@ -162,8 +164,8 @@ class TestWriteWorkbook:
         ]
         _, wb = written(tmp_path, rows)
         ws = wb[SHEET]
-        assert [ws.cell(row=r, column=5).value for r in (9, 10, 11)] == ["4.01", "12.4.1", "6.1"]
-        for r in (9, 10, 11):
+        assert [ws.cell(row=r, column=5).value for r in (7, 8, 9)] == ["4.01", "12.4.1", "6.1"]
+        for r in (7, 8, 9):
             assert ws.cell(row=r, column=5).data_type == "s"
             assert ws.cell(row=r, column=5).number_format == "@"
 
@@ -171,23 +173,60 @@ class TestWriteWorkbook:
         rows = [wb_row(**{"Indicator ID": "12.4.1", "Article / Section": "s. 2"})]
         _, wb = written(tmp_path, rows)
         ws = wb[SHEET]
-        assert ws["O9"].value == (
-            '=IF($E9="","",IFERROR(INT($E9),IFERROR(VALUE(LEFT($E9,FIND(".",$E9)-1)),"?")))'
+        assert ws["O7"].value == (
+            '=IF($E7="","",IFERROR(INT($E7),IFERROR(VALUE(LEFT($E7,FIND(".",$E7)-1)),"?")))'
         )
-        assert ws["O109"].value.startswith("=IF($E109=")
-        assert pillar_from_formula(ws["E9"].value) == 12
+        assert ws["O107"].value.startswith("=IF($E107=")
+        assert ws["O108"].value is None
+        assert pillar_from_formula(ws["E7"].value) == 12
 
-    def test_example_rows_are_cleared_not_deleted(self, tmp_path):
-        """Deleting rows 7 and 8 would shift every O-column formula, the
-        autofilter range and the Coverage Matrix COUNTIFS bounds, which openpyxl
-        does not translate. The values go; the rows stay."""
+    def test_example_rows_are_deleted_as_the_instructions_ask(self, tmp_path):
+        """Instructions B11: "Delete example rows ... Remove rows 7 and 8
+        before submitting." The rows go, and everything below moves up two
+        rows the way a spreadsheet application moves it: formulas, row heights,
+        validations, the autofilter and the Coverage Matrix bounds."""
+        template = load_workbook(template_path())[SHEET]
         result, wb = written(tmp_path, [wb_row()])
         ws = wb[SHEET]
-        for row in EXAMPLE_ROWS:
-            for col in range(1, len(WORKBOOK_COLUMNS) + 2):
-                assert ws.cell(row=row, column=col).value is None
-        assert result.example_rows_cleared is True
-        assert ws["A6"].value.startswith("▸ EXAMPLE ROWS")  # the banner stays
+        assert EXAMPLE_ROWS == (7, 8)
+        assert result.example_rows_deleted is True
+        assert "deleted" in result.note
+        snippets = {template.cell(row=r, column=9).value for r in EXAMPLE_ROWS}
+        for row in ws.iter_rows():
+            for cell in row:
+                assert cell.value not in snippets
+        # the banner labelled the example rows; they are gone, so its text goes
+        # while the row, its merge and its style stay
+        assert template["A6"].value.startswith("▸ EXAMPLE ROWS")
+        assert ws["A6"].value is None
+        assert "A6:O6" in {str(m) for m in ws.merged_cells.ranges}
+        assert ws["A6"].font.b == template["A6"].font.b
+        assert ws["A6"].fill.fgColor.rgb == template["A6"].fill.fgColor.rgb
+        assert ws.row_dimensions[7].height == template.row_dimensions[9].height
+        assert ws.row_dimensions[8].height == template.row_dimensions[10].height
+
+    def test_every_formula_reading_output_data_moves_with_the_rows(self, tmp_path):
+        template = load_workbook(template_path())
+        _, wb = written(tmp_path, [wb_row()])
+        def moved(m: re.Match) -> str:
+            return re.sub(
+                r"\d+", lambda d: str(int(d.group(0)) - 2 if int(d.group(0)) >= 9 else d.group(0)),
+                m.group(0),
+            )
+
+        def shift(formula: str) -> str:
+            return re.sub(r"'Output Data'!\$[A-Z]+\$\d+(?::\$[A-Z]+\$\d+)?", moved, formula)
+
+        n = 0
+        for name in template.sheetnames:
+            if name == SHEET:
+                continue
+            for row in template[name].iter_rows():
+                for cell in row:
+                    if isinstance(cell.value, str) and "Output Data" in cell.value:
+                        assert wb[name][cell.coordinate].value == shift(cell.value)
+                        n += 1
+        assert n > 0
 
     def test_template_structure_is_left_alone(self, tmp_path):
         _, wb = written(tmp_path, [wb_row()])
@@ -201,21 +240,24 @@ class TestWriteWorkbook:
             "Instructions",
         ]
         ws = wb[SHEET]
-        assert ws.auto_filter.ref == "A4:M109"
-        assert ws.freeze_panes == "A9"
+        assert ws.auto_filter.ref == "A4:M107"
+        assert ws.freeze_panes == "A7"
         validations = {
             str(dv.sqref): (dv.type, dv.formula1) for dv in ws.data_validations.dataValidation
         }
-        assert validations["G9:G109"] == ("list", '"NEW,KNOWN"')
-        assert validations["N9:N109"] == (
+        assert validations["G7:G107"] == ("list", '"NEW,KNOWN"')
+        assert validations["N7:N107"] == (
             "list",
             '"English,Thai,Vietnamese,Bahasa Indonesia,Chinese,Hindi,Kazakh,'
             'Russian,Lao,Mongolian,Other"',
         )
-        assert validations["L9:L109"][0] == "decimal"
-        assert validations["J9:J109"] == ("custom", "lte(LEN(J9),300)")
+        assert validations["L7:L107"][0] == "decimal"
+        assert validations["J7:J107"] == ("custom", "lte(LEN(J7),300)")
+        # the template's NEW highlight starts one row into the entry area; it
+        # moves with it
+        assert [str(cf.sqref) for cf in ws.conditional_formatting] == ["G8:G107"]
         assert wb["Coverage Matrix"]["B4"].value == (
-            "=COUNTIFS('Output Data'!$O$9:$O$109,1,'Output Data'!$A$9:$A$109,$A4)"
+            "=COUNTIFS('Output Data'!$O$7:$O$107,1,'Output Data'!$A$7:$A$107,$A4)"
         )
         assert wb["Instructions"]["A1"].value.startswith("How to complete")
 
@@ -223,8 +265,8 @@ class TestWriteWorkbook:
         rows = [wb_row(), wb_row(**{"Confidence": "", "Article / Section": "s. 9"})]
         _, wb = written(tmp_path, rows)
         ws = wb[SHEET]
-        assert ws["L9"].value == pytest.approx(0.81)
-        assert ws["L10"].value is None
+        assert ws["L7"].value == pytest.approx(0.81)
+        assert ws["L8"].value is None
 
     def test_never_writes_past_the_last_entry_row(self, tmp_path):
         rows = [wb_row(**{"Article / Section": f"s. {i}"}) for i in range(150)]
@@ -440,7 +482,8 @@ class TestRowCap:
         # Economy are its most confident rows; the cut must take the tail.
         for economy in {r["Economy"] for r in rows}:
             kept = sorted(
-                int(re.match(r"s\. (\d+)", r["Article / Section"]).group(1))
+                # "Art." where the Economy drafts in Articles (labels.py)
+                int(re.match(r"(?:s|Art)\. (\d+)", r["Article / Section"]).group(1))
                 for r in rows
                 if r["Economy"] == economy
             )
@@ -572,7 +615,7 @@ class TestFromTheDatabase:
         assert result.xlsx_path == tmp_path / "out" / "submission.xlsx"
         assert result.xlsx_path.exists()
         ws = load_workbook(result.xlsx_path)[SHEET]
-        assert ws["A9"].value == "Singapore"
+        assert ws.cell(row=FIRST_ROW, column=1).value == "Singapore"
 
     def test_a_documents_recorded_language_reaches_the_column(self, tmp_path):
         """The Document's own Language beats the Portal default: Singapore's
@@ -584,7 +627,11 @@ class TestFromTheDatabase:
         storage.conn.commit()
         assert all(m["language"] == "Thai" for m in storage.document_meta().values())
         result = export_from_db(storage, tmp_path / "out")
-        rows = csv_rows(result.csv_path)
+        # provision rows: the absence rows name the Portal's default Language
+        rows = [
+            r for r in csv_rows(result.csv_path)
+            if r["Article / Section"] != "No provision found"
+        ]
         assert rows and {r[LANGUAGE_COLUMN] for r in rows} == {"Thai"}
         ws = load_workbook(result.xlsx_path)[SHEET]
         assert ws["N9"].value == "Thai"
@@ -603,3 +650,299 @@ class TestFromTheDatabase:
         assert (out / "submission.csv").exists()
         assert (out / "submission.xlsx").exists()
         assert "submission.xlsx" in result.output
+
+
+# ---------------------------------------------------------------------------
+# the Run Record sheet: the steward's check that the hour happened
+# ---------------------------------------------------------------------------
+
+
+def _countif(ws, value: str) -> int:
+    """What the organizers' E58/E59 COUNTIF over C12:C56 evaluates to."""
+    return sum(1 for r in range(12, 57) if ws.cell(row=r, column=3).value == value)
+
+
+class TestRunRecordSheet:
+    def _sheet(self, n_docs=2, uploads=()):
+        from regcompass.workbook import FetchedDocument, RunRecordPass, RunRecordSheet
+
+        return RunRecordSheet(
+            pass_a=RunRecordPass("openrouter / openai/gpt-5.6-luna", "10:05", "10:40", 35.0, 1.25),
+            pass_b=RunRecordPass("openrouter / qwen/qwen3-30b-a3b-instruct-2507", "10:42", "10:58", 16.0, 0.11),
+            documents=[
+                FetchedDocument(
+                    source_url=f"https://www.pdp.gov.my/act-{i}.pdf",
+                    fetched_during="Engine A pass", time_hhmm=f"10:0{i}",
+                    size_kb=812 + i, file_type="PDF", title=f"Act {i}",
+                )
+                for i in range(n_docs)
+            ],
+            uploads=list(uploads),
+        )
+
+    def test_pass_rows_document_log_and_counters(self, tmp_path):
+        from regcompass.workbook import RUN_RECORD_SHEET
+
+        result = write_workbook(
+            template_path(), tmp_path / "x.xlsx", [], run_record=self._sheet()
+        )
+        ws = load_workbook(result.path)[RUN_RECORD_SHEET]
+        assert [ws.cell(row=5, column=c).value for c in range(1, 7)] == [
+            "Engine A — first pass", "openrouter / openai/gpt-5.6-luna",
+            "10:05", "10:40", 35, 1.25,
+        ]
+        assert [ws.cell(row=6, column=c).value for c in range(2, 7)] == [
+            "openrouter / qwen/qwen3-30b-a3b-instruct-2507", "10:42", "10:58", 16, 0.11,
+        ]
+        assert [ws.cell(row=12, column=c).value for c in range(1, 7)] == [
+            1, "https://www.pdp.gov.my/act-0.pdf", "Engine A pass", "10:00", 812, "PDF",
+        ]
+        assert ws["A13"].value == 2 and ws["A14"].value is None
+        # the example row is emptied, the organizers' formulas are untouched
+        assert all(ws.cell(row=11, column=c).value is None for c in range(1, 7))
+        assert ws["E58"].value == '=COUNTIF(C12:C56,"Engine A pass")'
+        assert ws["E59"].value == '=COUNTIF(C12:C56,"Engine B pass")'
+        assert ws["F7"].value == "=SUM(F5:F6)"
+        assert _countif(ws, "Engine A pass") == 2
+        assert _countif(ws, "Engine B pass") == 0
+        # the short note is the team's own words
+        assert all(ws.cell(row=r, column=2).value is None for r in range(62, 68))
+
+    def test_uploads_are_named_but_never_logged_as_fetched(self, tmp_path):
+        from regcompass.workbook import RUN_RECORD_SHEET
+
+        result = write_workbook(
+            template_path(), tmp_path / "x.xlsx", [],
+            run_record=self._sheet(n_docs=1, uploads=["Scanned Act"]),
+        )
+        ws = load_workbook(result.path)[RUN_RECORD_SHEET]
+        assert _countif(ws, "Engine A pass") == 1
+        assert "Scanned Act" in ws["A57"].value
+        assert "not downloaded" in ws["A57"].value
+
+    def test_no_run_record_leaves_the_sheet_as_the_template_has_it(self, tmp_path):
+        from regcompass.workbook import RUN_RECORD_SHEET
+
+        result = write_workbook(template_path(), tmp_path / "x.xlsx", [])
+        ws = load_workbook(result.path)[RUN_RECORD_SHEET]
+        assert ws["C11"].value == "Engine A pass"  # the organizers' example row
+        assert ws["B5"].value is None
+
+
+class TestRunRecordFromTheDatabase:
+    """export_from_db fills the Run Record sheet from the Run Records: the
+    Engine A pass is its Discovery plus its Run, the Engine B pass is its Run
+    alone, the log lists what the Discovery downloaded, and an upload during
+    the hour is not a download."""
+
+    def _hour(self, tmp_path):
+        from test_pipeline import seed_db_from_goldens
+
+        storage = seed_db_from_goldens(tmp_path / "db.sqlite")
+
+        def record(run_id, kind, engine, start, end, **finish):
+            storage.run_start(
+                run_id=run_id, kind=kind, economy="SG",
+                pillars=[] if kind == "discovery" else [6, 7],
+                indicators=None, engine=engine, started_at=start,
+            )
+            storage.run_finish(run_id, status="completed", ended_at=end, **finish)
+
+        # 10:00-10:04 Bangkok: Engine A's Discovery downloads two Documents
+        record("disc_a", "discovery", None, "2026-10-15T03:00:00.000000Z",
+               "2026-10-15T03:04:00.000000Z", documents_fetched=2)
+        for i, (url, ct, size) in enumerate([
+            ("https://sso.agc.gov.sg/Act/PDPA2012?format=pdf", "application/pdf", 812 * 1024),
+            ("https://sso.agc.gov.sg/Act/CA2018", "text/html; charset=utf-8", 300 * 1024),
+        ]):
+            storage.manifest_add_pending(url, "SG")
+            storage.manifest_mark_fetched(
+                url, http_status=200, method="httpx", sha256=f"{i}" * 64,
+                content_type=ct, size_bytes=size, local_path=f"SG/raw/doc{i}",
+            )
+            storage.conn.execute(
+                "UPDATE crawl_manifest SET fetched_at = ? WHERE url = ?",
+                (f"2026-10-15T03:0{i + 1}:30+00:00", url),
+            )
+        # an index page and a byte-duplicate are not Documents downloaded
+        storage.manifest_add_pending("https://sso.agc.gov.sg/Browse", "SG", kind="index")
+        storage.manifest_mark_fetched(
+            "https://sso.agc.gov.sg/Browse", http_status=200, method="httpx",
+            sha256="9" * 64, content_type="text/html", size_bytes=10, local_path="SG/raw/i",
+        )
+        storage.conn.execute(
+            "UPDATE crawl_manifest SET fetched_at = '2026-10-15T03:02:00+00:00'"
+            " WHERE url = 'https://sso.agc.gov.sg/Browse'"
+        )
+        # a file added by hand while the Discovery was still running: its
+        # manifest row sits inside the Discovery's window, and it is still
+        # not a download
+        storage.manifest_add_pending("upload:" + "8" * 64, "SG")
+        storage.manifest_mark_fetched(
+            "upload:" + "8" * 64, http_status=200, method="manual", sha256="8" * 64,
+            content_type="application/pdf", size_bytes=2048, local_path="SG/raw/up",
+        )
+        storage.conn.execute(
+            "UPDATE crawl_manifest SET fetched_at = '2026-10-15T03:03:00+00:00'"
+            " WHERE url = ?", ("upload:" + "8" * 64,),
+        )
+        storage.upsert_document(
+            "doc_x", "SG", "8" * 64, local_path="SG/raw/up", source_kind="manual",
+        )
+        storage.conn.commit()
+        # 10:04: the add's own record
+        record("disc_upload", "discovery", None, "2026-10-15T03:04:10.000000Z",
+               "2026-10-15T03:04:20.000000Z",
+               details={"manual": True, "source": "upload", "document_id": "doc_x",
+                        "source_url": "https://sso.agc.gov.sg/Act/Scanned"})
+        record("run_a", "run", "engine-a", "2026-10-15T03:05:00.000000Z",
+               "2026-10-15T03:40:00.000000Z", cost_usd=1.25)
+        # the Engine B Run that owns the seeded Mappings
+        record("run_one", "run", "engine-b", "2026-10-15T03:42:00.000000Z",
+               "2026-10-15T03:58:00.000000Z", cost_usd=0.11)
+        return storage
+
+    def test_the_exported_hour_fills_the_sheet(self, tmp_path):
+        from regcompass.pipeline import export_from_db
+        from regcompass.workbook import RUN_RECORD_SHEET
+
+        storage = self._hour(tmp_path)
+        result = export_from_db(storage, tmp_path / "out", run_id="run_one")
+        ws = load_workbook(result.xlsx_path)[RUN_RECORD_SHEET]
+        assert ws["B5"].value == "openrouter / openai/gpt-5.6-luna"
+        assert (ws["C5"].value, ws["D5"].value, ws["E5"].value) == ("10:00", "10:40", 40)
+        assert ws["F5"].value == 1.25
+        assert ws["B6"].value == "openrouter / qwen/qwen3-30b-a3b-instruct-2507"
+        assert (ws["C6"].value, ws["D6"].value, ws["E6"].value) == ("10:42", "10:58", 16)
+        assert ws["F6"].value == 0.11
+        log = [
+            [ws.cell(row=r, column=c).value for c in range(2, 7)]
+            for r in range(12, 57) if ws.cell(row=r, column=3).value
+        ]
+        assert log == [
+            ["https://sso.agc.gov.sg/Act/PDPA2012?format=pdf", "Engine A pass", "10:01", 812, "PDF"],
+            ["https://sso.agc.gov.sg/Act/CA2018", "Engine A pass", "10:02", 300, "HTML"],
+        ]
+        assert _countif(ws, "Engine A pass") == 2
+        assert _countif(ws, "Engine B pass") == 0
+        assert "not downloaded" in ws["A57"].value
+
+    def test_exporting_the_engine_a_run_fills_the_same_sheet(self, tmp_path):
+        from regcompass.pipeline import run_record_sheet
+
+        storage = self._hour(tmp_path)
+        from_b = run_record_sheet(storage, "run_one")
+        from_a = run_record_sheet(storage, "run_a")
+        assert from_a == from_b
+        assert [d.fetched_during for d in from_a.documents] == ["Engine A pass"] * 2
+        assert from_a.uploads == ["https://sso.agc.gov.sg/Act/Scanned"]
+
+
+class TestRunRecordHourShapes:
+    """The hour as it really goes: Runs never fetch, so every fetch of the
+    hour is logged once, as the Engine A pass, and the Engine B pass logs
+    none, however the Runs overlap or an add lands between them."""
+
+    def _db(self, tmp_path, a_run, b_run, fetches):
+        """fetches: [(discovery_id, start, end, details, [(url, fetched_at, path)])]"""
+        from test_pipeline import seed_db_from_goldens
+
+        storage = seed_db_from_goldens(tmp_path / "db.sqlite")
+        for i, (disc, start, end, details, docs) in enumerate(fetches):
+            storage.run_start(run_id=disc, kind="discovery", economy="SG", pillars=[],
+                              indicators=None, engine=None, started_at=start)
+            storage.run_finish(disc, status="completed", ended_at=end,
+                               documents_fetched=len(docs), details=details)
+            for j, (url, at, path) in enumerate(docs):
+                storage.manifest_add_pending(url, "SG")
+                storage.manifest_mark_fetched(
+                    url, http_status=200, method="manual" if details else "httpx",
+                    sha256=f"{i}{j}".ljust(64, "0"), content_type="application/pdf",
+                    size_bytes=4096, local_path=path,
+                )
+                storage.conn.execute(
+                    "UPDATE crawl_manifest SET fetched_at = ? WHERE url = ?", (at, url)
+                )
+        storage.conn.commit()
+        for run_id, engine, (start, end) in (("run_a", "engine-a", a_run), ("run_one", "engine-b", b_run)):
+            storage.run_start(run_id=run_id, kind="run", economy="SG", pillars=[6, 7],
+                              indicators=None, engine=engine, started_at=start)
+            storage.run_finish(run_id, status="completed", ended_at=end)
+        return storage
+
+    def _log(self, sheet):
+        return [(d.source_url, d.fetched_during) for d in sheet.documents]
+
+    def test_an_add_between_the_runs_is_the_engine_a_pass(self, tmp_path):
+        from regcompass.pipeline import run_record_sheet
+
+        storage = self._db(
+            tmp_path,
+            ("2026-10-15T03:10:00Z", "2026-10-15T03:30:00Z"),
+            ("2026-10-15T03:40:00Z", "2026-10-15T03:50:00Z"),
+            [
+                ("disc_1", "2026-10-15T03:00:00Z", "2026-10-15T03:05:00Z", {},
+                 [("https://sso.agc.gov.sg/Act/A", "2026-10-15T03:01:00+00:00", "SG/raw/a.pdf")]),
+                ("disc_add", "2026-10-15T03:32:00Z", "2026-10-15T03:33:00Z",
+                 {"manual": True, "source": "url"},
+                 [("https://sso.agc.gov.sg/Act/B", "2026-10-15T03:32:30+00:00", "SG/raw/b.pdf")]),
+            ],
+        )
+        sheet = run_record_sheet(storage, "run_one")
+        assert self._log(sheet) == [
+            ("https://sso.agc.gov.sg/Act/A", "Engine A pass"),
+            ("https://sso.agc.gov.sg/Act/B", "Engine A pass"),
+        ]
+        assert (sheet.pass_a.start_hhmm, sheet.pass_a.end_hhmm) == ("10:00", "10:33")
+        assert sheet.pass_b.start_hhmm == "10:40"
+
+    def test_runs_that_overlap_log_each_document_once(self, tmp_path):
+        from regcompass.pipeline import run_record_sheet
+
+        storage = self._db(
+            tmp_path,
+            ("2026-10-15T03:10:00Z", "2026-10-15T03:30:00Z"),
+            ("2026-10-15T03:15:00Z", "2026-10-15T03:35:00Z"),  # B started while A ran
+            [
+                ("disc_1", "2026-10-15T03:00:00Z", "2026-10-15T03:05:00Z", {},
+                 [("https://sso.agc.gov.sg/Act/A", "2026-10-15T03:01:00+00:00", "SG/raw/a.pdf"),
+                  ("https://sso.agc.gov.sg/Act/C", "2026-10-15T03:02:00+00:00", "SG/raw/c.pdf")]),
+            ],
+        )
+        for exported in ("run_a", "run_one"):
+            sheet = run_record_sheet(storage, exported)
+            assert [d for _, d in self._log(sheet)] == ["Engine A pass"] * 2
+
+    def test_the_prepared_shape_logs_no_engine_b_rows(self, tmp_path):
+        """Prepared data: a Discovery, then several adds by address between
+        and after the Engine A Run, then the Engine B Run. Every fetch is the
+        Engine A pass's; E59 stays at zero."""
+        from regcompass.pipeline import export_from_db
+        from regcompass.workbook import RUN_RECORD_SHEET
+
+        adds = [
+            (f"disc_add{k}", f"2026-10-15T03:3{k}:00Z", f"2026-10-15T03:3{k}:30Z",
+             {"manual": True, "source": "url"},
+             [(f"https://sso.agc.gov.sg/Act/X{k}", f"2026-10-15T03:3{k}:10+00:00",
+               f"SG/raw/x{k}.pdf")])
+            for k in range(1, 4)
+        ]
+        storage = self._db(
+            tmp_path,
+            ("2026-10-15T03:10:00Z", "2026-10-15T03:30:00Z"),
+            ("2026-10-15T03:40:00Z", "2026-10-15T03:50:00Z"),
+            [("disc_1", "2026-10-15T03:00:00Z", "2026-10-15T03:05:00Z", {},
+              [("https://sso.agc.gov.sg/Act/A", "2026-10-15T03:01:00+00:00", "SG/raw/a.pdf")]),
+             *adds],
+        )
+        result = export_from_db(storage, tmp_path / "out", run_id="run_one")
+        ws = load_workbook(result.xlsx_path)[RUN_RECORD_SHEET]
+        assert _countif(ws, "Engine A pass") == 4
+        assert _countif(ws, "Engine B pass") == 0
+
+    def test_file_type_trusts_the_files_own_suffix(self):
+        from regcompass.pipeline import _file_type
+
+        assert _file_type("application/pdf", "SG/raw/page.htm") == "HTML"
+        assert _file_type("text/html", "SG/raw/act.pdf") == "PDF"
+        assert _file_type("application/pdf", "SG/raw/blob") == "PDF"

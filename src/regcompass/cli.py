@@ -1130,7 +1130,7 @@ def export(
     )
     if result.rows_cut:
         # The organizers' entry area holds 101 rows and every formula that
-        # counts it stops at row 109, so the cut is structural, not a choice.
+        # counts it stops at its last row, so the cut is structural, not a choice.
         typer.secho(
             f"row cap: {result.rows_cut} battery-green row(s) left out; the"
             f" Economies took turns by Confidence so every one of them appears",

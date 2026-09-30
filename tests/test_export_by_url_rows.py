@@ -26,6 +26,7 @@ from regcompass.contracts import CorpusDoc, MappingRecord, RunRecord
 from regcompass.export import (
     ALLOW_ANY_HOST_NOTE,
     LAW_NAME_MECHANICAL_NOTE,
+    LAW_NAME_MECHANICAL_PREPARED_NOTE,
     MANUAL_ADD_NOTE,
     build_row,
     last_amended_year,
@@ -96,7 +97,7 @@ class TestLocationReferenceNamesTheFormat:
         """An HTML page has no pages: extraction records the whole page as
         page 1, so a page number would point at nothing."""
         ref = location_reference(_cn_record(), "html")
-        assert ref == "HTML: Chapter 3 s. 38"
+        assert ref == "HTML: Chapter 3 Art. 38"
         assert "PDF" not in ref and "page" not in ref
 
     def test_the_export_row_reads_the_format_it_is_given(self):
@@ -107,7 +108,7 @@ class TestLocationReferenceNamesTheFormat:
             {(rec.chunk_id, rec.indicator_id): 0.6}, {rec.chunk_id: 1},
             format_tag="html",
         )
-        assert row["Location Reference"] == "HTML: Chapter 3 s. 38"
+        assert row["Location Reference"] == "HTML: Chapter 3 Art. 38"
 
     def test_the_comparison_screen_agrees(self):
         run = lambda rid: RunRecord(  # noqa: E731
@@ -120,7 +121,7 @@ class TestLocationReferenceNamesTheFormat:
             document_sources={PIPL: {"source_url": PIPL_URL, "extractor": "bs4-lxml"}},
         )
         side = comparison.rows[0].a
-        assert side.location_reference == "HTML: Chapter 3 s. 38"
+        assert side.location_reference == "HTML: Chapter 3 Art. 38"
         assert side.source_link.href == PIPL_URL
 
 
@@ -250,6 +251,34 @@ class TestNotesForADocumentAddedByUrl:
             }
         )["doc_in_dpdp_2023"]
         assert synthetic_notes(synthetic, kind)[0] == LAW_NAME_MECHANICAL_NOTE
+
+
+class TestAPreparedDocumentIsNotALiveCatch:
+    """A Document Discovery fetched while the Corpus was prepared, days before
+    the Run, was not caught live, and its Notes must not say it was."""
+
+    META = {
+        "doc_la_instruction_0144": {
+            "economy": "LA", "title": "Instruction No. 0144",
+            "source_url": "https://laoofficialgazette.gov.la/kcfinder/upload/files/0144.pdf",
+            "source_kind": "discovery",
+            "fetched_at": "2026-09-22T18:58:33.258235+00:00",
+        },
+    }
+
+    def test_fetched_days_before_the_run_it_says_prepared(self):
+        synthetic = synthesize_offcorpus_docs(
+            self.META, run_started_at="2026-09-29T09:26:08Z"
+        )["doc_la_instruction_0144"]
+        notes = synthetic_notes(synthetic, "discovery")
+        assert notes[0] == LAW_NAME_MECHANICAL_PREPARED_NOTE
+        assert not any("live crawl catch" in n for n in notes)
+
+    def test_fetched_in_the_same_pass_it_stays_a_live_catch(self):
+        synthetic = synthesize_offcorpus_docs(
+            self.META, run_started_at="2026-09-22T19:05:00Z"
+        )["doc_la_instruction_0144"]
+        assert synthetic_notes(synthetic, "discovery")[0] == LAW_NAME_MECHANICAL_NOTE
 
 
 # ---------------------------------------------------------------------------

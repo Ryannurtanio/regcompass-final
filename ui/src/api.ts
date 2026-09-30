@@ -9,9 +9,11 @@ import type {
   CorpusEmpty,
   CorpusListing,
   CorpusSummary,
+  DocumentEdit,
   DocumentRemoval,
   DocumentSummary,
   EngineInfo,
+  EvidenceEconomy,
   ExportPreview,
   ExportSummary,
   Gloss,
@@ -148,21 +150,31 @@ export const fetchCorpusSummary = () =>
 export const fetchCorpus = (economy: string) =>
   get<CorpusListing>(`/api/corpus?economy=${encodeURIComponent(economy)}`)
 
-/** Record where an already-added Document is published. Adding it again by
- *  URL would fetch the file a second time and make a SECOND Document, which
- *  is a duplicate rather than a correction, so this edits the one in place. */
-export async function patchSourceUrl(
+/** Correct an already-added Document's Source URL, its title, or both, in
+ *  place. Adding it again by URL would fetch the file a second time and make a
+ *  SECOND Document, which is a duplicate rather than a correction. Only what
+ *  is given changes; the name is optional and recorded with the edit. */
+export async function patchDocument(
   documentId: string,
-  sourceUrl: string,
-): Promise<{ document_id: string; source_url: string }> {
+  edit: { sourceUrl?: string; title?: string; reviewer?: string | null },
+): Promise<DocumentEdit> {
   const r = await apiFetch(`/api/documents/${encodeURIComponent(documentId)}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ source_url: sourceUrl.trim() }),
+    body: JSON.stringify({
+      ...(edit.sourceUrl !== undefined ? { source_url: edit.sourceUrl.trim() } : {}),
+      ...(edit.title !== undefined ? { title: edit.title.trim() } : {}),
+      reviewer: edit.reviewer?.trim() ? edit.reviewer.trim() : null,
+    }),
   })
   if (!r.ok) throw await failure(r)
-  return r.json() as Promise<{ document_id: string; source_url: string }>
+  return r.json() as Promise<DocumentEdit>
 }
+
+/** Every Economy with a finished Run, newest first, with the newest Run per
+ *  Engine and set of Pillars: what the Evidence screen's pickers offer. */
+export const fetchEvidenceRuns = () =>
+  get<{ economies: EvidenceEconomy[] }>('/api/evidence/runs')
 
 /** WHICH Run the audit screens are showing. With no Run named the server falls
  *  back to the newest completed one, and the Evidence header has to be able to
@@ -313,6 +325,9 @@ export async function postRun(body: {
   pillars: number[]
   indicators: string[] | null
   engine: string
+  /** "e2e": a Discovery by the Run's one Pillar and its Indicators, then the Run. */
+  mode?: 'run' | 'e2e'
+  discover_by_pillar?: boolean
 }): Promise<RunStarted> {
   const r = await apiFetch('/api/run', {
     method: 'POST',
@@ -331,11 +346,22 @@ export async function postRun(body: {
   return r.json() as Promise<RunStarted>
 }
 
-export async function postDiscover(economy: string, refresh = false): Promise<void> {
+/** A Discovery by Pillar: the baseline laws for these Indicators (every
+ *  Indicator of the Pillar when null), then the Portal crawler for the Pillar. */
+export interface DiscoveryDrawRequest {
+  pillar: number
+  indicators: string[] | null
+}
+
+export async function postDiscover(
+  economy: string,
+  refresh = false,
+  draw: DiscoveryDrawRequest | null = null,
+): Promise<void> {
   const r = await apiFetch('/api/discover', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ economy, refresh }),
+    body: JSON.stringify(draw ? { economy, refresh, ...draw } : { economy, refresh }),
   })
   if (!r.ok) throw await failure(r)
 }

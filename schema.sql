@@ -35,6 +35,15 @@ CREATE TABLE IF NOT EXISTS documents (
     -- URL is recorded precisely because it is never the text a quote comes from.
     notes              TEXT,
     title              TEXT,                       -- mechanically derived at ingest (M11)
+    -- A reviewer's later correction of the title or the Source URL: which of
+    -- the two they changed (comma separated), their name if they gave one,
+    -- and when. An edited field is the newer word and the export ships it.
+    edited_fields      TEXT,
+    edited_by          TEXT,
+    edited_at          TEXT,
+    -- The derived title as it was before the first title edit, kept so the
+    -- KNOWN/NEW match still finds the law by the name it was added under.
+    derived_title      TEXT,
     n_pages            INTEGER,                    -- ingest page stats (M11 text-coverage gate)
     n_low_yield_pages  INTEGER,
     created_at         TEXT NOT NULL

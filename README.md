@@ -2,7 +2,7 @@
 
 UN Global Hackathon on AI for Digital Trade Regulatory Analysis
 Team: RegCompass | Round: **Final**
-Last updated: 2026-09-28
+Last updated: 2026-09-29
 
 > **Final round requirement.** Every section below is mandatory, as flagged in the Round 1 version of this
 > template. This README is part of your 30 September submission and is read during the desk review - it is
@@ -21,10 +21,12 @@ This tool automates two tasks required by the ESCAP Regional Digital Trade Integ
 (RDTII 2.1):
 
 **Task 1 - Automated Evidence Discovery**
-Given an Economy and a Pillar, Discovery reads the official government Portal, fetches the
-relevant legislation (including scanned and image-based PDFs) into that Economy's Corpus, and
-extracts clean, structured text, with no manual steps. Discovery is the only step that touches
-the internet.
+Given an Economy, a Pillar and the Indicators drawn, Discovery first fetches the laws the 2025
+RDTII baseline cites for those Indicators from the Economy's official hosts, then adds what the
+Portal's crawler finds for that Pillar. The legislation (scanned and image-based PDFs included)
+goes into that Economy's Corpus as clean, structured text, with no manual steps. Every Document
+says why it was chosen, and every baseline law that could not be fetched is listed with the
+reason. Discovery is the only step that touches the internet.
 
 **Task 2 - Intelligent Mapping and Categorisation**
 A Run reads the Corpus and maps its text to RDTII Indicator IDs. Each provision is recorded as
@@ -47,9 +49,9 @@ were pre-run on both declared Engines for Pillars 6 and 7, from a Corpus fetched
 official source: **Australia, Malaysia, Singapore, China, Indonesia and India** (see **Pre-run
 Coverage**).
 
-**Ready for the live test.** Any of the nine Economies whose 2025 RDTII database we hold can be
-mapped today by adding its Documents in the interface (by Portal address or upload); what differs
-is how far automated Discovery has been proven. The honest state on 28 September 2026:
+**Ready for the live test.** Any of the nine live-test Economies can be mapped today. What
+differs is how much of its law Discovery reaches on its own. The honest state on 29 September
+2026:
 
 - **Run end to end on both Engines, Pillars 6 and 7, from a Corpus fetched from the official
   source:** Indonesia (7 Documents, live Discovery on 23 September 2026), India (5 Documents:
@@ -58,12 +60,23 @@ is how far automated Discovery has been proven. The honest state on 28 September
   regulator's site). Their figures are in **Pre-run Coverage**.
 - **Corpus fetched by live Discovery, not yet Run:** Lao PDR (37 Documents from the Official
   Gazette on 23 September 2026). It is ready for a Run; we did not spend on pre-running it.
-- **No Discovery, add by URL or upload:** Thailand, Viet Nam, Kazakhstan, Mongolia, Russian
-  Federation. India's Portal cannot serve its own `robots.txt`, and it discovers under a
-  configured policy that says what that silence means for it (see **Crawling Politely**).
+- **What Discovery by Pillar reaches** (the live hour's first step; see **Discovery by Economy,
+  Pillar and Indicators**):
+  - a Portal crawler plus the baseline laws: Indonesia, India and Lao PDR;
+  - the baseline laws plus official addresses seeded per law, with no crawler: China, Thailand,
+    Mongolia and the Russian Federation;
+  - seeded official addresses only, because no 2025 baseline exists: Viet Nam (two laws from the
+    Official Gazette) and Kazakhstan (one law, in an unofficial English translation). A draw whose
+    Indicators those laws do not serve fetches nothing, and the Discovery report says to upload
+    the laws by hand.
 
-Every one of the nine can be mapped today by adding its Documents through the interface. Only
-Discovery differs.
+  Each seeded address was checked by a live request on 29 September 2026; Discovery itself is
+  tested against recorded Portal answers. India's Portal cannot serve its own `robots.txt`, and
+  it discovers under a configured policy that says what that silence means for it (see
+  **Crawling Politely**).
+
+Whatever Discovery does not reach is added through the interface, by official URL or upload, and
+everything after that is the same.
 
 **Starting empty.** The step before the clock starts is on the **Settings** screen, section
 **Clear downloads and cache**: pick **Everything** (or one Economy), press **Preview** to see
@@ -84,13 +97,13 @@ and it reaches the same interface.
 
 ### 1. Clone the repository
 
-    git clone https://github.com/Ryannurtanio/regcompass-final.git regcompass
+    git clone --branch final-round https://github.com/Ryannurtanio/regcompass-final.git regcompass
     cd regcompass
 
 ### 2. Set up the environment
 
 Docker, with the `compose` plugin, is the only prerequisite. Nothing is installed on the host:
-Python, the OCR engine, all six vendored language files, the built interface, the sample
+Python, the OCR engine, all eleven vendored OCR language files, the built interface, the sample
 legislation a Corpus can be seeded from and the frozen evidence bundle are all inside the image,
 and the embedder is pulled automatically at first start. There is no separate install step, so
 go on to step 4.
@@ -168,8 +181,8 @@ What you get once it is loaded:
 
 - **24 Runs, listed with 6 Discovery records.** The **Run history** screen lists every record, so
   it shows 30 rows: the 24 Runs (six Economies, two Engines, Pillars 6 and 7), each marked
-  **Run** in the Kind column, and the 6 Discoveries that fetched their Corpus, marked
-  **Discovery**.
+  **Run** in the Kind column, and the 6 Discovery records that fetched or added their Corpus,
+  marked **Discovery**, or **Discovery (manual add)** where a Document was added by hand.
 - **No Review Decisions.** Accepting or rejecting a Mapping is the reviewer's act, so the
   archive carries none, and every prepared Run's Evidence Export is empty until you accept
   rows. On the **Evidence** screen, the button **Accept all N…** (N is the count not reviewed
@@ -230,6 +243,11 @@ the footer.
   **Set Source URL** on its row: type the address, press **Save**, and the same export ships.
   Use that control rather than adding the Document again by URL, which would fetch the file a
   second time and leave a duplicate.
+- *A wrong Source URL or title*: in the same Corpus list every title opens the Document's
+  **Source URL** in a new tab, and **our copy** opens the file the Corpus stored, so the two can
+  be compared. **Edit** on the row changes **Title** and **Source URL** in place (with **Your name
+  (optional)**), then **Save**. The Document keeps its id, its text and its Mappings, an address
+  that is not http or https is refused, and the next Evidence Export carries the new values.
 - *Several laws published on one page*: give every one of them that same **Source URL**. Several
   Documents may share an address, each keeping its own file, its own text and its own name, and
   every row from each carries that address. Give each file a name of its own, though: the
@@ -323,20 +341,22 @@ not build it. Describe how to reach each of the following, with the screen name 
 
 | What a reviewer needs to do | Where it is |
 | :---- | :---- |
-| Start a run and watch progress in plain words | **Start a Run** screen. The **Run panel** box on it takes four steps, **Economy**, **Pillar**, **Indicators** and **Engine**, and **Your Run** beside them sums up the choice with what the last Run on that setup took and cost. Press **Start Run**, read the estimate, then **Yes, start the Run**. The Run view appears below the panel and follows every Document Step by Step: **Read**, **Scan check**, **Split into sections**, **Gate**, **Map and Prove** and **Gloss** (in the code: M1 extract, M2 OCR, M4 chunk, M5 gate, M6 map + M7 verify, M3 gloss), then **Reconcile** once for the whole Run (M8). A Step with nothing to do is shown as skipped rather than going missing. **What the Run has found so far** counts Documents, Sections, Candidates kept by the Gate, Mappings proposed and Mappings proven; **Where the time went** charts each Document's time, Step by Step when you point at it; the header shows the time and what the Run spent at the Engine's declared prices (**Cost so far (our meter)** while it runs, then **Cost (our meter)** and **Engine calls**, with the provider's bill beside it). Click a Document's name for its own drill-down: its **Steps**, its Mappings by Indicator, the **Candidates the Gate kept**, and each quote marked in its source; **Back to the Run** (or `Esc`) returns. **Show raw log** opens the plain log with the code's stage names. The Run view stays on the screen after the Run finishes. |
+| Start a run and watch progress in plain words | **Start a Run** screen. The **Run panel** box on it takes four steps, **Economy**, **Pillar**, **Indicators** and **Engine**, and **Your Run** beside them sums up the choice with what the last Run on that setup took and cost. Press **Start Run**, read the estimate, then **Yes, start the Run**. The Run view appears below the panel and follows every Document Step by Step: **Read**, **Scan check**, **Split into sections**, **Gate**, **Map and Prove** and **Gloss** (in the code: M1 extract, M2 OCR, M4 chunk, M5 gate, M6 map + M7 verify, M3 gloss), then **Reconcile** once for the whole Run (M8). A Step with nothing to do is shown as skipped rather than going missing. **What the Run has found so far** counts Documents, Sections, Candidates kept by the Gate, Mappings proposed and Mappings proven; **Where the time went** charts each Document's time, Step by Step when you point at it; the header shows the time and what the Run spent at the Engine's declared prices (**Cost so far (our meter)** while it runs, then **Cost (our meter)** and **Engine calls**, with the provider's bill beside it). Click a Document's name for its own drill-down: its **Steps**, its Mappings by Indicator, the **Candidates the Gate kept**, and each quote marked in its source; **Back to the Run** (or `Esc`) returns. **Show raw log** opens the plain log with the code's stage names. The Run view stays on the screen after the Run finishes. With exactly one Pillar chosen the panel also offers **Discover Pillar N** (Discovery for that Pillar and the ticked Indicators, confirmed with **Yes, start Discovery**) and **Discover, then run** (that Discovery, then a Run over the whole Corpus, confirmed with **Yes, discover and run**). The Discovery view says it searched the official legal portals for the Economy, shows each Document with the site it came from, and lists under **Laws not found** each law it could not fetch, each with *Add this law with Add document.* |
 | Open the audit view: a result beside the source text it came from | **Evidence** screen, click any row of the **Documents** table (or press Enter). The source PDF opens on the left, the Mapping on the right, with the quote highlighted on the page image. Scanned laws render like any other: the image decoders ship inside the interface, so this works with no internet. A source that is a web page rather than a PDF (China's three statutes) shows its text on the left instead, with the Verbatim Quote marked where it sits and no page number, because a web page has none. The header names the Run on screen (id, Economy, Pillar, Engine), and the record pane prints the **Confidence** composite as a number beside its dots. **How this is scored**, beside the dots, opens the four signals it is computed from (**Meaning match** 45%, **Quote length** 25%, **Specificity** 15%, **Proof attempts** 15%), each with its raw value, weight and contribution and a line on why it counts, adding up to the Confidence shown. The Engine writes the Rationale; the pipeline computes the Confidence. |
 | Add a Document to a Corpus by hand | **Start a Run** screen, control **Add document** (also the link beside **Corpus of &lt;Economy&gt;** under **Your Run**): an optional **Law name** (the statute's own name, which the Evidence Export writes into the **Law Name** column), an optional **Source URL** on the upload lane, the file or the URL to fetch, and the **Language**. The control lists that Economy's whole **Corpus** underneath, so an upload is visible the moment it lands, before any Run. Several Documents may share one **Source URL**, which is what a ministry landing page publishing a whole collection needs. |
 | Record where an added Document is published | **Start a Run** screen, **Add document**, the **Corpus** list: a Document with no address is marked **no Source URL** and carries a **Set Source URL** field on its row. It edits the Document already in the Corpus, so nothing is fetched and no duplicate is created. |
-| See why nothing happens on a fresh install | **Start a Run** screen. An Economy with no Documents says so above the **Run panel** and names the three ways to fill it: button **Discover**, control **Add document**, or `regcompass seed --economy <code>` for the keyless demo. |
+| See why nothing happens on a fresh install | **Start a Run** screen. An Economy with no Documents says so above the **Run panel** and names the three ways to fill it: button **Discover**, control **Add document**, or `regcompass seed --economy <code>` for the keyless demo. With one Pillar chosen, **Discover Pillar N** is always offered. |
 | Follow a row to its official source at the cited article | **Evidence** screen, audit view, link **Open source, page N** on the citation line *section subsection, PDF page N*. It opens the Document's official **Source URL** in a new tab, at the cited page (`#page=N`). A web-page source carries no page number on either. The same link sits on every row of the **Comparison** screen. A Document with no Portal address recorded reads **Open source (local copy)** and opens the stored file the highlight was drawn on. |
 | Accept, reject or correct a row | **Evidence** screen, a **Documents** row, then buttons **Accept**, **Reject**, **Flag** (keys `A`, `R`, `F`) with an optional **Note**. To file a Mapping under a different Indicator: button **Correct** (key `C`), then **Correct to** (an Indicator of the Run's own Pillars), a required **Reason** of 1 to 300 characters, an optional **Your name**, and **Save correction**. The Engine's Mapping is never modified: the record reads *Engine proposed X (title), reviewer corrected to Y (title)*, and every decision on a Mapping is kept in an append-only history (`GET /api/reviews/history`). To correct an English rendering: field **English gloss**, then your name in the field beside it and **Mark reviewed**. |
-| Work through the rows that need a person first | **Evidence** screen, view **Review queue**: every record of the Run in one list, lowest **Confidence** first, whichever Document it sits in, with a count line (*14 of 60 below 0.60 Confidence, 9 not reviewed yet.*) and two filters, **Not reviewed only** and **Corrected only**. A row opens the same audit view, and `A`, `R`, `F`, `J` and `K` then step in queue order (`C` opens the Correct picker and stays on the row). A row the pipeline could not score reads **not scored**: it sorts first and counts as below the threshold, because nothing is known about it. |
+| Work through the rows that need a person first | **Evidence** screen, view **Review queue**: every record of the Run in one list, lowest **Confidence** first, whichever Document it sits in, with a count line (*14 of 60 below 0.60 Confidence, 9 not reviewed yet.*), the control **Order** (**Lowest Confidence first**, the default; **Highest Confidence first**; **Document order**, law by law and page by page), kept in the page address, and two filters, **Not reviewed only** and **Corrected only**. A row opens the same audit view, and `A`, `R`, `F`, `J` and `K` then step in queue order (`C` opens the Correct picker and stays on the row). A row the pipeline could not score reads **not scored**: it comes last in either Confidence order and still counts as below the threshold, because nothing is known about it. |
+| See another Economy's evidence without going through Run history | **Evidence** screen, the **Showing** bar above the lists: **Economy**, **Engine** and, where there are several, **Pillars**. It opens on the chosen Economy's newest Run, keeps the choice in the page address so a link can be shared, and, when both Engines have a Run, says *Both Engines have a Run for &lt;Economy&gt;* with **Compare them**. |
+| Check a Document against its official source, or fix its Source URL | **Start a Run** screen, control **Add document**, the Corpus list: each title opens the **Source URL** in a new tab and **our copy** opens the stored file the tool read. **Edit** changes **Title** and **Source URL** in place (**Set Source URL** when none is recorded), then **Save**; the Document keeps its id, text and Mappings, and the next Evidence Export carries the new values. |
 | Switch the AI engine | **Start a Run** screen, **Run panel** step **4 Engine**: one card per Engine. It opens on the Engine `config/models.yaml` declares as the default (**Engine B**, the open-weight one, marked *The registry default.*), so starting a Run never spends on the commercial Engine by accident. Each card shows the Engine's per-token price and **Key set** or **No key: add one in Settings**. |
 | Export to the RDTII schema | **Evidence** screen (or the audit view), header button **Export workbook**. The footer then offers link **Download workbook** (the organizer's `submission.xlsx`) with the CSV and the two JSON files beside it, so the export lands in your own downloads folder and not only in the server's volume. |
 | Produce the Engine Comparison file | **Comparison** screen: it opens on the Economy and Pillar of your most recent completed Run. Choose Run A and Run B (the same Economy and Pillar on the two Engines), then the links above the table: **Download sheet (xlsx)**, **Sheet (CSV)**, **Rows (CSV)** and **JSON**. |
 | Check how politely the crawler behaves | **Settings** screen, card **Polite crawling** (read-only, from `GET /api/settings/politeness`): each Portal's sites and minimum wait between requests, 1 connection at a time per host, a **robots.txt respected** switch that is locked on, and what happens when a Portal's robots.txt cannot be read. |
 | Clear downloads and cache before the clock starts | **Settings** screen, section **Clear downloads and cache**: pick an Economy or Everything, **Preview**, then **Clear now**. |
-| See why a Run that finished has nothing to show | **Evidence** screen, the banner above the lists. A Document whose text carries no section structure becomes one unstructured chunk, the Gate reads section chunks only, and so no Engine is ever asked about it. The banner names the Document and says to check the file rather than the Engine; the Run view says so on that Document's row (*No numbered headings found, so the whole text was one section and the Gate kept nothing.*), the same sentence is in the raw log at *M4 chunk*, on the Run Record, and in the **Export workbook** refusal. |
+| See why a Run that finished has nothing to show | A Document whose text carries no section headings is split into numbered passages (*Passage 1*, *Passage 2*, and so on) and the Gate reads them like sections; the raw log says so at *M4 chunk*, and a passage row exports with a note in place of the heading check. A Document with no text to split yields nothing: the **Evidence** screen's banner above the lists names it and says to check the file rather than the Engine, and the same sentence is in the raw log at *M4 chunk*, on the Run Record and in the **Export workbook** refusal. The Run view says why on any Document's row that ends with no Mappings (for example *No numbered headings found, so the whole text was one section and the Gate kept nothing.*). |
 | Tell a Run that died from one still going | **Run history** screen, column **Status**. A Run whose process ended without closing its record reads **Interrupted**, set when the server next starts, because the one worker thread lives in the process that has just begun. Nothing is left reading *Running* forever, and a new Run is never refused by a Run that is not there. |
 
 The five screens are **Start a Run**, **Run history**, **Evidence**, **Comparison** and
@@ -433,8 +453,11 @@ rather than an extractor name, on the M1 row and on the M2 row where OCR had fir
 time.
 
 In the interface: **Start a Run** → press **Start Run** again with a different Engine, Pillar or
-Indicator. There is no offline toggle to find, because there is no fetching path to turn off:
-the **Discover** button appears only when a Run was refused for an empty Corpus.
+Indicator. There is no offline toggle to find, because there is no fetching path to turn off: a
+Run never fetches, and Discovery happens only when **Discover**, **Discover Pillar N** or
+**Discover, then run** is pressed. In the live hour, the first pass is **Discover, then run** on
+Engine A; the second pass is a plain **Start Run** on Engine B over the same Corpus, so its
+Documents fetched count is 0.
 
 Where downloaded Documents are cached: inside the container `/data` (the named volume
 `regcompass-data`, holding the working database, the Document bytes and the exports). On a host
@@ -465,12 +488,23 @@ changed.
 
 | Setting | Value | Where it is set |
 | :---- | :---- | :---- |
-| Max requests per second per host | 1 request per `min_interval_seconds`, the per-Portal minimum wait between two requests to the same host. The configured floors are 2 s (Thailand, Lao PDR, India, Viet Nam, Kazakhstan, Mongolia, Russian Federation), 3 s (China), 5 s (Malaysia, Indonesia), 6 s (Singapore) and 10 s (Australia); a Portal with no floor of its own waits the default 1.0 s. A Portal's published crawl-delay RAISES the floor and never lowers it. | default `src/regcompass/contracts.py:606`, per Portal `config/portals.yaml`, applied `src/regcompass/discovery.py:376` (the floor) and `src/regcompass/discovery.py:408` (raised by a published crawl-delay) |
-| Parallel requests per host | 1 | `src/regcompass/crawl.py:586` (`httpx.Limits(max_connections=CONNECTIONS_PER_HOST, max_keepalive_connections=CONNECTIONS_PER_HOST)`, with `CONNECTIONS_PER_HOST = 1` at `src/regcompass/contracts.py:573`) |
-| robots.txt respected | yes | `src/regcompass/crawl.py:401` (`read_robots_policy`, the one door every fetching lane uses), RFC 9309 longest-match rule at `src/regcompass/crawl.py:269` (`RobotsPolicy.allows`) |
+| Max requests per second per host | 1 request per `min_interval_seconds`, the per-Portal minimum wait between two requests to the same host. The configured floors are 2 s (Thailand, Lao PDR, India, Viet Nam, Kazakhstan, Mongolia, Russian Federation), 3 s (China), 5 s (Malaysia, Indonesia), 6 s (Singapore) and 10 s (Australia); a Portal with no floor of its own waits the default 1.0 s. A Portal's published crawl-delay RAISES the floor and never lowers it. | default `src/regcompass/contracts.py:635`, per Portal `config/portals.yaml`, applied `src/regcompass/discovery.py:564` (the floor) and `src/regcompass/discovery.py:596` (raised by a published crawl-delay); a Discovery by Pillar applies the same floor per host (`src/regcompass/discovery.py:1320`) |
+| Parallel requests per host | 1 | `src/regcompass/crawl.py:782` (`httpx.Limits(max_connections=CONNECTIONS_PER_HOST, max_keepalive_connections=CONNECTIONS_PER_HOST)`, with `CONNECTIONS_PER_HOST = 1` at `src/regcompass/contracts.py:602`) |
+| robots.txt respected | yes | `src/regcompass/crawl.py:580` (`read_robots_policy`, the one door every fetching lane uses, read for each host a Discovery by Pillar asks), RFC 9309 longest-match rule at `src/regcompass/crawl.py:447` (`RobotsPolicy.allows`) |
 
 Requests go out under an identified user agent naming the project and a contact URL. Documents
 already in the Corpus are skipped without a request.
+
+**Hosts never requested.** Three hosts are refused on every path, whatever a baseline row, a
+Portal answer, an operator or a redirect names, and a browser subresource included:
+`law.go.th`, the Royal Gazette `ratchakitcha.soc.go.th`, and China's national law database
+`flk.npc.gov.cn`, whose `robots.txt` forbids every crawler (`NEVER_REQUESTED_HOSTS` in
+`src/regcompass/contracts.py`). A redirect off an Economy's official hosts is not followed.
+
+**Plain http for two hosts only.** Port 443 to Russian government hosts is closed on our
+network path while port 80 answers, so `pravo.gov.ru` and `kremlin.ru`, and no other host, may
+be asked over plain http (`http_hosts` in `config/portals.yaml`), with `robots.txt` read over
+the same scheme and a 60-second timeout.
 
 **When a Portal cannot show its own rules.** A `robots.txt` that answers 4xx means the Portal
 published no rules, and Discovery proceeds at our own floor. A 5xx is a different answer: the
@@ -510,15 +544,17 @@ The boundary that matters is between fetching and reading. Discovery writes the 
 the only step that touches the internet. A Run reads the Corpus and fetches nothing.
 
 ```
-Economy                                    Economy + Pillar (+ Indicators) + Engine
+Economy + Pillar (+ Indicators)            Economy + Pillar (+ Indicators) + Engine
    |                                                     |
    v                                                     v
 DISCOVERY (the only step on the network)         RUN (never touches the network)
-  discovery.py  plans and records                  extract.py  canonical text stream per
-  crawl.py      identified agent, robots.txt,                  Document (the byte authority)
-                one connection, spacing floor,     ocr.py      auto-fires on low-yield pages:
-                sha256 manifest                                tesseract -> RapidOCR ladder
-       |                                           chunk.py    section-aware chunking
+  discovery.py  baseline laws first, then          extract.py  canonical text stream per
+                the Pillar's crawler seeds;                    Document (the byte authority)
+                one cap, one deadline              ocr.py      auto-fires on low-yield pages
+  crawl.py      identified agent, robots.txt,                  and garbage text layers:
+                one connection, spacing floor,                 tesseract -> RapidOCR ladder
+                sha256 manifest                    chunk.py    section-aware chunking; numbered
+       |                                                       passages where there are no headings
        v                                           gate.py     bge-m3 meaning tier + BM25
 +--------------------+                                         keyword tier
 |      CORPUS        |  ---------------------->    map.py      the Engine SELECTS a quote
@@ -550,12 +586,12 @@ Document's own heading at the quote's exact position. (5) Every stage logs to `a
 
 | Module | File | Description |
 | :---- | :---- | :---- |
-| Portal Crawler | `src/regcompass/discovery.py`, `src/regcompass/crawl.py` | Reads Portals, records what it fetched and what it refused. The only network door. |
-| Document Processor | `src/regcompass/extract.py`, `src/regcompass/ocr.py`, `src/regcompass/chunk.py` | Download, OCR, structural parsing, section-aware chunking |
+| Portal Crawler | `src/regcompass/discovery.py`, `src/regcompass/crawl.py`, `config/baseline_laws.json` | Reads Portals and the Baseline Law List, records what it fetched and what it refused, with the reason. The only network door. |
+| Document Processor | `src/regcompass/extract.py`, `src/regcompass/textnorm.py`, `src/regcompass/ocr.py`, `src/regcompass/chunk.py` | Download, Unicode normalisation (NFC), OCR, structural parsing, section-aware chunking with a numbered-passage fallback |
 | Retrieval | `src/regcompass/gate.py`, `src/regcompass/shortlist.py` | Chunking-aware shortlist, embedding, keyword search, ranking |
 | Mapper | `src/regcompass/map.py`, `src/regcompass/verify.py`, `src/regcompass/reconcile.py` | Maps a provision to an RDTII Indicator, then proves and reconciles it |
 | Interface | `src/regcompass/server.py`, `ui/src/` | Run control, audit view, review, comparison, export |
-| Output Writer | `src/regcompass/export.py`, `src/regcompass/workbook.py` | Writes the RDTII schema into the organizer's own workbook |
+| Output Writer | `src/regcompass/export.py`, `src/regcompass/workbook.py`, `src/regcompass/traps.py`, `src/regcompass/wording.py`, `src/regcompass/labels.py` | Writes the RDTII schema into the organizer's own workbook, fills its Run Record sheet, cuts 7.1 and 7.2 to one row per Economy and flags rows that fall into a scoring trap |
 
 The pipeline wiring lives in `src/regcompass/pipeline.py` and `src/regcompass/cli.py`; Engine
 resolution in `src/regcompass/engines.py`; state in `src/regcompass/storage.py` (SQLite; a
@@ -567,7 +603,7 @@ PostgreSQL and pgvector swap ships in `pg.py`, see `docs/POSTGRES.md`).
 
 | Engine | Config value | Notes |
 | :---- | :---- | :---- |
-| Tesseract (first rung, the default) | vendored language data in `vendor/tessdata/`, chosen per Document by its Language in `src/regcompass/languages.py` | Open source, no key, no network. Apache-2.0. |
+| Tesseract (first rung, the default) | vendored language data in `vendor/tessdata/`, chosen per Document by its Language (and, for Malaysia, its Economy) in `src/regcompass/languages.py` | Open source, no key, no network. Apache-2.0. |
 | RapidOCR (escalation rung) | automatic on pages below the confidence or dictionary-hit thresholds | Open source, no key, no network. Runs for scripts it has a model for (Latin, Chinese) and is off for the rest. |
 | Manual review (final rung) | automatic | A page neither engine could read is flagged for a person with the reason attached, never silently passed as text. |
 
@@ -577,6 +613,14 @@ the Gate embedder (`bge-m3` on a local Ollama) and of translation.
 
 Every OCR-processed page saves an (input PNG, extracted text) evidence pair, so a reviewer can
 compute error rates independently.
+
+**A text layer that is not the law's text goes to OCR.** Some PDFs carry a text layer made with
+old fonts: it extracts, but as the wrong characters. Before any Document is split, its text layer
+is checked (`garbage_text_layer` in `src/regcompass/shortlist.py`): too many unmapped or private-use
+glyphs, too few letters, a national-script law whose layer is nearly all Latin letters that are
+not English words, a Thai or Lao vowel read as its neighbour, or one line repeated like a
+watermark. A layer that fails is set aside and the page images are read by OCR instead, in the
+languages of the Document and its Economy.
 
 The verdict travels with the Document rather than with the run that produced it. Whichever lane
 wrote the Corpus row, the upload and the Run alike, it records the mean word confidence, the
@@ -589,10 +633,12 @@ the extractor's name.
 
 Redistributed unmodified from `tessdata_best`
 (https://github.com/tesseract-ocr/tessdata_best), Apache-2.0. Every file is pinned here and
-`tests/test_vendored_assets.py` hashes the checked-in bytes against this table. `eng`, `msa` and
-`lao` were vendored earlier and their provenance is the digest below; `ind`, `tha` and `rus`
-were taken from tag `4.1.0` and each was verified against that tag's GitHub blob SHA on
-download.
+`tests/test_vendored_assets.py` hashes the checked-in bytes against this table (and against the
+same pins in `THIRD_PARTY_NOTICES.md`). `eng`, `msa` and `lao` were vendored earlier and their
+provenance is the digest below; `ind`, `tha` and `rus` were taken from tag `4.1.0` and each was
+verified against that tag's GitHub blob SHA on download (16 September 2026); `chi_sim`, `vie`,
+`kaz`, `mon` and `hin` were taken from the same tag and verified the same way (29 September
+2026).
 
 | File | Language | Bytes | SHA-256 | Source |
 |---|---|---|---|---|
@@ -602,28 +648,99 @@ download.
 | `vendor/tessdata/ind.traineddata` | Bahasa Indonesia | 8,253,606 | `1f6596041ffb4cd5094e5f98764db43cfde04edb8f02b988f90ebc1353ac73b8` | tag 4.1.0, blob SHA verified |
 | `vendor/tessdata/tha.traineddata` | Thai | 7,614,571 | `ee8adab6dc69eb8df3d3c8307ae8295471b7bd7d86a06d9267aa8f479b064eac` | tag 4.1.0, blob SHA verified |
 | `vendor/tessdata/rus.traineddata` | Russian | 15,301,764 | `b617eb6830ffabaaa795dd87ea7fd251adfe9cf0efe05eb9a2e8128b7728d6b6` | tag 4.1.0, blob SHA verified |
+| `vendor/tessdata/chi_sim.traineddata` | Chinese (simplified) | 13,077,423 | `4fef2d1306c8e87616d4d3e4c6c67faf5d44be3342290cf8f2f0f6e3aa7e735b` | tag 4.1.0, blob SHA verified |
+| `vendor/tessdata/vie.traineddata` | Vietnamese | 12,435,550 | `b6b49293d95d0b6dbd8780174627e82c75be957b6f4ed9862155540d6b00bb45` | tag 4.1.0, blob SHA verified |
+| `vendor/tessdata/kaz.traineddata` | Kazakh | 7,528,853 | `34cbd9204b1ff3cc813d50b29e3c0ae3752bcc201f261a4a393ceca3895aea9d` | tag 4.1.0, blob SHA verified |
+| `vendor/tessdata/mon.traineddata` | Mongolian | 8,646,663 | `186dcb2ef79e0dc1ab88da2231926d79070c20176bf7416a19389331f68faf65` | tag 4.1.0, blob SHA verified |
+| `vendor/tessdata/hin.traineddata` | Hindi | 11,895,564 | `bd2e65a2184af08a167b0be2439e91fa5edbc4394399ca2f692b843ae26e78d6` | tag 4.1.0, blob SHA verified |
 
-All six files are inside the Docker image and are tested in the container.
+All eleven files are inside the Docker image and are tested in the container.
 
-**Languages with no vendored data: Chinese, Vietnamese, Hindi, Kazakh and Mongolian.** A scanned
-page in one of those is read as English by the first rung, so rather than present the result
-confidently the page is forced to manual review with that reason attached, whatever confidence
-tesseract reports over the misread glyphs. A PDF with a real text layer works normally in all
-five, because no OCR is needed. Adding one of them is a file, a row in the table above, and a
-row in `languages.TESSERACT_BY_LANGUAGE`.
+**Every language on the organizer's list now has its own data.** A scanned page in Chinese,
+Vietnamese, Hindi, Kazakh or Mongolian is read in its own script, each with English as a second
+language because official gazettes carry English headers and Latin digits beside the national
+script (`languages.TESSERACT_BY_LANGUAGE`). A page still falls to the next rung, or to manual
+review with the reason attached, when its own quality measures are low; the flag is about what
+the page yielded, not about a missing file. Adding a language is a file, a row in the table
+above, and a row in `languages.TESSERACT_BY_LANGUAGE`.
 
-**Chinese is the one of the five that the second rung rescues.** RapidOCR has a Chinese model,
-so a Chinese scan escalates and comes back readable: a 7-page scan of the Personal Information
-Protection Law, read on 22 September 2026, gave 7,942 clean characters. The manual-review flag
-still stands, because no Chinese data is vendored for the first rung and the flag is about what
-this install can vouch for, not about what the text turned out to be. Everything downstream then
-works on that text: the chunker's `article_zh` profile reads `第N条` article headings and `第N章`
-chapters, the Gate takes its meaning-only lane, and every row carries a labelled English
-rendering of its Chinese quote.
+**RapidOCR is a second reader for Latin script and Chinese.** It has models for those scripts
+only, so a Chinese or Latin-script page that tesseract reads with low confidence escalates to it:
+a 7-page scan of the Personal Information Protection Law, read on 22 September 2026, gave 7,942
+clean characters. For Thai, Lao, Devanagari and Cyrillic scripts it stays off, because re-reading
+through a model for another script can only make the text worse. Everything downstream works on
+the text either way: the chunker's `article_zh` profile reads `第N条` article headings and `第N章`
+chapters, the Gate takes its meaning-only lane for non-English text, and every non-English row
+carries a labelled English rendering of its quote.
 
 ---
 
 ## Supported Economies and Portals
+
+### Discovery by Economy, Pillar and Indicators
+
+This is the live hour's first step. On **Start a Run**, choose the Economy, exactly one Pillar
+and the Indicators drawn, then press **Discover Pillar N** (Discovery only) or **Discover, then
+run** (Discovery, then a Run over the whole Corpus on the chosen Engine). Over the API it is
+`POST /api/discover` with `economy`, `pillar`, `indicators` and `max_documents`. Without a
+Pillar, Discovery is the Economy's fixed seed list, exactly as before.
+
+1. **Baseline stage.** The Baseline Law List, `config/baseline_laws.json`, names for each Economy
+   and Indicator the laws the RDTII Round 1 and Round 2 Databases cite, with their reference
+   addresses: ten Economies (Australia, Malaysia, Singapore, China, India, Indonesia, Lao PDR,
+   Mongolia, Russian Federation, Thailand), all twelve Pillars. Viet Nam and Kazakhstan have no
+   2025 baseline, and that is recorded rather than invented. The list is built from the
+   Databases by `scripts/extract_known_matrix.py`, which writes the KNOWN matrix from the same
+   rows, so Discovery and the Discovery Tag read one list. Discovery takes the laws citing the
+   drawn Indicators (every Indicator of the Pillar when none are ticked), those cited by more of
+   the drawn Indicators first, adds the official addresses seeded per law in
+   `config/crawl_seeds.yaml`, and requests only addresses on the Economy's allowed official hosts
+   in `config/portals.yaml`. India's laws are also looked up by exact title in India Code's
+   search. Each text fetched is checked to be the law named (its numbers, its year, its title
+   words) before it is kept; a link that turns out to carry another law is reported, not stored.
+2. **Crawler stage.** Where the Portal has a crawler (Australia, Malaysia, Singapore, Indonesia,
+   Lao PDR, India), the crawl seeds tagged for the drawn Pillar run next. A seed with no Pillar
+   tags counts as Pillars 6 and 7.
+
+**Limits.** One Document cap covers both stages: 12 unless the request names another, which is
+clamped to 1 to 30; the interface uses 12. One deadline covers the whole Discovery: 900 seconds
+(`discovery_drawn_budget_seconds`, read from `config/pipeline.yaml` when that file sets it), of
+which the baseline stage may use at most 600 (`discovery_baseline_budget_seconds`). Each address
+gets one attempt of 25 seconds (60 seconds for the Russian Federation's plain-http hosts,
+`fetch_timeout_seconds` in `config/portals.yaml`), a host that does not answer is not asked again
+in that Discovery, and the baseline stage tries at most twice the cap in addresses. Every politeness rule under
+**Crawling Politely** applies, with `robots.txt` read for each host asked.
+
+**What the operator sees.** The Discovery view says what it found, not how: each Document with
+the site it came from and whether it was added, and under **Laws not found** every law for the
+draw that was not fetched, each with *Add this law with Add document.* When nothing at all was
+fetched it says *No laws could be fetched for this search. Add them with Add document.* The
+workings stay on the record for audit. The Discovery record keeps why each Document came in
+(*baseline 6.1, 6.2*, *official source list 7.1* or *portal crawler*) and why each law was not
+fetched: the address is not on the Economy's official hosts, the host could not be reached, the
+page has no law text, the Document limit or the time limit was reached, the baseline gives no
+address, the host's `robots.txt` refuses it, the address redirected off the official hosts, the
+title search found no exact match, the link carries a different law, or the baseline gives only
+the Portal's summary page for the law, not its text. The progress log, closed behind **Show the
+progress log**, prints the same reasons. A Document already in the Corpus is not fetched again;
+after **Clear downloads and cache** everything is fetched anew.
+
+**Official sources added for the Economies with no crawler** (seeded in `config/crawl_seeds.yaml`,
+each checked by a live request on 29 September 2026):
+
+| Economy | Host | What is seeded |
+| :---- | :---- | :---- |
+| Thailand | `mdes.go.th` (Ministry of Digital Economy and Society) | Personal Data Protection Act B.E. 2562 (2019), Electronic Transactions Act B.E. 2544 (2001), Computer-related Crime Act B.E. 2550 (2007): the government's unofficial English translations, so their Language is English |
+| Viet Nam | `congbao.chinhphu.vn`, `congbaocdn.chinhphu.vn` (Official Gazette) | At least one law for each of the twelve Pillars (18 addresses), among them the Law on Personal Data Protection No. 91/2025/QH15 with Decree No. 356/2025/ND-CP and the Law on Cybersecurity No. 116/2025/QH15; PDFs with a real Vietnamese text layer, as promulgated, or the consolidated text where the National Assembly Office published one. Decree No. 13/2023/ND-CP and Law No. 24/2018/QH14 are no longer in force and are not seeded |
+| Mongolia | `legalinfo.mn` | Law on Personal Data Protection; Law on Cybersecurity (whole law pages, server HTML) |
+| Russian Federation | `kremlin.ru`, `pravo.gov.ru` (plain http); `eec.eaeunion.org` (Eurasian Economic Commission, https) | Federal Law No. 152-FZ On Personal Data (kremlin.ru print page and pravo.gov.ru); Federal Law No. 149-FZ On Information, Information Technologies and the Protection of Information (pravo.gov.ru); kremlin.ru print pages for nine more federal laws the 2025 baseline cites; the Eurasian Economic Union acts that bind it (Treaty Annexes 8 and 9 and Section X, Board Decision No. 30 with its Annex 9, the Customs Code) |
+| Kazakhstan | `natlex.ilo.org` (ILO NATLEX, intergovernmental repository of official texts); `eec.eaeunion.org` (Eurasian Economic Commission) | Law No. 94-V On Personal Data and their Protection (the Ministry of Justice's unofficial English translation, amended to 30 December 2021) and the Entrepreneurial Code No. 375-V, both in English, so their Language is English; the Eurasian Economic Union acts that bind it (Treaty Annex 8, Section XXII with Annex 25, Section X and Annex 9, Board Decision No. 30 with its Annex 9, the Customs Code) |
+
+China, Thailand, Mongolia and the Russian Federation also reach the baseline laws whose addresses
+sit on their official hosts. A seeded law serves only the Indicators it is listed for; Viet Nam
+and Kazakhstan have nothing else to fetch.
+
+### Portals
 
 | Economy | Official portal | Language | Run end to end? | Notes |
 | :---- | :---- | :---- | :---- | :---- |
@@ -631,14 +748,14 @@ rendering of its Chinese quote.
 | Malaysia | `lom.agc.gov.my` | English (Malay editions) | **Yes** from the held Corpus; Discovery is broken upstream. | Since 16 Sep 2026 the Portal's search answers with an encrypted payload instead of a result set, so Discovery finds nothing and says so. The printed host `lor.agc.gov.my` is dead; `lom.agc.gov.my` is live. Malay is not one of the organizer's eleven values, so a Malay Document exports as "Other". |
 | Singapore | `sso.agc.gov.sg` | English | **Yes.** Corpus fetched and checked; Runs and Exports green. | Escalation ladder after the WAF refuses the identified agent. Document is the whole-act consolidation PDF. |
 | Indonesia | `peraturan.bpk.go.id` | Bahasa Indonesia, English | **Yes.** Live Discovery on 23 Sep 2026 fetched 7 Documents; pre-run on both Engines, Pillars 6 and 7. | The Audit Board's national regulation database. Its rules permit every route we take and publish no crawl-delay, while its edge answers our identified agent with 403, so it takes the same escalation ladder Singapore takes. `peraturan.go.id` is whitelisted but unreachable from our network. |
-| Thailand | `searchlaw.ocs.go.th` | Thai, English | **No Discovery.** Add by URL or upload. | The host printed in our own plan, `www.krisdika.go.th`, is a dead placeholder; the live Council of State law library is `searchlaw.ocs.go.th`, and its certificate verifies cleanly, so the planned certificate pinning was not needed and was not added. Its browse lane answers us and names the statutes we want, but all three of its search services fail with the same error and both of its law-text services reject the identifier the browse lane gives, so there is no path from a seed to a Thai statute today. Verbatim answers in `tests/fixtures/portals/th/`. Thai OCR data is vendored, so an uploaded Thai scan reads normally. |
+| Thailand | `searchlaw.ocs.go.th`; `mdes.go.th` | Thai, English | **Not yet.** Discovery by Pillar fetches the baseline laws on official hosts and three seeded laws from `mdes.go.th`; no crawler. Add by URL or upload for the rest. | The host printed in our own plan, `www.krisdika.go.th`, is a dead placeholder; the live Council of State law library is `searchlaw.ocs.go.th`, and its certificate verifies cleanly, so the planned certificate pinning was not needed and was not added. Its browse lane answers us and names the statutes we want, but all three of its search services fail with the same error and both of its law-text services reject the identifier the browse lane gives, so there is no path from a seed to a Thai statute today. Verbatim answers in `tests/fixtures/portals/th/`. Thai OCR data is vendored, so an uploaded Thai scan reads normally. Since 29 Sep 2026 the Ministry of Digital Economy and Society's law pages answer with the law's PDF; it carries only the laws in its own remit (digital economy, electronic transactions, cybersecurity, personal data, computer crime). `www.law.go.th` and the Royal Gazette are never requested. |
 | Lao PDR | `laoofficialgazette.gov.la` | Lao, English | **Discovery yes, Runs not yet.** Live Discovery on 23 Sep 2026 fetched 37 Documents; not pre-run. | Server-rendered gazette. `/robots.txt` answers 200 with the homepage (a soft 404), so no rules are published and our own 2 s floor stands. The Lao PDF is the Document; an English rendering beside it is recorded in Notes and is never the quote source. |
-| Viet Nam | `vbpl.vn` | Vietnamese, English | **No Discovery.** Add by URL or upload. | The Portal publishes real rules and a sitemap, but the sitemap is four navigation pages and the document list exists only behind `/api/`, which those rules forbid. A headless browser would make the forbidden calls itself, so we declined it. No Vietnamese OCR data: text-layer PDFs only. |
-| China | `www.cac.gov.cn` | Chinese | **Yes**, from three statutes added by Source URL; no Discovery. Pre-run on both Engines, Pillars 6 and 7. | The Cyberspace Administration of China, the regulator that enforces the Personal Information Protection Law, the Data Security Law and the Cybersecurity Law, republishes the National People's Congress text in full and its rules permit the law pages, so each statute is added by its Source URL on that host. The national law database `flk.npc.gov.cn` forbids any automated collection in its `robots.txt`, so it is never whitelisted or requested; `www.npc.gov.cn` refused HTTPS and stalled over HTTP. A scan uploaded by hand also works: RapidOCR reads Chinese, the chunker reads `第N条` articles, and the rows ship with Language of Source `Chinese` and a labelled English rendering; a scanned page still carries the manual-review flag, because no Chinese data is vendored for the first OCR rung. |
-| India | `indiacode.gov.in` | English, Hindi | **Yes.** Live Discovery on 23 Sep 2026 fetched 4 Documents; the Information Technology Act, 2000 was uploaded with its official India Code Source URL, because Discovery's title search does not reach it; pre-run on 5 Documents, both Engines, Pillars 6 and 7. | The Portal moved from the printed host and now exposes a read-only DSpace REST interface, which the adapter reads. Its `robots.txt` answered HTTP 500 then 502 on 16 Sep 2026, so it can show no rules; India carries `robots_unavailable_policy: proceed` in `config/portals.yaml` (operator decision, 17 Sep 2026), so Discovery and the add-by-URL lane go ahead at the 2 s floor and every record says the status and the policy. Delete that line to return to the default refusal. No Hindi OCR data: text-layer PDFs only. |
-| Kazakhstan | `adilet.zan.kz` | Russian, Kazakh | **No Discovery.** Add by URL or upload. | The act route answers a small shell whose own comment says the full text is withheld from non-browser clients on purpose, so that the system is cited rather than drained. A headless browser would render around that ask, so we do not. Russian OCR data is vendored; no Kazakh data. |
-| Mongolia | `legalinfo.mn` | Mongolian, English | **No Discovery.** Add by URL or upload. | Every act list, search included, arrives through an undocumented POST endpoint returning pre-rendered markup; the page advertised as an API reference is an article, not an API. No Mongolian OCR data: prefer a text-layer PDF or the English tree. |
-| Russian Federation | none verified | Russian | **No Discovery.** Add by URL or upload. | `publication.pravo.gov.ru` answers only over port 80 from our network (port 443 is blocked on the path). Its acts are image-only scanned PDFs and it publishes amendments, not consolidated law, so no host is whitelisted and the former Thailand fallback was not taken. Russian OCR data is vendored. |
+| Viet Nam | `vbpl.vn`; `congbao.chinhphu.vn` | Vietnamese, English | **Not yet.** No baseline; Discovery by Pillar fetches seeded laws from the Official Gazette, at least one for each Pillar. Add by URL or upload for the rest. | The Portal publishes real rules and a sitemap, but the sitemap is four navigation pages and the document list exists only behind `/api/`, which those rules forbid. A headless browser would make the forbidden calls itself, so we declined it. The Official Gazette (`congbao.chinhphu.vn`) serves each document page with a link to the law's PDF on `congbaocdn.chinhphu.vn`, with a real text layer, and its rules allow it; `vanban.chinhphu.vn` is not used, because its files are scanned images. Vietnamese OCR data is vendored. |
+| China | `www.cac.gov.cn` | Chinese | **Yes**, from three statutes added by Source URL. Pre-run on both Engines, Pillars 6 and 7. Discovery by Pillar fetches the baseline laws on official hosts; no crawler. | The Cyberspace Administration of China, the regulator that enforces the Personal Information Protection Law, the Data Security Law and the Cybersecurity Law, republishes the National People's Congress text in full and its rules permit the law pages, so each statute is added by its Source URL on that host. The national law database `flk.npc.gov.cn` forbids any automated collection in its `robots.txt`, so it is never whitelisted or requested; `www.npc.gov.cn` refused HTTPS and stalled over HTTP. A scan uploaded by hand also works: RapidOCR reads Chinese, the chunker reads `第N条` articles, and the rows ship with Language of Source `Chinese` and a labelled English rendering; Chinese OCR data is vendored for the first rung too. |
+| India | `indiacode.gov.in` | English, Hindi | **Yes.** Live Discovery on 23 Sep 2026 fetched 4 Documents; the Information Technology Act, 2000 was uploaded with its official India Code Source URL, because Discovery's title search does not reach it; pre-run on 5 Documents, both Engines, Pillars 6 and 7. | The Portal moved from the printed host and now exposes a read-only DSpace REST interface, which the adapter reads. Its `robots.txt` answered HTTP 500 then 502 on 16 Sep 2026, so it can show no rules; India carries `robots_unavailable_policy: proceed` in `config/portals.yaml` (operator decision, 17 Sep 2026), so Discovery and the add-by-URL lane go ahead at the 2 s floor and every record says the status and the policy. Delete that line to return to the default refusal. Hindi OCR data is vendored. |
+| Kazakhstan | `adilet.zan.kz`; `natlex.ilo.org`; `eec.eaeunion.org` | Russian, Kazakh, English | **Not yet.** No baseline; Discovery by Pillar fetches two seeded laws from ILO NATLEX, in English, and the Eurasian Economic Union acts from the Eurasian Economic Commission. Add by URL or upload for the rest. | The act route answers a small shell whose own comment says the full text is withheld from non-browser clients on purpose, so that the system is cited rather than drained. A headless browser would render around that ask, so we do not. Since 29 Sep 2026 two laws are seeded from ILO NATLEX, whose download addresses its rules allow, and the Union acts from `eec.eaeunion.org`, whose rules allow its `/upload/` files; its detail pages sit behind a browser check and are never browsed. Russian and Kazakh OCR data are vendored. |
+| Mongolia | `legalinfo.mn` | Mongolian, English | **Not yet.** Discovery by Pillar fetches the baseline laws on official hosts and two seeded law pages; no crawler. Add by URL or upload for the rest. | Every act list, search included, arrives through an undocumented POST endpoint returning pre-rendered markup; the page advertised as an API reference is an article, not an API. A law page, `/mn/detail?lawId=N`, is whole server HTML, so laws are seeded by that address. Mongolian OCR data is vendored. |
+| Russian Federation | `pravo.gov.ru`, `kremlin.ru` (plain http); `eec.eaeunion.org` | Russian | **Not yet.** Discovery by Pillar fetches the baseline laws on those hosts and the seeded laws, the Eurasian Economic Union acts among them; no crawler. Add by URL or upload for the rest. | Port 443 to Russian government hosts is blocked on our network path; port 80 answers. `publication.pravo.gov.ru` publishes image-only scanned amendments, not consolidated law, so it is not used. `kremlin.ru` (the President's acts bank, `/acts/bank/N/print` is the whole current text) and `pravo.gov.ru` (the Official Internet Portal of Legal Information) are whitelisted and asked over plain http only, with a 60-second timeout; `eec.eaeunion.org`, the Eurasian Economic Commission, answers over https and is asked that way. Russian OCR data is vendored. |
 
 The Portal list is a whitelist enforced at export: a row whose Source URL host is not one of
 these fails the export battery unless the reviewer explicitly marked the Document as an official
@@ -713,8 +830,10 @@ How to read it.
 - **Lao PDR** has its Corpus (37 Documents, live Discovery on 23 September 2026) but was not
   pre-run, so it has no Runs here.
 - **India's Hindi rendering of the Telecommunications Act 2023** is in its Corpus but its text
-  layer extracts as unreadable characters and too few pages fall below the OCR threshold to
-  trigger OCR, so it yields no Mappings. The Consumer Protection Act 2019, which we looked for,
+  layer extracts as unreadable characters and too few pages fell below the OCR threshold to
+  trigger OCR, so it yielded no Mappings. The text-layer check added since (see **Swapping the OCR
+  Engine**) recognises that layer and sends the Document to OCR, where Hindi data is now vendored;
+  the prepared Runs predate it, and it has not been re-run. The Consumer Protection Act 2019, which we looked for,
   carries no PDF on India Code, and Discovery reports it as not found rather than guessing.
 
 ---
@@ -733,11 +852,11 @@ working.
 | 3 | law_number_ref | Optional | Official act or law number (e.g. Act 709, B.E. 2562). Written as `Law Number / Ref`. |
 | 4 | last_amended | Optional | Year of most recent amendment; blank if the Document declares none. Written as `Last Amended`. |
 | 5 | indicator_id | Required | **RDTII 2.1 code as text: `6.1`, `7.3`, `12.9`. Not "P6-I1".** Written as `Indicator ID`. |
-| 6 | article | Required | Exact article and paragraph at the quote's position. Written as `Article / Section`. |
-| 7 | discovery_tag | Required | NEW = independent find; KNOWN = in the baseline we hold. Written as `Discovery Tag`. |
+| 6 | article | Required | Exact article and paragraph at the quote's position, as the Economy drafts it (`Art. 5` for civil-law statutes, `s. 26` for common-law ones); for 7.1 and 7.2 the law as a whole. Written as `Article / Section`. |
+| 7 | discovery_tag | Required | KNOWN = the 2025 RDTII baseline cites this law for this Indicator at this provision, or cites the law with no article; NEW = anything else. The law is recognised by its title in any script or by a Source URL the baseline gives for that law alone. Written as `Discovery Tag`. |
 | 8 | location_reference | Optional | PDF page number, or HTML anchor / section path. Written as `Location Reference`. |
 | 9 | verbatim_snippet | Required | Exact quoted text, byte-verified, no paraphrasing. Written as `Verbatim Snippet`. |
-| 10 | mapping_rationale | Optional | Max 300 characters: why this provision maps to this Indicator. Written as `Mapping Rationale`. |
+| 10 | mapping_rationale | Optional | Max 300 characters: why this provision maps to this Indicator, in English, naming the RDTII scoring criterion it meets (*RDTII criterion N (score X)*). Written as `Mapping Rationale`. |
 | 11 | source_url | Required | Direct URL on the official government Portal. Written as `Source URL`. |
 | 12 | confidence | Optional | Mechanical composite (0.00 to 1.00), never model self-reported. Written as `Confidence`. |
 | 13 | notes | Optional | OCR issues, bilingual sources, cross-references, disclosures. Written as `Notes`. |
@@ -758,10 +877,36 @@ enrichment columns, never inserted between the contracted ones: **Novelty Scope*
 Evidence**, **Relationship To Group** and **Verbatim English**. Two Exports of the same database
 are byte-identical.
 
-Rows land in Output Data from row 9 and never past row 109, at most 101 provision rows; over the
-cap the Economies take turns by Confidence and the Export says how many rows were left out.
-"No provision found" absence rows are CSV-only, because each workbook row counts as a provision
-in the organizer's Coverage Matrix.
+The template's example rows 7 and 8 are deleted, as its Instructions ask, and every formula,
+the autofilter and the Coverage Matrix bounds move up with them, so rows land in Output Data from
+row 7 and never past row 107, at most 101 provision rows; over the cap the Economies take turns
+by Confidence and the Export says how many rows were left out. "No provision found" absence rows
+are CSV-only, because each workbook row counts as a provision in the organizer's Coverage Matrix.
+
+**7.1 and 7.2: one economy-level row each.** The organizers score these once per Economy (does a
+data-protection framework, a cybersecurity framework, exist?), and a row per provision scores
+zero. So an Export from the database keeps at most one row per Economy for each: the framework
+law as a whole in Article / Section, quoting its scope or purpose clause where one was mapped,
+with the quoted provision named in Notes. The law is chosen from the verified Mappings: one whose
+title names a data-protection law (7.1) or a cybersecurity law (7.2), then one whose opening
+title block does, then a law the 2025 baseline cites for that Indicator, then one a reviewer
+corrected to it; a principal Act outranks an amending act or a regulation. No fitting law, no
+row, and `supplementary.json` says why.
+
+**The Run Record sheet.** The same Export fills the organizers' Run Record sheet from the Run
+Records, never by hand. Block 1 is one row per pass: Engine (provider and model), start and end
+time, elapsed minutes and cost. The first pass (Engine A) covers its Run plus every Discovery and
+add of the hour, so its time and cost include the fetching; the second pass is its own Run
+alone. Block 2 (rows 12 to 56) lists each Document downloaded in the hour, once, as *Engine A
+pass*; the second pass downloads nothing, so it logs nothing. A Document added from a file was
+not downloaded: it is named in the note row and never counted as fetched. A stopped or failed Run
+does not close a pass.
+
+**Rows to check before submitting.** A row that falls into one of the Indicator Reference's
+scoring traps is kept but flagged in Notes with *Check before submitting:*: a quote from a draft,
+a repealed or an amending instrument, an Elucidation, a 7.3 row with no stated duration, or a 6.1
+row whose transfer is allowed on a condition (a 6.4 shape). A row from a Document split into
+numbered passages carries a note that it has no heading to check.
 
 **One row per provision.** A Run can produce two accepted Mappings describing the same provision
 under the same Indicator, because the Gate shortlists two neighbouring chunks of one Document
@@ -785,12 +930,14 @@ positionally frozen in `src/regcompass/export.py:66` (`COLUMNS`), and `Language 
 one new organizer column, is appended after them at position 14 rather than inserted among them);
 Discovery Tag exactly NEW or KNOWN, case-sensitive; no
 empty required column; a re-check that the Verbatim Quote is still a substring of its source
-chunk; the Source URL host on the Portal whitelist, or exempted with its Notes disclosure
+chunk (the word-for-word check reads subsection numbering as the law writes it: `（一）`, `(๑)`,
+`(а)`, `a)` and `1.` included); the Source URL host on the Portal whitelist, or exempted with its Notes disclosure
 present; the Source URL live; a repealed instrument flagged in Notes; no leftover template
 example content; the Mapping Rationale within 300 characters; Confidence inside 0.00 to 1.00; a
 non-English Verbatim Quote carrying a non-empty English rendering, labelled non-authoritative
 unless a named reviewer approved it; the section label matching the Document's own heading on
-controlling rows; and no duplicate provision-Indicator row. A red battery ships nothing.
+controlling rows (a numbered passage is noted rather than checked); and no duplicate
+provision-Indicator row. A red battery ships nothing.
 
 ---
 
@@ -850,25 +997,37 @@ and token counts; the per-Economy ones are in **Pre-run Coverage**.
 
 ## Known Limitations
 
-- **Scanned documents in a Language with no vendored OCR data.** Chinese, Vietnamese, Hindi,
-  Kazakh and Mongolian have no traineddata here. A scanned page in one of them is flagged for
-  manual review rather than read as English, so four of those five Economies need text-layer
-  PDFs. Chinese is the exception: RapidOCR reads it on the escalation rung, so a Chinese scan
-  runs end to end and keeps its flag. All five are in the live-test pool.
+- **OCR in every organizer language, proven on few scans.** Data for all eleven vendored
+  languages is in the image, but only the Lao and Chinese lanes have been read on real scanned
+  laws here (Chinese by the RapidOCR rung); the Chinese, Vietnamese, Kazakh, Mongolian and Hindi data were added on
+  29 September 2026 and are tested for presence and routing, not yet for quality on a real scan.
 - **OCR fragility on scans generally.** The OCR ladder saves an evidence pair per page and flags
   what it could not read, but a badly scanned page produces a page that is flagged, not a page
   that is mapped. A measured character error rate is reported as null rather than guessed,
   because it needs a hand-checked reference.
-- **Portals that cannot be crawled.** Six of the twelve Economies have no Discovery today, for
-  reasons recorded per Portal: three fixed statutes on a regulator's host, while the national law
-  database forbids automated collection (China), rules that forbid the only route to
-  the document list (Viet Nam, Kazakhstan), no published route at all (Mongolia), a network path
-  that blocks HTTPS and a Portal that serves only scanned amendments (Russian Federation), and a Portal whose search and law-text services both fail
-  for its own application's requests (Thailand). India's Portal cannot serve its own `robots.txt`, and it discovers under the
+- **What Discovery by Pillar cannot reach.** Six of the twelve Economies have no Portal crawler,
+  for reasons recorded per Portal: the national law database forbids automated collection
+  (China), rules that forbid the only route to the document list (Viet Nam, Kazakhstan), no
+  published route at all (Mongolia), a Portal that serves only scanned amendments (Russian
+  Federation), and a Portal whose search and law-text services both fail for its own
+  application's requests (Thailand). Discovery by Pillar reaches them through the baseline laws
+  whose addresses sit on their official hosts and through the laws seeded per Economy. A
+  baseline link can be dead, point off the official hosts, or carry another law; each is
+  reported with its reason and not stored. Viet Nam and Kazakhstan have no 2025 baseline, so a
+  draw outside their seeded laws fetches nothing, and the operator uploads the laws by hand.
+  The Thai and Kazakh seeded texts are unofficial English translations published by the
+  government (Thailand) and on ILO NATLEX (Kazakhstan), and their rows say so in Language of
+  Source. India's Portal cannot serve its own `robots.txt`, and it discovers under the
   configured policy that says what that silence means for it, disclosed on every record.
   Malaysia's Portal search broke upstream on 16 September 2026. In every one of these cases a
   reviewer can still upload the Document or add it by URL, and everything after that is
   unchanged.
+- **Documents with no headings the splitter knows.** Such a Document is split into numbered
+  passages of about 1,000 characters (*Passage N*) so that it still yields evidence; a row then
+  cites the passage, not an article, and says so in Notes. The splitter reads the drafting
+  styles of the Round 1 Economies and the article headings of Indonesian (*Pasal*), Chinese
+  (`第N条`), Lao, Thai, Russian, Vietnamese, Mongolian, Kazakh and English (*Article N*) laws; a
+  law drafted any other way falls back to passages.
 - **Duplicate provision rows are collapsed.** The quote-anchored section-label repair re-derives
   a record's label from the nearest heading at the quote's position. Where a chunk carries text
   above its own section heading, which is what the chunk opening a new Part looks like, a quote
@@ -913,7 +1072,7 @@ and token counts; the per-Economy ones are in **Pre-run Coverage**.
     uv sync --extra live
     uv run pytest
 
-**2,324 tests**, offline and keyless. Tests that would spend money skip unless
+**2,729 tests**, offline and keyless. Tests that would spend money skip unless
 `REGCOMPASS_PAID=1` is set alongside a key, so a plain run never bills an account. Live Portal
 tests skip unless `REGCOMPASS_LIVE=1` is set, so a plain run never touches a government server.
 Gate tests probe for a reachable Ollama and skip when there is none. Docker tests that need a
@@ -930,9 +1089,12 @@ Both are offline and keyless, and both drive the committed bundle, so run `npm r
 
 | Test file | What it tests |
 | :---- | :---- |
+| `tests/test_add_correctness.py` | Adding a Document, and the lists and files built from what is added, tell the truth |
 | `tests/test_add_document.py` | A reviewer adds a Document by upload or by Source URL |
 | `tests/test_audit.py` | The audit view: bundle loading, quote location, highlight rectangles, the accepted-only export gate |
-| `tests/test_chunk.py` | Deterministic section splitting across four drafting styles, and the coverage partition invariant |
+| `tests/test_baseline_laws.py` | The Baseline Law List and the Discovery Tag for every baseline Economy, with law names matched in any script |
+| `tests/test_call_deadline.py` | A hung Engine call cannot stall a Run: every call carries a wall-clock deadline |
+| `tests/test_chunk.py` | Deterministic section splitting across every drafting style the splitter reads (Mongolian, Kazakh, Lao and English *Article N* included), Unicode normalisation, the numbered-passage fallback, and the coverage partition invariant |
 | `tests/test_classify.py` | The closed-menu classification schema and every branch of the scoring rubric |
 | `tests/test_clear.py` | Clearing the downloads and every cache: the scope, the data-root fence, the endpoint, the command line, and a second pass before and after |
 | `tests/test_cli_discover.py` | The two command-line lanes: `discover` fills a Corpus, `run` reads it |
@@ -940,16 +1102,28 @@ Both are offline and keyless, and both drive the committed bundle, so run `npm r
 | `tests/test_compare.py` | The Comparison: two Runs on one Economy and Pillar, side by side per Indicator |
 | `tests/test_config.py` | Every committed config file loads through its contract model |
 | `tests/test_contracts.py` | Seam models round-trip unchanged, and invariants fail at construction time |
+| `tests/test_convert_run_log.py` | The first replayable Run, rebuilt from its log into the event file the app records |
+| `tests/test_corpus_edit_and_evidence_runs.py` | Editing a Document's Source URL and title in place, and the list of Runs the Evidence screen's Showing bar chooses from |
+| `tests/test_corpus_paths.py` | A Corpus row survives the data folder moving |
 | `tests/test_corpus_run.py` | A Run reads the Corpus and never fetches, proved with a network guard |
+| `tests/test_correction_export.py` | A corrected Mapping in the Evidence Export: the corrected Indicator, the reviewer's reason, the override in Notes |
 | `tests/test_crawl.py` | Manifest resume, SHA-256 dedupe, failed URLs recorded not retried blindly |
 | `tests/test_discovery.py` | Discovery against recorded Portal answers, including "no request was made" |
+| `tests/test_discovery_by_pillar.py` | Discovery by Economy, Pillar and Indicators: baseline laws first, then the crawler, the cap, the deadline, the reasons, the hosts never requested |
+| `tests/test_discovery_events.py` | Discovery's typed events: what it found, fetched, added and skipped, and why |
 | `tests/test_docker.py` | The image, the compose file and the health check a judge's one command depends on |
+| `tests/test_document_ids.py` | A Document id is unique per bytes, whatever script the file name is in |
 | `tests/test_e2e.py` | The end-to-end lane, the single-PDF lane and the off-corpus export fallback |
+| `tests/test_engine_comparison.py` | The organizers' Engine Comparison sheet: every provision either Engine cited, paired, with a summary per pass |
 | `tests/test_engines.py` | The Engine registry: one named Engine drives every model-calling stage |
 | `tests/test_evidence_goldens.py` | Every shipped evidence artifact is pinned by exact bytes |
 | `tests/test_export.py` | The column contract, the gate battery and the goldens |
+| `tests/test_export_by_url_rows.py` | Rows built on a Document added by URL (an HTML page) read right |
 | `tests/test_export_duplicate_rows.py` | A real Run always exports, because duplicate provision rows collapse first |
 | `tests/test_export_fixture_notes.py` | A seeded Corpus discloses itself in the Export |
+| `tests/test_export_polish.py` | Articles for civil-law statutes, the RDTII's own words in the rationale, and the scoring-trap flags |
+| `tests/test_export_refusal_words.py` | The Evidence Export's refusals, in words a reviewer can act on |
+| `tests/test_export_run_indicators.py` | An Evidence Export answers only for the Indicators its Run searched: the absence rows and the screened count follow the Run's Indicator list |
 | `tests/test_extract.py` | Page and word slice invariants, determinism, coverage against an independent baseline |
 | `tests/test_extraction_reuse.py` | A Run reads a Document's text once and reuses it: the extraction key, the cache hit and miss, the Run Record's reused or extracted map |
 | `tests/test_gate.py` | The two-tier Gate over real chunks, with recall ground truth from the ESCAP database |
@@ -957,39 +1131,107 @@ Both are offline and keyless, and both drive the committed bundle, so run `npm r
 | `tests/test_gt_matrix_artifact.py` | The frozen 27-cell ground-truth comparison covers every cell and justifies every mismatch |
 | `tests/test_gt_scores.py` | The published agreement number is the one the code computes |
 | `tests/test_known_matrix_extract.py` | Section-reference parsing behind the NEW and KNOWN tags |
-| `tests/test_languages.py` | Which OCR data a Language asks for, and which Gate tier can read it |
+| `tests/test_labels.py` | Provision labels in each Economy's own drafting word |
+| `tests/test_languages.py` | Which OCR data a Language asks for, which Gate tier can read it, and which text layers are sent to OCR |
 | `tests/test_lao_portal.py` | Lao PDR's gazette, replayed from recorded bytes |
 | `tests/test_live_test_robustness.py` | The first upload on a fresh install, a Document with no structure, a Run left behind by a dead process, and an OCR escalation on the row |
 | `tests/test_map.py` | The Engine selects a quote per (chunk, Indicator) pair, and the code anchors or rejects it |
 | `tests/test_non_english_lane.py` | OCR in the Document's Language and the meaning-only Gate, end to end |
 | `tests/test_ocr.py` | Both scanned fixtures with quality proxies, the escalation ladder and the manual-review flag |
+| `tests/test_official_sources.py` | The official sources for the Economies with no Portal crawler: allowed hosts, seeded addresses, plain http for two hosts |
 | `tests/test_paid_optin.py` | Money never leaks into a bare test run |
 | `tests/test_parallel_mapping.py` | Mapping calls with bounded concurrency: record order equals pair order, byte-identical export, rate-limit backoff, a hard failure keeps the other records |
 | `tests/test_pg.py` | PostgreSQL and pgvector parity against the shipped seams (skips without a DSN) |
 | `tests/test_pipeline.py` | The judged path: `regcompass run` and `regcompass export` wiring, offline |
+| `tests/test_politeness_settings.py` | The read-only politeness endpoint behind the Settings card Polite crawling |
 | `tests/test_portal_id.py` | Indonesia's Portal, Discovery and the escalation that makes it possible |
 | `tests/test_pre_run.py` | The pre-run job: resumable skip of completed Runs, the spend ceiling, the per-Run stop, the ledger and the coverage report |
+| `tests/test_pre_run_parallel.py` | The pre-run job with several Runs going at once |
+| `tests/test_prepared_data.py` | The prepared database a release ships, packed, verified and loaded |
+| `tests/test_quote_page.py` | The page a Mapping cites is the page its Verbatim Quote sits on |
 | `tests/test_reconcile.py` | The legal-hierarchy ladder enforced in code, not by the model |
 | `tests/test_registry.py` | Economies and Indicators are data: any Economy, any Pillar, no code change |
+| `tests/test_rehearse_discovery.py` | The Discovery rehearsal script: one Economy and Pillar end to end over recorded answers, the guard that makes an Engine call impossible, resume, and the table |
+| `tests/test_release_workflow.py` | What a release tag publishes, and how the prepared database reaches the container |
 | `tests/test_repro_checkpoints.py` | Resume safety for the reproduction script's checkpoints |
+| `tests/test_review_corrections.py` | Correct: a reviewer's override of the Indicator an Engine chose, with the Engine's Mapping kept |
 | `tests/test_reviews.py` | Review Decisions survive a refresh, a restart and a migration |
+| `tests/test_run_drilldown.py` | Clicking deeper into a Run: one Document, one Candidate, one Mapping |
+| `tests/test_run_events.py` | The Run's typed events: on the live stream, in a file per Run, on the record |
+| `tests/test_run_progress.py` | The Run's progress: the free-text lines and the Step hook beside them |
 | `tests/test_run_records.py` | Run Records: tokens and cost proved against a temporary registry |
+| `tests/test_run_replay.py` | Watch a Run again: a recorded Run's events streamed back at a chosen speed |
 | `tests/test_run_scoped_mappings.py` | A Run owns its Mappings, and a Run can be narrowed to Indicators |
 | `tests/test_section_label_repair.py` | Quote-anchored section-label repair and the headings the chunker misses |
 | `tests/test_seed.py` | A Corpus a judge can Run against with no network |
 | `tests/test_server.py` | The one server: Start a Run API, Run history, Settings key, audit view, export |
+| `tests/test_server_auth.py` | The optional login on a hosted copy |
+| `tests/test_sheet_rows.py` | Deleting the template's example rows the way a spreadsheet application does, formulas moved up |
 | `tests/test_shortlist.py` | The whole-document shortlist ranker, with recall and precision measured |
 | `tests/test_source_links.py` | Following a Mapping row to its official source: the page fragment, the local-copy fallback, the fields the interface reads |
 | `tests/test_storage.py` | Schema application, audit logging and the embedding round-trip |
+| `tests/test_storage_wal_switch.py` | Several Runs opening one database at the same moment |
+| `tests/test_thailand_portal.py` | Thailand's Council of State library, replayed from recorded bytes, and why it is not crawled |
 | `tests/test_translate.py` | The translation lane, its default-off flag and its degenerate-output guard |
+| `tests/test_traps.py` | The Indicator Reference's scoring traps, flagged on every exported row |
 | `tests/test_upload_collisions.py` | Several Documents may share one Source URL, and a Run killed the moment it starts still leaves a record |
 | `tests/test_vendored_assets.py` | The vendored OCR language data is exactly what this README says it is |
-| `tests/test_verify.py` | The byte-for-byte mechanical guarantee |
-| `tests/test_workbook.py` | The Evidence Export as the organizer's own workbook, cell by cell |
+| `tests/test_verify.py` | The byte-for-byte mechanical guarantee, and subsection numbering in non-English styles |
+| `tests/test_vps_deploy.py` | The hosted-server override and its Caddyfile: login required, no way around it |
+| `tests/test_wording.py` | Rationales read "RDTII criterion N (score X)" instead of the prompt's "rung N" |
+| `tests/test_workbook.py` | The Evidence Export as the organizer's own workbook, cell by cell: rows 7 to 107, the Run Record sheet, the 7.1 and 7.2 economy-level rows |
 
 ---
 
 ## Reproducing Your Submitted Evidence
+
+### The final-round evidence workbook
+
+The evidence workbook submitted with this release is built from the prepared database (see
+**Getting the prepared database**) by this package's own export, with no model call. Every row's
+Notes name the Engine, the model and the Run it came from, so any row can be traced to one Run
+and regenerated from it:
+
+1. Load the prepared database: `docker compose run --rm --no-deps regcompass-load`, or
+   `uv run regcompass load-data` on the host.
+2. List the Runs: `uv run regcompass runs --limit 50`, or the **Run history** screen. The
+   workbook draws on the 24 pre-run Runs (six Economies, Pillars 6 and 7, both Engines); its
+   rows come from the Engine A Runs.
+3. Export the Run a row names, from the database alone:
+
+       uv run regcompass export --run-id <run_id> --out out/<run_id>
+
+   or, on the Docker path,
+
+       docker compose run --rm --no-deps regcompass-demo regcompass export --run-id <run_id> --out out/<run_id>
+
+   It writes that Run's `submission.xlsx`, `submission.csv` and the two JSON files after the full
+   battery passes: the same code the interface's **Export workbook** runs. The interface ships
+   only the rows a reviewer accepted or corrected, and the prepared database carries no Review
+   Decisions, so the command line is the route that shows every verified row.
+
+Every cell of a workbook row except Notes (columns A to L and N) holds the value the product export writes for that Run.
+What the submission builder adds on top is a separate script of ours, kept outside this
+repository, which imports this package as a library and changes none of its code:
+
+- **Selection across Runs.** It exports all 24 Runs with the per-Run cap of 101 rows switched
+  off, then keeps at most 101 rows in all, from the Engine A Runs: first the best row for every
+  (Economy, Indicator) that has one (a principal Act before an amending act, the Run's
+  controlling evidence first, then Confidence), then further rows with the Economies taking
+  turns, best Confidence first, never 7.1 or 7.2, never an amending act and never a superseded
+  row.
+- **Stricter trap handling.** A row the product export keeps with a *Check before submitting*
+  note because it is an Elucidation, a 7.3 row with no stated duration or a conditional 6.1 row
+  is left out of the submission instead.
+- **Notes.** It appends the provenance (Engine, model, Run id) and, for a non-English quote, the
+  Run's English rendering.
+- **Presentation.** Wider evidence columns, row heights that show each cell's whole text, and
+  the cached values of the template's own formulas, so the Coverage Matrix shows its counts
+  before a spreadsheet recalculates. No value outside Notes is changed.
+- **Checks.** It checks every template rule mechanically and writes a check report beside the
+  workbook.
+
+### The Round 1 evidence, from frozen checkpoints
 
     uv run python scripts/run_repro.py export
     uv run pytest -q tests/test_evidence_goldens.py
@@ -1038,10 +1280,10 @@ vendored-asset notices are in `THIRD_PARTY_NOTICES.md` and interface bundle noti
 
 | | |
 | :---- | :---- |
-| Release tag | `final-round` |
-| Commit SHA | the commit the tag `final-round` points to (shown on the Release page) |
-| Docker image | `ghcr.io/ryannurtanio/regcompass-final:final-round` |
-| Live URL | https://regcompass.sidequesting.tech |
+| Release tag | `final-round` on https://github.com/Ryannurtanio/regcompass-final |
+| Commit SHA | the commit the tag `final-round` points to, printed on its GitHub Release page |
+| Docker image | `ghcr.io/ryannurtanio/regcompass-final:final-round`, with its digest on the same Release page |
+| Live URL | https://regcompass.sidequesting.tech (sign-in page; the judges' login is given in the submission form) |
 | Backup copy | Linked from the GitHub Release page of the tag above |
 
 The release tag you record is the version that runs on 15 October. Settings may change on the

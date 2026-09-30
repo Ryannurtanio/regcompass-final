@@ -44,13 +44,13 @@ class TestTesseractLanguages:
             ("Thai", "TH", "tha+eng"),
             ("Lao", "LA", "lao+eng"),
             ("Russian", "RU", "rus+eng"),
-            # Live-test Languages with no vendored traineddata fall back to
-            # English rather than crashing tesseract with a missing file.
-            ("Vietnamese", "VN", "eng"),
-            ("Chinese", "CN", "eng"),
-            ("Hindi", "IN", "eng"),
-            ("Kazakh", "KZ", "eng"),
-            ("Mongolian", "MN", "eng"),
+            ("Vietnamese", "VN", "vie+eng"),
+            ("Chinese", "CN", "chi_sim+eng"),
+            ("Hindi", "IN", "hin+eng"),
+            ("Kazakh", "KZ", "kaz+eng"),
+            ("Mongolian", "MN", "mon+eng"),
+            # A Language with no vendored traineddata falls back to English
+            # rather than crashing tesseract with a missing file.
             ("Other", "TL", "eng"),
             (None, "SG", "eng"),
         ],
@@ -70,6 +70,13 @@ class TestTesseractLanguages:
     def test_a_mapped_language_has_no_note(self):
         assert tesseract_language_note("Lao", "LA") is None
         assert tesseract_language_note("Other", "MY") is None
+
+    def test_every_organizer_language_but_other_has_its_own_data(self):
+        """Every national script on the organizers' list is read in its own
+        script; only "Other" outside Malaysia falls back to English."""
+        for language in ORGANIZER_LANGUAGES:
+            if language != "Other":
+                assert tesseract_language_note(language, "XX") is None, language
 
     def test_every_mapped_code_is_vendored(self):
         from regcompass.ocr import VENDOR_TESSDATA
@@ -127,3 +134,36 @@ class TestKeywordTier:
 
     def test_a_few_non_latin_characters_do_not_flip_an_english_document(self):
         assert keyword_tier_applies("English", ENGLISH * 40 + LAO)
+
+
+class TestOcrLanguagesForAGarbageLayer:
+    """A text layer judged garbage is read by OCR in every script the Document
+    could be in: what the layer still shows, its own Language, and the
+    Languages its Economy publishes in."""
+
+    def test_a_hindi_gazette_filed_as_english_is_read_with_hindi(self):
+        from regcompass.languages import garbage_ocr_languages
+
+        dropped = "] 417\n, ;\n1. (1) , ,\n(2) ,\n"
+        assert garbage_ocr_languages("English", "IN", dropped, ("English", "Hindi")) == (
+            "hin+eng", "Hindi")
+
+    def test_the_script_left_in_the_layer_counts(self):
+        from regcompass.languages import garbage_ocr_languages
+
+        thai = "มาตรา ๑ พระราชบัญญัตินี้เรียกว่า พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล " * 3
+        assert garbage_ocr_languages("English", "XX", thai, ()) == ("tha+eng", "Thai")
+
+    def test_cyrillic_follows_the_economys_languages(self):
+        from regcompass.languages import garbage_ocr_languages
+
+        cyr = "Осы Заң дербес деректерді жинауға байланысты қатынастарды реттейді " * 3
+        langs, reading = garbage_ocr_languages("Russian", "KZ", cyr, ("Russian", "Kazakh"))
+        assert set(langs.split("+")) == {"rus", "kaz", "eng"} and langs.endswith("+eng")
+        assert reading == "Russian"
+
+    def test_lao_stays_lao(self):
+        from regcompass.languages import garbage_ocr_languages
+
+        assert garbage_ocr_languages("Lao", "LA", "iimijCSC;Jn1nsun", ("Lao", "English")) == (
+            "lao+eng", "Lao")

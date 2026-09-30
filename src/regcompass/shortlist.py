@@ -41,7 +41,9 @@ import csv
 import hashlib
 import re
 import time
+import unicodedata
 from dataclasses import dataclass, field
+from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
@@ -68,7 +70,13 @@ from regcompass.extract import (
     store_extraction,
 )
 from regcompass.gate import EmbedFn, embed_ollama, legal_tokens
-from regcompass.languages import ocr_policy, tesseract_languages
+from regcompass.languages import (
+    NON_LATIN_SCRIPT_LANGUAGES,
+    garbage_ocr_languages,
+    non_latin_share,
+    ocr_policy,
+    tesseract_languages,
+)
 from regcompass.observability import log_stage
 from regcompass.paths import resolve_stored_path, storable_local_path
 from regcompass.storage import Storage
@@ -293,6 +301,91 @@ def should_ocr(canonical: CanonicalText) -> bool:
     return len(canonical.low_yield_pages) / len(canonical.pages) > OCR_PAGE_FRACTION
 
 
+# A text layer that is present but is not the Document's text. Each threshold is
+# set against the stored Corpus (101 Documents, 29 Sep 2026), so that every
+# stream a reviewer can read passes and the known bad ones do not:
+#
+# * unmapped glyphs ("(cid:N)", private-use code points, U+FFFD) over a fifth
+#   of the visible text. The worst readable stream carries 6% (Malaysia's Act
+#   854, a copyright page of (cid:N) glyphs).
+# * letters under 40% of the visible text: the glyphs were dropped and only the
+#   numbering and punctuation survive. The Hindi gazette doc_in_H202344 is at
+#   21%; the lowest readable stream is 70% (an Australian volume of tables).
+# * a Language written in its own script whose text layer is under half that
+#   script AND reads as no English (an English legal-word hit rate under 0.2):
+#   a legacy national font mapped onto Latin letters. Lao Decree 296 is at 0%
+#   and 0.01; every other stored non-Latin stream is over 94% its script, and
+#   the lowest English stream hits 0.67, so an official English text filed
+#   under the Economy's Language is left alone.
+# * Thai or Lao whose SARA AM outnumbers SARA AA: a broken font map that reads
+#   every "า" as "ำ" (the official Thai PDPA PDF). The ordinary vowel is
+#   one of the commonest letters of both scripts; the stored Lao streams carry
+#   52,700 of it and none of the other.
+# * one line repeated at least 200 times and more than 10 times a page: a
+#   watermark printed over the text (the same Thai PDF, about 2,000 times). A
+#   running header repeats once or twice a page; the most in the Corpus is 3.
+UNMAPPED_SHARE_MAX = 0.2
+LETTER_SHARE_MIN = 0.4
+OWN_SCRIPT_SHARE_MIN = 0.5
+ENGLISH_HIT_RATE_MIN = 0.2
+WATERMARK_MIN_REPEATS = 200
+WATERMARK_PER_PAGE = 10
+# Below this many visible characters there is nothing to judge; the low-yield
+# rule decides such a Document.
+_GARBAGE_MIN_CHARS = 200
+_GARBAGE_SAMPLE_CHARS = 200_000
+_CID_RE = re.compile(r"\(cid:\d+\)")
+# (the ordinary vowel, the one a broken font map puts in its place)
+_SARA_AA_AM = {"Thai": ("\u0e32", "\u0e33"), "Lao": ("\u0eb2", "\u0eb3")}
+
+
+@lru_cache(maxsize=1)
+def _english_wordlist() -> frozenset[str]:
+    from regcompass.ocr import _load_wordlist
+
+    return _load_wordlist()
+
+
+def garbage_text_layer(canonical: CanonicalText, language: str | None) -> str | None:
+    """Why this PDF's text layer is not its text (so the OCR lane reads the
+    page images instead), or None when it reads as text. The thresholds and the
+    Documents they were set against are listed above."""
+    from regcompass.ocr import dictionary_hit_rate
+
+    text = canonical.full_text[:_GARBAGE_SAMPLE_CHARS]
+    visible = sum(1 for ch in text if not ch.isspace())
+    if visible < _GARBAGE_MIN_CHARS:
+        return None
+    unmapped = sum(len(m) for m in _CID_RE.findall(text)) + sum(
+        1 for ch in text if "\ue000" <= ch <= "\uf8ff" or ch == "\ufffd"
+    )
+    if unmapped / visible > UNMAPPED_SHARE_MAX:
+        return f"{unmapped / visible:.0%} of the text layer is unmapped glyphs"
+    letters = sum(1 for ch in text if ch.isalpha() or unicodedata.category(ch).startswith("M"))
+    if letters / visible < LETTER_SHARE_MIN:
+        return f"only {letters / visible:.0%} of the text layer is letters: the words were dropped"
+    if (
+        language in NON_LATIN_SCRIPT_LANGUAGES
+        and non_latin_share(text) < OWN_SCRIPT_SHARE_MIN
+        and dictionary_hit_rate(text, _english_wordlist()) < ENGLISH_HIT_RATE_MIN
+    ):
+        return f"the text layer is not in {language} script: a legacy font mapped onto Latin letters"
+    if language in _SARA_AA_AM:
+        aa, am = _SARA_AA_AM[language]
+        if text.count(am) > text.count(aa):
+            return f"the text layer reads the {language} vowel {aa} as {am}: a broken font map"
+    counts: dict[str, int] = {}
+    for line in text.split("\n"):
+        line = line.strip()
+        if sum(ch.isalpha() for ch in line) >= 3:
+            counts[line] = counts.get(line, 0) + 1
+    if counts:
+        repeats = max(counts.values())
+        if repeats >= WATERMARK_MIN_REPEATS and repeats > WATERMARK_PER_PAGE * max(1, len(canonical.pages)):
+            return f"one line repeats {repeats} times over the text layer: a watermark"
+    return None
+
+
 _SHORT_DIGEST = re.compile(r"[0-9a-f]{12}")
 
 
@@ -433,18 +526,38 @@ def ingest_economy(
                     None if evidence_root is not None
                     else load_extraction(storage, key, doc_id)
                 )
+                if (
+                    canonical is not None and fmt == "pdf" and not canonical.ocr_applied
+                    and garbage_text_layer(canonical, language) is not None
+                ):
+                    canonical = None  # stored before garbage layers were recognised
                 reused = canonical is not None
                 if canonical is None:
                     canonical, _ = extract_with_stats(raw, fmt, doc_id)
-                    if fmt == "pdf" and should_ocr(canonical):
+                    scanned = fmt == "pdf" and should_ocr(canonical)
+                    garbage = (
+                        fmt == "pdf" and not scanned
+                        and garbage_text_layer(canonical, language) is not None
+                    )
+                    if scanned or garbage:
                         from regcompass.ocr import ocr_document
 
                         evidence_dir = (
                             evidence_root / doc_id if evidence_root is not None else None
                         )
+                        doc_languages, doc_policy = ocr_languages, policy
+                        if garbage:
+                            # every script the Document could be in (see
+                            # languages.garbage_ocr_languages)
+                            portal = load_portals().get(economy)
+                            doc_languages, reading = garbage_ocr_languages(
+                                language, economy, canonical.full_text,
+                                portal.languages if portal is not None else (),
+                            )
+                            doc_policy = ocr_policy(reading, economy)
                         canonical = ocr_document(
-                            raw, doc_id, languages=ocr_languages, config=config,
-                            evidence_dir=evidence_dir, policy=policy,
+                            raw, doc_id, languages=doc_languages, config=config,
+                            evidence_dir=evidence_dir, policy=doc_policy,
                         )
                 ocr_applied = canonical.ocr_applied
                 title = derive_title(raw, fmt, canonical.full_text, row["filename_hint"])

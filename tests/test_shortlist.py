@@ -616,8 +616,15 @@ class TestCorpusMap:
     def test_every_database_law_is_mapped(self):
         cmap = load_corpus_map()
         matrix = load_known_matrix()["database"]
+        # The corpus map is the Round 1 (AU, MY, SG) Pillar 6 and 7 eval ground
+        # truth; the matrix spans ten Economies and all 12 Pillars since the
+        # baseline law list.
         for economy, inds in matrix.items():
+            if economy not in cmap or economy.startswith("_"):
+                continue
             for ind, laws in inds.items():
+                if int(ind.split(".")[0]) not in (6, 7):
+                    continue
                 for law in laws:
                     assert law["law_key"] in cmap[economy], (
                         f"{economy} {ind}: unmapped law {law['law_key']!r}"
@@ -782,3 +789,126 @@ class TestShortlistRowContract:
         with pytest.raises(Exception):
             ShortlistRow(rank=1, document_id="d", title="t", source_url="u",
                          relevance_score=1.5)
+
+
+# ---------------------------------------------------------------------------
+# a text layer that is there but is not the Document's text goes to OCR
+# ---------------------------------------------------------------------------
+
+# The stored text layer of Lao PDR's Decree on Electronic Commerce No. 296: a
+# legacy Lao font whose glyphs are mapped onto Latin letters.
+LAO_LEGACY_FONT = (
+    "iimijCSC;Jn1nsun\n"
+    "rl\"l1Jf1iUl\"ljC9C;Jrllm;un CCJ.JlJ mlJ~ 2\"1EJ, rlilJCC';JrltJ:'jlJ ~1Jfo qi rl\"li.JtJ;Jrl\"l1J\n"
+    "~fli CC;J::; ;;inf\\, lClEJUil~~9jU1ijC8C;Jll 'te1sun.\n"
+    "JJinm 3 nil.J3:Vlt.Jioo,i1u\n"
+    "1. ~ii, m.J\"lrnf):i tJn~u @D fltJn~u inr1,cDumu21EJ ~uii, @ muu;3mum,:imc;Sn\n"
+    "'te1sun;\n"
+    "2. ~n{i, m.m.Jcf):i !,Jll~U, Dflt}n~u qi n,1J~nr1:i ~~. ~JJL~ ~1Jiii qi r'l\"ll.JLJ;Jrn1J m,:i\n"
+    "C8C;Jll lClSU!l;\n"
+    "3. ~9JU11Jcsc;intrisi1n m.i,rni7J c5uh~, tllscmsJJ @ ~nfi,~Js1J uhj,\"c~c2,°c1J\n"
+    "m 1J n,cD1JV;;J~nnm 1Jf1°1Ul°ljC8C;J!l 1C 1SU!l;\n"
+) * 4
+
+# The Personal Data Protection Act of Thailand, sections 1 to 3.
+THAI_PDPA = (
+    "มาตรา ๑ พระราชบัญญัตินี้เรียกว่า “พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. ๒๕๖๒”\n"
+    "มาตรา ๒ พระราชบัญญัตินี้ให้ใช้บังคับตั้งแต่วันถัดจากวันประกาศในราชกิจจานุเบกษาเป็นต้นไป\n"
+    "เว้นแต่บทบัญญัติในหมวด ๒ หมวด ๓ หมวด ๕ หมวด ๖ หมวด ๗ และความในมาตรา ๙๕ และมาตรา ๙๖\n"
+    "ให้ใช้บังคับเมื่อพ้นกำหนดหนึ่งปีนับแต่วันประกาศในราชกิจจานุเบกษาเป็นต้นไป\n"
+    "มาตรา ๓ ในกรณีที่มีกฎหมายว่าด้วยการใดบัญญัติเกี่ยวกับการคุ้มครองข้อมูลส่วนบุคคลไว้\n"
+    "เป็นการเฉพาะ ให้บังคับตามบทบัญญัติแห่งกฎหมายว่าด้วยการนั้น\n"
+) * 4
+
+ENGLISH_TRANSLATION = (
+    "Article 1. Objective\n"
+    "This Decree determines the principles, regulations and measures on the management,\n"
+    "inspection and monitoring of electronic commerce in order to protect the rights and\n"
+    "interests of consumers and to ensure that electronic commerce is conducted safely.\n"
+) * 4
+
+
+def _layer(text: str, pages: int = 4) -> "CanonicalText":
+    from regcompass.contracts import CanonicalText, PageSpan
+
+    step = len(text) // pages
+    spans = [
+        PageSpan(page_number=i + 1, char_start=i * step, char_end=len(text) if i == pages - 1 else (i + 1) * step)
+        for i in range(pages)
+    ]
+    return CanonicalText(
+        document_id="d", source_sha256="0" * 64, extractor="pdfplumber",
+        extractor_version="x", full_text=text, pages=spans,
+    )
+
+
+class TestGarbageTextLayer:
+    def test_a_legacy_font_layer_is_garbage_for_its_language(self):
+        from regcompass.shortlist import garbage_text_layer
+
+        reason = garbage_text_layer(_layer(LAO_LEGACY_FONT), "Lao")
+        assert reason is not None and "Lao" in reason
+
+    def test_an_english_translation_under_the_economys_language_is_not(self):
+        """Lao PDR publishes official English texts that carry the Economy's
+        default Language: Latin letters there are the real text."""
+        from regcompass.shortlist import garbage_text_layer
+
+        assert garbage_text_layer(_layer(ENGLISH_TRANSLATION), "Lao") is None
+
+    def test_readable_text_in_its_own_script_is_not(self):
+        from regcompass.shortlist import garbage_text_layer
+
+        assert garbage_text_layer(_layer(THAI_PDPA), "Thai") is None
+        assert garbage_text_layer(_layer(ENGLISH_TRANSLATION), "English") is None
+        assert garbage_text_layer(_layer(ENGLISH_TRANSLATION), None) is None
+
+    def test_unmapped_glyphs_are_garbage(self):
+        from regcompass.shortlist import garbage_text_layer
+
+        cids = "".join(f"(cid:{n})" for n in range(40, 90)) + "\n"
+        assert garbage_text_layer(_layer(cids * 20 + ENGLISH_TRANSLATION), "English") is not None
+        pua = " \n"
+        assert garbage_text_layer(_layer(pua * 200), None) is not None
+
+    def test_a_few_unmapped_glyphs_are_not(self):
+        """Malaysia's Act 854 carries a copyright page of (cid:N) glyphs, about
+        6% of its text, and reads fine everywhere else."""
+        from regcompass.shortlist import garbage_text_layer
+
+        cids = "".join(f"(cid:{n})" for n in range(40, 45)) + "\n"
+        assert garbage_text_layer(_layer(cids + ENGLISH_TRANSLATION * 4), "English") is None
+
+    def test_a_layer_of_dropped_glyphs_is_garbage(self):
+        """A Hindi gazette whose Devanagari never reached the text layer: the
+        numbering and punctuation survive, the words do not."""
+        from regcompass.shortlist import garbage_text_layer
+
+        dropped = "] 417\n, ;\n1. (1) , ,\n(2) ,\n(i) ;\n(ii) ,\n418 [ 2\n(3) ,\n- -\n2. , ,\n" * 20
+        assert garbage_text_layer(_layer(dropped), "English") is not None
+
+    def test_a_thai_layer_that_reads_every_sara_aa_as_sara_am(self):
+        """The official PDPA PDF on mdes.go.th: every "า" comes out as "ำ", so
+        the word "มาตรา" never appears in its text layer."""
+        from regcompass.shortlist import garbage_text_layer
+
+        broken = THAI_PDPA.replace("า", "ำ")
+        assert "มาตรา" not in broken
+        reason = garbage_text_layer(_layer(broken), "Thai")
+        assert reason is not None
+
+    def test_a_watermark_repeated_thousands_of_times(self):
+        """The same PDF prints its watermark line about 2,000 times over the
+        text layer; a running header repeats once or twice a page."""
+        from regcompass.shortlist import garbage_text_layer
+
+        marked = THAI_PDPA + "สำนักงานคณะกรรมการคุ้มครองข้อมูลส่วนบุคคล\n" * 2000
+        assert garbage_text_layer(_layer(marked, pages=30), "Thai") is not None
+        header = "Personal Data Protection Act 2010\n"
+        per_page = (header + ENGLISH_TRANSLATION) * 30
+        assert garbage_text_layer(_layer(per_page, pages=30), "English") is None
+
+    def test_an_empty_layer_is_left_to_the_low_yield_rule(self):
+        from regcompass.shortlist import garbage_text_layer
+
+        assert garbage_text_layer(_layer("", pages=1), "Lao") is None

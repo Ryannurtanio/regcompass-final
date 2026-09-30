@@ -204,6 +204,13 @@ def check_host_allowed(
     host = urlsplit(source_url).netloc
     if not host or not urlsplit(source_url).scheme.startswith("http"):
         raise ValueError(f"'{source_url}' is not an http(s) Source URL")
+    from regcompass.contracts import is_never_requested
+
+    if is_never_requested(host):
+        raise HostNotAllowedError(
+            f"'{host}' is never requested by RegCompass. Upload the file"
+            " instead, with its Source URL."
+        )
     if allow_any_host or host in portal.hosts:
         return host
     raise HostNotAllowedError(
@@ -416,6 +423,24 @@ def add_document(
     )
 
 
+def seeded_family(economy: str, source_url: str, config_dir=CONFIG_DIR):
+    """The source-list entry (config/crawl_seeds.yaml) whose official
+    addresses include this one, or None. Such an address is a known law with
+    a known name and Language."""
+    from regcompass.config import load_crawl_seeds
+
+    try:
+        seeds = load_crawl_seeds(config_dir).get(economy)
+    except Exception:
+        return None
+    if seeds is None:
+        return None
+    wanted = source_url.strip()
+    return next(
+        (f for f in seeds.families.values() if wanted in f.urls), None
+    )
+
+
 def add_document_from_url(
     storage: Storage,
     data_dir: Path,
@@ -447,6 +472,13 @@ def add_document_from_url(
             " still a request we would make. Upload the file instead."
         )
     check_host_allowed(portal, source_url, allow_any_host=allow_any_host)
+    # An address the source list names is a known law: with nothing typed,
+    # it takes that law's name and Language rather than its file name and
+    # the Portal's default Language.
+    seed = seeded_family(economy, source_url, config_dir)
+    if seed is not None:
+        title = title or seed.law
+        language = language or seed.language
 
     # Imported HERE, never at module scope: a Run imports the Corpus and must
     # stay unable to reach the network lane at all (tests/test_corpus_run.py).
@@ -457,6 +489,9 @@ def add_document_from_url(
         source_url, economy,
         fetch=fetch, limiter=limiter, robots=robots, config_dir=config_dir,
         robots_reading=readings.append,
+        # A redirect may only lead to another host of this Portal, unless the
+        # operator vouched for any host; never to a never-requested one.
+        allowed_hosts=None if allow_any_host else list(portal.hosts),
     )
     added = add_document(
         storage, data_dir, economy, result.content,

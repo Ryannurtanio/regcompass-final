@@ -546,7 +546,7 @@ class TestTheLaoPortalIsConfigured:
     def test_the_portal_declares_the_host_the_language_and_the_floor(self):
         portal = load_portals()["LA"]
         assert portal.official_name == "Lao PDR"
-        assert portal.hosts == ["laoofficialgazette.gov.la"]
+        assert portal.hosts[0] == "laoofficialgazette.gov.la"
         assert portal.strategy == "httpx" and portal.manual_only is False
         assert portal.languages[0] == "Lao"
         assert portal.min_interval_seconds == 2.0

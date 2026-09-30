@@ -280,9 +280,12 @@ class TestTheSeedsCameOffThePortal:
             )
 
     def test_the_seeds_cover_at_least_three_source_families(self):
+        """The crawler's families are download references; the rest are one
+        baseline law each at its statute PDF (tests/test_official_sources.py)."""
         seeds = load_crawl_seeds(CONFIG_DIR)["ID"]
-        assert len(seeds.families) >= 3
-        assert all(family.acts for family in seeds.families.values())
+        crawled = [family for family in seeds.families.values() if family.acts]
+        assert len(crawled) >= 3
+        assert all(family.acts or family.urls for family in seeds.families.values())
 
 
 # ---------------------------------------------------------------------------

@@ -31,3 +31,6 @@ node_modules/
 
 # macOS noise
 .DS_Store
+
+# Discovery rehearsal output (scripts/rehearse_discovery.py --out rehearsal)
+rehearsal/

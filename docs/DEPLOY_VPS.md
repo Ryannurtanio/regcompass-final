@@ -76,7 +76,7 @@ No domain yet? Two fallbacks:
 ## 5. Get the code
 
 ```bash
-git clone https://github.com/Ryannurtanio/regcompass-final.git regcompass
+git clone --branch final-round https://github.com/Ryannurtanio/regcompass-final.git regcompass
 cd regcompass
 ```
 

@@ -133,11 +133,88 @@ UNSTRUCTURED = (
 ) * 40
 
 
+def _run_over_prose(tmp_path, body: str | None = None):
+    from regcompass.corpus import add_document
+    from regcompass.engines import fake_completion, fake_embed, resolve_engine
+    from regcompass.pipeline import run_economy
+
+    storage = Storage(tmp_path / "prose.db")
+    storage.apply_schema()
+    data_dir = tmp_path / "data"
+    added = add_document(
+        storage, data_dir, "SG",
+        f"<html><body>{body or f'<p>{UNSTRUCTURED}</p>'}</body></html>".encode(),
+        source_url="https://sso.agc.gov.sg/Act/Memorandum",
+        language="English",
+        filename_hint="working group memorandum.html",
+        title="Working Group Memorandum",
+    )
+    lines: list[str] = []
+    report = run_economy(
+        storage, "SG", (7,), resolve_engine("fake"), data_dir=data_dir,
+        completion_fn=fake_completion, embed_fn=fake_embed,
+        progress=lines.append,
+    )
+    return storage, report, lines, added.document_id
+
+
+class TestARunOverProseReadsItInPassages:
+    """A Document with no headings at all is split into numbered passages, so
+    the Gate reads it like any other and the Run can find evidence in it."""
+
+    def test_the_run_log_says_passages_and_raises_no_warning(self, tmp_path):
+        storage, report, lines, document_id = _run_over_prose(tmp_path)
+        said = " ".join(ln for ln in lines if ln.startswith("M4 chunk")).lower()
+        assert "numbered passages" in said
+        assert report.warnings == []
+        labels = {
+            r["section_label"] for r in storage.conn.execute(
+                "SELECT section_label FROM chunks WHERE document_id = ?", (document_id,)
+            )
+        }
+        assert labels and all(label.startswith("Passage ") for label in labels)
+
+    def test_a_passage_mapping_exports(self, tmp_path):
+        """An amending act's shape: two numbered amendments, too few to be
+        structure, yet heading-shaped lines the export's section check can
+        see. A passage has no heading to hold its label against, so the check
+        notes the row instead of refusing the whole export."""
+        from regcompass.pipeline import export_from_db
+
+        prose = "<p>" + (
+            "Personal data collected by a service provider shall be stored on servers"
+            " located within the territory and shall not be transferred abroad"
+            " without the approval of the Ministry. A provider shall notify the"
+            " Ministry of any breach of personal data within seventy-two hours. "
+        ) * 6 + "</p>"
+        body = (
+            "<p>1. This Act may be cited as the Electronic Commerce (Amendment) Act.</p>"
+            + prose
+            + "<p>2. Section 5 of the principal Act is amended by deleting subsection (3).</p>"
+            + prose
+        )
+        storage, report, _, document_id = _run_over_prose(tmp_path, body)
+        lines: list[str] = []
+        result = export_from_db(
+            storage, tmp_path / "out", run_id=report.run_id, progress=lines.append
+        )
+        assert result.battery_failures == []
+        gate = [ln for ln in lines if "pointer-gate" in ln]
+        assert gate and "0 failures" in gate[0] and "0 fail-closed" not in gate[0], gate
+        sections = {
+            r["section_label"] for r in storage.conn.execute(
+                "SELECT c.section_label FROM mappings m JOIN chunks c USING (chunk_id)"
+                " WHERE m.document_id = ?", (document_id,)
+            )
+        }
+        assert sections and all(label.startswith("Passage ") for label in sections)
+
+
 class TestARunThatFoundNoStructure:
-    """The chunker matched no style profile, so the Document became one chunk
-    of kind `other`. The Gate reads section chunks only, so it saw 0 of 0
-    pairs, the Run ended `completed` with no Mappings, and the export said the
-    Engine had selected no evidence and suggested trying the other one.
+    """The chunker produced no section chunk (a Document with no text; prose
+    is read in passages, above), so the Gate saw 0 of 0 pairs, the Run ended
+    `completed` with no Mappings, and the export said the Engine had selected
+    no evidence and suggested trying the other one.
 
     Every one of those statements is true and the conclusion is wrong: no
     Engine was ever asked anything. Switching Engines costs the assessor
@@ -145,29 +222,21 @@ class TestARunThatFoundNoStructure:
     """
 
     @pytest.fixture()
-    def run_over_prose(self, tmp_path):
-        from regcompass.corpus import add_document
-        from regcompass.engines import fake_completion, fake_embed, resolve_engine
-        from regcompass.pipeline import run_economy
+    def run_over_prose(self, tmp_path, monkeypatch):
+        import regcompass.pipeline as pipeline_mod
+        from regcompass.chunk import ChunkingReport
+        from regcompass.contracts import Chunk
 
-        storage = Storage(tmp_path / "prose.db")
-        storage.apply_schema()
-        data_dir = tmp_path / "data"
-        added = add_document(
-            storage, data_dir, "SG",
-            f"<html><body><p>{UNSTRUCTURED}</p></body></html>".encode(),
-            source_url="https://sso.agc.gov.sg/Act/Memorandum",
-            language="English",
-            filename_hint="working group memorandum.html",
-            title="Working Group Memorandum",
-        )
-        lines: list[str] = []
-        report = run_economy(
-            storage, "SG", (7,), resolve_engine("fake"), data_dir=data_dir,
-            completion_fn=fake_completion, embed_fn=fake_embed,
-            progress=lines.append,
-        )
-        return storage, report, lines, added.document_id
+        def no_sections(canonical, config=None, completion_fn=None):
+            text = canonical.full_text
+            chunk = Chunk.from_stream(
+                canonical, chunk_id=f"{canonical.document_id}:c0000", char_start=0,
+                char_end=len(text), section_label="no structure", chunk_kind="other",
+            )
+            return [chunk], ChunkingReport(n_chunks=1, coverage_chars=len(text))
+
+        monkeypatch.setattr(pipeline_mod, "split_document", no_sections)
+        return _run_over_prose(tmp_path)
 
     def test_the_run_log_names_the_chunk_step_as_the_cause(self, run_over_prose):
         _, _, lines, _ = run_over_prose

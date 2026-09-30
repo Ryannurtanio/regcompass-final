@@ -34,14 +34,22 @@ from __future__ import annotations
 import io
 import re
 from collections import Counter
-from typing import Iterable, Literal, Mapping, Sequence
+from typing import Callable, Iterable, Literal, Mapping, Sequence
 
 from pydantic import BaseModel, Field
 
 from regcompass.audit import SourceLink, build_source_link
 from regcompass.contracts import MappingRecord, RunRecord
-from regcompass.export import article_section, confidence_score, location_reference
+from regcompass.export import (
+    FRAMEWORK_FAMILY_NAMES,
+    FRAMEWORK_INDICATORS,
+    article_section,
+    confidence_score,
+    framework_family_match,
+    location_reference,
+)
 from regcompass.extract import format_for_extractor
+from regcompass.labels import drafting_label
 
 Agreement = Literal["agree", "disagree", "only_a", "only_b", "neither"]
 
@@ -221,6 +229,10 @@ class Comparison(BaseModel):
     n_found_by_b_only: int = 0
     n_found_by_both: int = 0
     provisions: list[ProvisionRow] = Field(default_factory=list)
+    # 7.1 and 7.2 go into the evidence file once per Economy, and only on a law
+    # of the right family; this names each side that has no such law, so the
+    # file's missing row is explained where the two Engines are compared.
+    framework_note: str | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -392,6 +404,9 @@ def compare_runs(
     economy_records: Sequence[RunRecord] = (),
     # Engine key -> "provider / model" as the organizers' sheet names it.
     engine_models: Mapping[str, str] | None = None,
+    # Whether a Mapping's law can carry its Economy's 7.1/7.2 row, asked the
+    # way the export asks it (pipeline.framework_checker).
+    framework_check: Callable[[MappingRecord], bool] | None = None,
 ) -> Comparison:
     """Pair two Runs Indicator by Indicator.
 
@@ -483,16 +498,23 @@ def compare_runs(
         note=note,
         rows=rows,
         pass_a=engine_summary(
-            run_a, economy_records, provider_model=models.get(run_a.engine or "", "")
+            run_a, economy_records, provider_model=models.get(run_a.engine or "", ""),
+            discoveries=hour_discoveries(run_a, run_b, economy_records)
+            if economy_records else None,
         ),
         pass_b=engine_summary(
-            run_b, economy_records, provider_model=models.get(run_b.engine or "", "")
+            run_b, economy_records, provider_model=models.get(run_b.engine or "", ""),
+            second_pass=True,
         ),
         n_provisions=len(provisions),
         n_found_by_a_only=found_by["Engine A only"],
         n_found_by_b_only=found_by["Engine B only"],
         n_found_by_both=found_by["Both"],
         provisions=provisions,
+        framework_note=framework_note(
+            names, (("Engine A", mappings_a), ("Engine B", mappings_b)), document_titles,
+            framework_check,
+        ),
     )
 
 
@@ -680,7 +702,8 @@ def compare_provisions(
             if same_citation:
                 shown = article_section(a)
             elif same_section:
-                shown = a.section
+                # The provision both cited, in the Economy's drafting word.
+                shown = drafting_label(a.section, a.economy)
             else:
                 shown = f"{article_section(a)} / {article_section(b)}"
             same_indicator = a.indicator_id == b.indicator_id
@@ -766,34 +789,125 @@ def clock_time(value: str | None, utc_offset_hours: int = DISPLAY_UTC_OFFSET_HOU
     return moment.astimezone(timezone(timedelta(hours=utc_offset_hours))).strftime("%H:%M")
 
 
+def _window_start(run: RunRecord, economy_records: Sequence[RunRecord]):
+    """Where this Run's pass begins: after the latest COMPLETED Run on another
+    Engine, on the same Economy, that ended by the time this Run started. A
+    stopped, failed or interrupted Run never closes a window, and neither does
+    an earlier Run on the same Engine (a restart is the same pass)."""
+    start = _parse_utc(run.started_at)
+    boundary = None
+    for other in economy_records:
+        if (
+            other.kind != "run" or other.run_id == run.run_id
+            or other.economy != run.economy or other.status != "completed"
+            or other.engine == run.engine
+        ):
+            continue
+        ended = _parse_utc(other.ended_at)
+        if ended is not None and start is not None and ended <= start and (
+            boundary is None or ended > boundary
+        ):
+            boundary = ended
+    return boundary
+
+
+def _discoveries_between(economy: str, economy_records, begin, end) -> list[RunRecord]:
+    found = []
+    for record in economy_records:
+        if record.kind != "discovery" or record.economy != economy:
+            continue
+        began, ended = _parse_utc(record.started_at), _parse_utc(record.ended_at)
+        if began is None or ended is None or ended > end:
+            continue
+        if begin is not None and began < begin:
+            continue
+        found.append(record)
+    return sorted(found, key=lambda r: r.started_at)
+
+
 def pass_discoveries(
     run: RunRecord, economy_records: Sequence[RunRecord]
 ) -> list[RunRecord]:
     """The Discoveries that belong to this Run's pass: on the same Economy,
-    ended by the time this Run started, and started after the latest earlier
-    Run on that Economy (any Engine) ended. A Discovery that never ended is
-    not attributed, because no one can say which pass it served."""
+    ended by the time this Run started, and started after the pass window
+    opened (_window_start). A Discovery that never ended is not attributed,
+    because no one can say which pass it served."""
     start = _parse_utc(run.started_at)
     if start is None:
         return []
-    boundary = None
-    for other in economy_records:
-        if other.kind != "run" or other.run_id == run.run_id or other.economy != run.economy:
+    return _discoveries_between(
+        run.economy, economy_records, _window_start(run, economy_records), start
+    )
+
+
+def hour_discoveries(
+    first: RunRecord, second: RunRecord | None, economy_records: Sequence[RunRecord]
+) -> list[RunRecord]:
+    """Every Discovery and add of the hour, all of it the first pass's: Runs
+    never fetch, so whatever was fetched from the moment the first pass's
+    window opened until the second Run started (or the first Run ended, when
+    that is later) was fetched for the first pass. That includes an add made
+    between the two Runs, and a Discovery made while both were running."""
+    ends = [
+        t for t in (
+            _parse_utc(first.ended_at),
+            _parse_utc(second.started_at) if second is not None else None,
+            _parse_utc(first.started_at),
+        ) if t is not None
+    ]
+    if not ends:
+        return []
+    return _discoveries_between(
+        first.economy, economy_records, _window_start(first, economy_records), max(ends)
+    )
+
+
+def framework_note(
+    indicator_ids: Iterable[str],
+    sides: Sequence[tuple[str, Sequence[MappingRecord]]],
+    document_titles: Mapping[str, str] | None,
+    check: Callable[[MappingRecord], bool] | None = None,
+) -> str | None:
+    """One sentence per side and framework Indicator (7.1, 7.2) where that
+    side has no Mapping on a law that can carry the row, which is exactly when
+    its evidence file carries no row for it. None when every side has one.
+
+    ``check`` is the export's own rule (pipeline.framework_checker); without
+    it the Document titles are matched against the law families alone."""
+    titles = document_titles or {}
+    if check is None:
+        def check(m: MappingRecord) -> bool:
+            return framework_family_match(m.indicator_id, titles.get(m.document_id, m.document_id))
+
+    parts = []
+    for indicator_id in FRAMEWORK_INDICATORS:
+        if indicator_id not in indicator_ids:
             continue
-        ended = _parse_utc(other.ended_at)
-        if ended is not None and ended <= start and (boundary is None or ended > boundary):
-            boundary = ended
-    found = []
-    for record in economy_records:
-        if record.kind != "discovery" or record.economy != run.economy:
-            continue
-        began, ended = _parse_utc(record.started_at), _parse_utc(record.ended_at)
-        if began is None or ended is None or ended > start:
-            continue
-        if boundary is not None and began < boundary:
-            continue
-        found.append(record)
-    return sorted(found, key=lambda r: r.started_at)
+        family = FRAMEWORK_FAMILY_NAMES[indicator_id]
+        for label, mappings in sides:
+            if not any(
+                m.indicator_id == indicator_id and is_evidence(m) and check(m)
+                for m in mappings
+            ):
+                parts.append(
+                    f"{label} has no {indicator_id} Mapping on a {family} law"
+                    f" or a law the 2025 baseline cites for {indicator_id},"
+                    f" so its evidence file has no {indicator_id} row"
+                )
+    return "; ".join(parts) + "." if parts else None
+
+
+def engine_model_names(models) -> dict[str, str]:
+    """Engine key -> "provider / model" as the organizers' sheets ask for it:
+    the model id without the routing prefix the provider already names."""
+    names = {}
+    for name, engine in models.engines.items():
+        model_id = engine.litellm_model
+        prefix = f"{engine.provider}/"
+        if model_id.startswith(prefix):
+            model_id = model_id[len(prefix):]
+        names[name] = f"{engine.provider} / {model_id}"
+    return names
 
 
 def engine_summary(
@@ -802,15 +916,29 @@ def engine_summary(
     *,
     provider_model: str = "",
     utc_offset_hours: int = DISPLAY_UTC_OFFSET_HOURS,
+    discoveries: Sequence[RunRecord] | None = None,
+    second_pass: bool = False,
 ) -> EngineSummary:
     """Block 1 of the organizers' sheet for one pass, from the Run Records
     alone: the pass runs from its first Discovery's start (or the Run's) to
-    the Run's end; documents fetched and cost add the Run and its
-    Discoveries. Cost is the provider's reported figure when it sent one."""
-    discoveries = pass_discoveries(run, economy_records)
-    records = [*discoveries, run]
+    the latest end among them; documents fetched and cost add the Run and its
+    Discoveries. Cost is the provider's reported figure when it sent one.
+
+    ``discoveries`` names the pass's Discoveries (hour_discoveries for the
+    first pass); omitted, they are pass_discoveries. A ``second_pass`` has
+    none: it re-reads what the first pass fetched, so its count is its Run's
+    own, which is 0."""
+    from datetime import timedelta, timezone
+
+    if second_pass:
+        discoveries = []
+    elif discoveries is None:
+        discoveries = pass_discoveries(run, economy_records)
+    records = sorted([*discoveries, run], key=lambda r: r.started_at)
     started_at = records[0].started_at
-    begin, end = _parse_utc(started_at), _parse_utc(run.ended_at)
+    begin = _parse_utc(started_at)
+    ends = [t for t in (_parse_utc(r.ended_at) for r in records) if t is not None]
+    end = max(ends) if _parse_utc(run.ended_at) is not None and ends else None
     elapsed = None
     if begin is not None and end is not None:
         elapsed = round((end - begin).total_seconds() / 60, 1)
@@ -828,7 +956,10 @@ def engine_summary(
         started_at=started_at,
         ended_at=run.ended_at,
         start_hhmm=clock_time(started_at, utc_offset_hours),
-        end_hhmm=clock_time(run.ended_at, utc_offset_hours),
+        end_hhmm=(
+            end.astimezone(timezone(timedelta(hours=utc_offset_hours))).strftime("%H:%M")
+            if end is not None else ""
+        ),
         elapsed_minutes=elapsed,
         documents_fetched=sum(r.documents_fetched for r in records),
         cost_usd=round(cost, 6),
@@ -910,6 +1041,8 @@ def comparison_csv(comparison: Comparison) -> str:
     writer.writerow(["match_basis", comparison.match_basis, ""])
     if comparison.note:
         writer.writerow(["note", comparison.note, ""])
+    if comparison.framework_note:
+        writer.writerow(["framework_note", comparison.framework_note, ""])
     writer.writerow([
         "agreement_counts",
         f"agree {comparison.n_agree}, disagree {comparison.n_disagree},"

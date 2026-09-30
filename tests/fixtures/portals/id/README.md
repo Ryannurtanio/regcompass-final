@@ -124,3 +124,35 @@ few lines of Bahasa Indonesia statutory text. They exercise the PDF extraction
 lane honestly; they are stand-ins for the Portal's own files, not copies of
 them. Each one carries the words "test stand-in, not Portal bytes" in its own
 text layer, so anything extracted from one says on its face where it came from.
+
+## The statute links behind the baseline's /Details/ pages (29 September 2026)
+
+`details_downloads_2026-09-29.json` records, for every `/Details/` page the
+2025 baseline cites for Indonesia, the statute link that page carries (the
+`/Download/` link marked `data-kategori="Peraturan"`) and what the Corpus
+extractor reads from that PDF: pages, characters, pages under 50 characters,
+and whether the scanned-document rule would send it to OCR.
+
+It is the provenance of the address-seeded Indonesian families in
+`config/crawl_seeds.yaml`: `tests/test_official_sources.py` asserts that each
+seeded PDF is the statute link of the page the baseline gives for that law.
+
+How it was recorded: 131 requests to `peraturan.bpk.go.id`, all as the
+identified user agent (no impersonation was needed that day; every request
+answered 200 or an on-host 301), one at a time and at least 5 s apart:
+`/robots.txt`, 71 `/Details/` requests (67 pages, 3 on-host redirects
+followed, and the Personal Data Protection Law's page asked twice) and 59
+statute PDFs. Only the fields above were kept, not the pages or the PDFs.
+
+What it showed:
+
+- Every statute PDF has a text layer carrying the law's number and year on
+  its first page. The layers are the Portal's own OCR, so they carry OCR
+  slips ("TAHUN 2O2I", "NOMOR TL TAHUN 2OI9" for PP 71/2019).
+- Three are mostly page images and would be read by OCR end to end: PP
+  5/2021 (739 pages), Permenkominfo 5/2021 (909 pages, 47 MB) and
+  Permenkominfo 13/2021 (155 pages). They are not seeded.
+- `/Details/198052` (cited for PP 34/2021) now redirects to a Jepara regency
+  regulation, and `/Details/98096` (cited for "Ministerial Regulation No.14 on
+  Electronic Systems and Transactions 2018") is a Lumajang regency
+  regulation. Neither is seeded.

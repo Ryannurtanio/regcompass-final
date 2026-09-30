@@ -176,6 +176,9 @@ export type SourceFormat = 'pdf' | 'html' | 'other' | 'missing'
 
 export interface RecordDetail {
   record: MappingRecord
+  /** The rationale in the RDTII's own words ("RDTII criterion 2 (score 0.5)"
+   *  where the Engine wrote "rung 2"); record.impact stays as written. */
+  impact_display: string | null
   section_label: string | null
   highlights: HighlightRect[]
   highlight_available: boolean
@@ -352,6 +355,11 @@ export interface CorpusDocument {
   n_pages: number | null
   ocr_applied: boolean
   added_at: string | null
+  // Whether the stored file is on disk, so the row can offer "our copy".
+  has_copy?: boolean
+  // Who last corrected the title or Source URL (a name is optional), and when.
+  edited_by?: string | null
+  edited_at?: string | null
 }
 
 /** One Economy's Corpus as it is now: how many Documents, the languages they
@@ -370,6 +378,35 @@ export interface CorpusListing {
 
 /** Which Run the audit screens are showing. `record` is null on the frozen
  *  bundle lane and on a database that holds no completed Run yet. */
+/** A Document's metadata after a correction, and what it was before. */
+export interface DocumentEdit {
+  document_id: string
+  title: string | null
+  source_url: string | null
+  previous_title: string | null
+  previous_source_url: string | null
+  edited_by: string | null
+  edited_at: string | null
+}
+
+/** One finished Run the Evidence screen can open: the newest for its
+ *  Economy, Engine and set of Pillars. */
+export interface EvidenceRunChoice {
+  run_id: string
+  engine: string | null
+  pillars: number[]
+  started_at: string | null
+}
+
+/** An Economy with at least one finished Run, as the Evidence screen's
+ *  pickers list it. Newest Run first. */
+export interface EvidenceEconomy {
+  economy: string
+  name: string
+  newest_run_id: string
+  runs: EvidenceRunChoice[]
+}
+
 export interface AuditRun {
   run_id: string | null
   record: RunRecord | null
@@ -751,6 +788,33 @@ export interface DiscoveryCounts {
   duplicates: number
   off_whitelist: number
   spacing_seconds: number
+  /** A Discovery by Pillar only: the draw, why each Document came in, and
+   *  each baseline law it did not fetch. */
+  pillar?: number | null
+  indicators?: string[] | null
+  max_documents?: number | null
+  found_by?: DiscoveryFoundBy[]
+  baseline_skipped?: BaselineSkip[]
+  notes?: string[]
+}
+
+/** Why a Document came in: "baseline 6.1, 6.4" or "portal crawler". */
+export interface DiscoveryFoundBy {
+  url: string
+  document_id: string | null
+  title: string | null
+  found_by: string
+  /** "fetched", or "already in the Corpus". */
+  status: string
+}
+
+/** A law the baseline cites for the drawn Indicators that was not fetched. */
+export interface BaselineSkip {
+  law: string
+  indicators: string[]
+  urls: string[]
+  code: string
+  reason: string
 }
 
 export type DiscoveryEvent =

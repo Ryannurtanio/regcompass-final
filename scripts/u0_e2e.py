@@ -263,7 +263,8 @@ def run_flow(shots: Path, run_id: str) -> None:
         # nobody named one: the Run id, its Economy, its Pillar, its Engine.
         context = page.get_by_test_id("context")
         expect(context).to_contain_text(run_id)
-        expect(context).to_contain_text("SG")
+        expect(page.get_by_test_id("showing-economy")).to_have_value("SG")
+        expect(context).to_contain_text("Singapore")
         expect(context).to_contain_text("Pillar 7")
         expect(page.locator(DOC_ROWS)).to_have_count(1)
         page.screenshot(path=str(shots / "u0_list.png"))
@@ -559,7 +560,7 @@ def run_flow(shots: Path, run_id: str) -> None:
 
         # Evidence names the Run it fell back to, which is now the AU one.
         page.click("button.nav-btn:has-text('Evidence')")
-        expect(page.get_by_test_id("context")).to_contain_text("AU")
+        expect(page.get_by_test_id("showing-economy")).to_have_value("AU")
         expect(page.get_by_test_id("context")).not_to_contain_text(run_id)
 
         browser.close()

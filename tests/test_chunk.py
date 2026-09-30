@@ -4,8 +4,8 @@ the coverage partition + rejoin invariant on every fixture, the Niue volume as
 a smoke stress test, and the LLM boundary fallback on the degraded OCR fixture
 (offsets and labels ONLY: any text the model emits is discarded unread).
 
-Fallback lanes: invalid JSON -> one stricter retry -> whole-document chunk
-degradation (coverage never breaks). The LiteLLM transport path is exercised
+Fallback lanes: invalid JSON -> one stricter retry -> numbered passages
+(coverage never breaks, and the Gate still reads every passage). The LiteLLM transport path is exercised
 offline via mock_response; one slow test hits the real OpenRouter tier."""
 
 import gzip
@@ -773,6 +773,8 @@ class TestNiueSmoke:
         assert_partition(chunks, niue)
         assert len(sections(chunks)) >= 100
         assert report.fallback_used is False
+        # 90 scheduled convention articles never outrank the volume's sections
+        assert report.style == "num_title"
 
 
 # ---------------------------------------------------------------------------
@@ -796,12 +798,16 @@ def fake_llm(payload: object):
 class TestFallbackLane:
     def test_deterministic_splitter_refuses_the_sro(self, pk_ocr):
         """No profile may claim the notification's numbered lists as statute
-        sections; split_document without a completion_fn degrades instead."""
+        sections; split_document without a completion_fn splits it into
+        numbered passages instead."""
         chunks, report = split_document(pk_ocr, completion_fn=None)
         assert report.fallback_used is True
-        assert report.fallback_succeeded is False  # no LLM available -> degraded
-        assert len(chunks) == 1
-        assert chunks[0].chunk_kind == "other"
+        assert report.fallback_succeeded is False  # no LLM available -> passages
+        assert report.unstructured is True
+        assert report.style == "passages"
+        assert [c.section_label for c in chunks] == [
+            f"Passage {i}" for i in range(1, len(chunks) + 1)]
+        assert {c.chunk_kind for c in chunks} == {"section"}
         assert_partition(chunks, pk_ocr)
 
     def test_fallback_offsets_and_labels_only(self, pk_ocr):
@@ -849,14 +855,15 @@ class TestFallbackLane:
         assert calls == [False, True]  # second attempt is the stricter one
         assert_partition(chunks, pk_ocr)
 
-    def test_garbage_twice_degrades_to_whole_document_chunk(self, pk_ocr):
+    def test_garbage_twice_falls_back_to_passages(self, pk_ocr):
         fn = fake_llm("not json at all")
         chunks, report = split_document(pk_ocr, completion_fn=fn)
         assert report.fallback_used is True
         assert report.fallback_succeeded is False
         assert report.fallback_attempts == PipelineConfig().chunk_fallback_attempts
-        assert len(chunks) == 1
-        assert chunks[0].chunk_kind == "other"
+        assert report.unstructured is True
+        assert chunks[0].section_label == "Passage 1"
+        assert {c.chunk_kind for c in chunks} == {"section"}
         assert_partition(chunks, pk_ocr)
 
     def test_invalid_offsets_rejected(self, pk_ocr):
@@ -870,7 +877,7 @@ class TestFallbackLane:
             fn = fake_llm(bad)
             chunks, report = split_document(pk_ocr, completion_fn=fn)
             assert report.fallback_succeeded is False, f"accepted invalid payload {bad}"
-            assert len(chunks) == 1
+            assert report.style == "passages"
             assert_partition(chunks, pk_ocr)
 
     def test_code_fenced_json_accepted(self, pk_ocr):
@@ -964,7 +971,7 @@ class TestDegenerateRunDrop:
 
     def test_all_degenerate_runs_still_fall_back(self):
         """A document that is ONLY tiny-span lists has no credible structure;
-        the fallback lane must still fire (here: degrade to one chunk)."""
+        the fallback lane must still fire (here: numbered passages)."""
         toc_only = "".join(f"{i}. Heading for section number {i}\n" for i in range(1, 30))
         doc = CanonicalText(
             document_id="doc_test_lists_only",
@@ -974,5 +981,374 @@ class TestDegenerateRunDrop:
             full_text=toc_only,
         )
         chunks, report = split_document(doc)
-        assert report.n_sections == 0
-        assert len(chunks) == 1
+        assert report.fallback_used is True
+        assert report.style == "passages"
+        assert all(c.section_label.startswith("Passage ") for c in chunks)
+
+
+# ---------------------------------------------------------------------------
+# More drafting traditions: Mongolian and Kazakh put the number BEFORE the
+# article word, English translations head each provision "Article N", and the
+# Lao text layers glue the number to the title. Every fragment below is real
+# statute text (shortened); without these profiles each of these Documents
+# became one chunk the Gate never read.
+# ---------------------------------------------------------------------------
+
+
+def _doc(text: str, document_id: str = "doc_x_fragment") -> CanonicalText:
+    return CanonicalText(
+        document_id=document_id,
+        source_sha256="d" * 64,
+        extractor="test",
+        extractor_version="0",
+        full_text=text,
+        pages=[PageSpan(page_number=1, char_start=0, char_end=len(text))],
+    )
+
+
+def _section_labels(chunks: list[Chunk]) -> list[str]:
+    return [c.section_label for c in sections(chunks)]
+
+
+# Law of Mongolia on Personal Data Protection (2021), articles 1 to 3.
+MONGOLIAN = (
+    "ХУВЬ ХҮНИЙ МЭДЭЭЛЭЛ ХАМГААЛАХ ТУХАЙ\n"
+    "НЭГДҮГЭЭР БҮЛЭГ\n"
+    "НИЙТЛЭГ ҮНДЭСЛЭЛ\n"
+    "1 дүгээр зүйл.Хуулийн зорилт\n"
+    "1.1.Энэ хуулийн зорилт нь хүний эрх, эрх чөлөөг хангах үүднээс хувь хүний мэдээллийг\n"
+    "цуглуулах, боловсруулах, ашиглах, түүний аюулгүй байдлыг хангахтай холбогдсон\n"
+    "харилцааг зохицуулахад оршино.\n"
+    "2 дугаар зүйл.Хувь хүний мэдээлэл хамгаалах хууль тогтоомж\n"
+    "2.1.Хувь хүний мэдээлэл хамгаалах хууль тогтоомж нь Монгол Улсын Үндсэн хууль, Хүний\n"
+    "эрхийн тухай хууль, энэ хууль болон эдгээр хуультай нийцүүлэн гаргасан хууль\n"
+    "тогтоомжийн бусад актаас бүрдэнэ.\n"
+    "3 дугаар зүйл.Хуулийн үйлчлэх хүрээ\n"
+    "3.1.Энэ хуулиар төрийн байгууллага, хуулийн этгээд болон хувь хүн хувь хүний мэдээлэл\n"
+    "цуглуулах, боловсруулах, ашиглахтай холбогдсон харилцааг зохицуулна. Энэ хуулийн\n"
+    "8 дугаар зүйлд заасан журмын дагуу мэдээллийг боловсруулна.\n"
+)
+
+# Law of the Republic of Kazakhstan on Personal Data and their Protection
+# (No. 94-V), articles 1 to 3.
+KAZAKH = (
+    "1-тарау. ЖАЛПЫ ЕРЕЖЕЛЕР\n"
+    "1-бап. Осы Заңда пайдаланылатын негізгі ұғымдар\n"
+    "Осы Заңда мынадай негізгі ұғымдар пайдаланылады:\n"
+    "1) биометриялық деректер – дербес деректер субъектісінің физиологиялық және\n"
+    "биологиялық ерекшеліктерін сипаттайтын, оның негізінде оның жеке басын анықтауға\n"
+    "болатын дербес деректер;\n"
+    "2-бап. Қазақстан Республикасының дербес деректер және оларды қорғау туралы заңнамасы\n"
+    "1. Қазақстан Республикасының дербес деректер және оларды қорғау туралы заңнамасы\n"
+    "Қазақстан Республикасының Конституциясына негізделеді.\n"
+    "3-бап. Осы Заңның қолданылу аясы\n"
+    "1. Осы Заң дербес деректерді жинауға, өңдеуге және қорғауға байланысты қатынастарды\n"
+    "реттейді. Осы Заңның 5-бабында көзделген жағдайларды қоспағанда.\n"
+)
+
+# Law on Cybersecurity of Viet Nam (No. 24/2018/QH14), English translation.
+ENGLISH_ARTICLES = (
+    "LAW ON CYBERSECURITY\n"
+    "Chapter I\n"
+    "GENERAL PROVISIONS\n"
+    "Article 1. Scope of regulation\n"
+    "This Law provides for activities of protecting national security and ensuring social\n"
+    "order and safety in cyberspace; and the responsibilities of relevant agencies,\n"
+    "organizations and individuals.\n"
+    "Article 2. Interpretation of terms\n"
+    "In this Law, the terms below are construed as follows:\n"
+    "1. Cyberspace means the connected network of information technology infrastructure.\n"
+    "2. Cybersecurity means the assurance that activities in cyberspace do not harm\n"
+    "national security, social order and safety.\n"
+    "ARTICLE 3. State policies on cybersecurity\n"
+    "1. To prioritize the protection of cybersecurity in national defense and security.\n"
+    "Article 26 of this Law applies to the protection of children in cyberspace.\n"
+)
+
+# The same law in Vietnamese, articles 1 to 3.
+VIETNAMESE = (
+    "Điều 1. Phạm vi điều chỉnh\n"
+    "Luật này quy định về hoạt động bảo vệ an ninh quốc gia và bảo đảm trật tự, an toàn\n"
+    "xã hội trên không gian mạng; trách nhiệm của cơ quan, tổ chức, cá nhân có liên quan.\n"
+    "Điều 2. Giải thích từ ngữ\n"
+    "Trong Luật này, các từ ngữ dưới đây được hiểu như sau:\n"
+    "Điều 3. Chính sách của Nhà nước về an ninh mạng\n"
+    "Ưu tiên bảo vệ an ninh mạng trong quốc phòng, an ninh, phát triển kinh tế - xã hội.\n"
+)
+
+# Lao Instruction No. 0144 (Official Gazette), the OCR stream of articles 3 to
+# 6 as stored. Article 4's number is glued to its title ("ມາດຕາ 4ການ..."), and
+# the numbered items inside article 4 are the ambiguous "N. text" shape.
+LAO_0144 = (
+    "ມາດຕາ 3 ຂອບເຂດນໍາໃຊ້\n"
+    "ຄໍາແນະນໍາສະບັບນີ ນໍາໃຊ້ຢູ່ບັນດາອົງການຈັດຕັ້ງພັກ-ລັດ, ກະຊວງ, ແຂວງ ແລະ ນະຄອນຫຼວງວຽງ\n"
+    "ຈັນ ໃນຂອບເຂດທົວປະເທດ ທີ່ຄຸ້ມຄອງ ແລະ ນໍາໃຊ້ລະບົບຂໍ່ມູນຂ່າວສານຄຸ້ມຄອງຊັບສິນແຫ່ງລັດ ແບບເອ\n"
+    "ເລັກໂຕຣນິກ (AMIS).\n"
+    "ບນວດທີ 2\n"
+    "ການຄຸ້ມຄອງ ແລະ ນໍາໃຊ້, ຂັນຕອນ ແລະ ກົນໄກການຄຸ້ມຄອງ\n"
+    "ມາດຕາ 4ການຄຸ້ນຄອງ ແລະ ນໍາໃຊ້ ລະບົບຂໍ້ມູນຂ່າວສານຄຸ້ມຄອງຊັບສິນແຫ່ງລັດແບບເອເລັກ\n"
+    "ໂຕຣນິກ (AMIS)\n"
+    "1. ລັດຖະບານ ມອບສິດໃຫ້ກະຊວງການເງິນ ໃນການຄຸ້ມຄອງຊັບສິນ ທີ່ລັດລົງທຶນສ້າງຂຶ້ນ ຫຼື ໄດ້ມາ\n"
+    "ດ້ວຍຄວາມຊອບທໍາຕາມກົດຫນາຍ ແລະ ລະບຽບການ ເຊິ່ງປະກອບດ້ວຍສັງຫາລິມະຊັບ ແລະ ອະສັງຫາລິມະ\n"
+    "ຊັບ ທີ່ມອບໃຫ້ການຈັດຕັ້ງ, ບຸກຄົນ ແລະ ນິຕິບຸກຄົນ ເປັນຜູ້ຄຸ້ມຄອງນໍາໃຊ້ ແບບລວມສູນ ດ້ວຍການຂຶ້ນບັນ\n"
+    "2. ນໍາໃຊ້ລະບົບທີ່ທັນສະໄຫນ: (1) ເພື່ອຄຸ້ມຄອງ ແລະ ສັງລວມຂໍ້ມູນຊັບສິນຂອງລັດ ໃຫ້ຄົບຖ້ວນ\n"
+    "ແລະ ຊັດເຈນ ໃນຂອບເຂດທົ່ວປະເທດ ແລະ ຄຸ້ມຄອງຊັບສິນຂອງລັດບໍ່ໃຫ້ຕົກເຮ່ຍເສຍຫາຍ:; (2) ເພື່ອຄຸ້ມ\n"
+    "ຄອງຖານລາຍຮັບຈາກຊັບສິນຂອງລັດໃຫ້ໄດ້ຄົບຖ້ວນ, ຖືກຕ້ອງຕາມກໍານົດເວລາ, ມີຄວາມໂປ່ງໃສ, ສະດວກ\n"
+    "3. ການຂຶ້ນທະບຽນຊັບສິນ ແບບເອເລັກໂຕຣນິກ ສາມາດດໍາເນີນໄດ້ ຜ່ານການປ້ອນຂໍ້ມູນເຂົ້າລະບົບຂໍ້\n"
+    "ມູນຂ່າວສານຄຸ້ມຄອງຊັບສິນແຫ່ງລັດ ໃນຮູບແບບອອນໄລນ໌; ລະບົບຈະກໍານົດການໃສ່ລະຫັດໃຫ້ຊັບສິນ ຫຼື\n"
+    "ການໃສ່ເລກປະຈໍາຕົວໃຫ້ຊັບສິນແບບອັດຕະໂນມັດ (Automatic) ໂດຍອີງຕາມລາຍການຈັດລໍາດັບຂອງສູນ\n"
+    "4. ການຂຶ້ນບັນຊີຊັບສິນ ແບບເອເລັກໂຕຣນິກ ແມ່ນການລວບລວມເອົາຂໍ້ມູນທັງຫົດ ຂອງຊັບສິນທີ່\n"
+    "ໄດ້ຂຶ້ນທະບຽນແລ້ວບັນທຶກເຂົ້າໄວ້ໃນຖານຂໍ້ມູນ ແລະ ສາມາດສ້າງຕາຕະລາງສັງລວມລາຍງານຕາມລໍາດັບ\n"
+    "ແລະ ແຍກຕາມແຕ່ລະບນວດ ແລະ ແຕ່ລະປະເພດຂອງຊັບສິນ;\n"
+    "5. ການຄຸ້ມຄອງຖານລາຍຮັບຈາກຊັບສິນແຫ່ງລັດ ແມ່ນການປ້ອນຂໍ້ມູນເຂົ້າໃນລະບົບ ຕາມແບບຟອມ\n"
+    "ກໍານົດ ເພື່ອບັນທຶກບັນດາຂໍ້ມູນທີ່ດິນ-ເຮືອນ, ສິ່ງປຸກສ້າງ, ຕຶກອາຄານ, ພາຫະນະ, ບັນດາສັນຍາສໍາປະທານ,\n"
+    "ສັນຍາເຊົາຊັບສິນຂອງລັດ ແລະ ອື່ນໆ;\n"
+    "6.ການດໍາເນີນວຽກງານຄຸ້ມຄອງຊັບສິນແຫ່ງລັດ ໃນກໍລະນີປະຕິບັດທາງເອເລັກໂຕຣນິກ ແມ່ນ\n"
+    "ປະຕິບັດຕາມຂັ້ນຕອນຄືກັນກັບການປ້ອນຂໍ້ມູນເຂົ້າໃນແບບຟອມ Excel, ການຫັນເປັນທັນສະໄຫນ ຕ້ອງຜ່ານ\n"
+    "ມາດຕາ 5 ຂັ້ນຕອນ ແລະ ກົນໄກການຄຸ້ມຄອງນໍາໃຊ້ລະບົບຂໍ້ມູນຂ່າວສານຄຸ້ມຄອງຊັບສິນແຫ່ງລັດ\n"
+    "1. ຂັ້ນຕອນການຄຸ້ມຄອງນໍາໃຊ້ລະບົບ ໃຫ້ປະຕິບັດຕາມຄໍາແນະນໍາຂອງກະຊວງການເງິນ.\n"
+    "ມາດຕາ 6 ຫາທຮບຜດຊອບຂອງແຕລະພາກສວນ\n"
+    "ກະຊວງການເງິນ ເປັນຜູ້ຄົ້ນຄວ້າ ກໍານົດ ແຜ່ນກາຫນາຍການນໍາໃຊ້ຊັບສິນຂອງລັດ ປະເພດຕ່າງໆ.\n"
+)
+
+
+class TestMoreDraftingTraditions:
+    def test_mongolian_articles(self):
+        doc = _doc(MONGOLIAN)
+        chunks, report = split_document(doc)
+        assert report.fallback_used is False
+        assert _section_labels(chunks) == ["s. 1", "s. 2", "s. 3"]
+        # the chapter heading travels with article 1; the cross-reference
+        # "8 дугаар зүйлд заасан" wrapped onto a new line is not a heading
+        assert "НЭГДҮГЭЭР БҮЛЭГ\nНИЙТЛЭГ ҮНДЭСЛЭЛ\n1 дүгээр" in sections(chunks)[0].text
+        assert "8 дугаар зүйлд" in sections(chunks)[2].text
+        assert_partition(chunks, doc)
+
+    @pytest.mark.parametrize(
+        "heading",
+        ["{n} дүгээр зүйл.", "{n} дугаар зүйл.", "{n}-р зүйл.", "{n}-р зүйл ", "Зүйл {n}."],
+    )
+    def test_every_mongolian_numbering_form(self, heading):
+        body = "Энэ хуулийн зорилт нь хувь хүний мэдээллийг хамгаалахад оршино.\n"
+        text = "".join(f"{heading.format(n=n)}Зорилт\n{body}" for n in range(1, 4))
+        chunks, _ = split_document(_doc(text))
+        assert _section_labels(chunks) == ["s. 1", "s. 2", "s. 3"]
+
+    def test_kazakh_articles(self):
+        doc = _doc(KAZAKH)
+        chunks, report = split_document(doc)
+        assert report.fallback_used is False
+        assert _section_labels(chunks) == ["s. 1", "s. 2", "s. 3"]
+        assert "5-бабында" in sections(chunks)[2].text
+        assert_partition(chunks, doc)
+
+    def test_kazakh_heading_without_the_hyphen(self):
+        body = "Осы Заң дербес деректерді қорғауға байланысты қатынастарды реттейді.\n"
+        text = "".join(f"{n} бап. Ұғымдар\n{body}" for n in range(1, 4))
+        chunks, _ = split_document(_doc(text))
+        assert _section_labels(chunks) == ["s. 1", "s. 2", "s. 3"]
+
+    @pytest.mark.parametrize(
+        "heading",
+        ["Статья {n}. Понятия", "Article {n}. Definitions", "{n}-бап. Ұғымдар"],
+    )
+    def test_a_hyphenated_article_number_is_its_own_article(self, heading):
+        """An article inserted by amendment ("Статья 8-1", "8-1-бап") is an
+        article of its own, not the tail of article 8."""
+        body = "Осы Заң дербес деректерді қорғауға байланысты қатынастарды реттейді.\n"
+        text = "".join(f"{heading.format(n=n)}\n{body}" for n in ("7", "8", "8-1", "9"))
+        doc = _doc(text)
+        chunks, report = split_document(doc)
+        assert report.fallback_used is False
+        assert _section_labels(chunks) == ["s. 7", "s. 8", "s. 8-1", "s. 9"]
+        assert_partition(chunks, doc)
+
+    def test_a_hyphenated_number_in_prose_is_not_an_article(self):
+        body = "The operator shall keep a record of the processing.\n"
+        text = (
+            "".join(f"Article {n}. Definitions\n{body}" for n in ("7", "8"))
+            + "Article 8-10 The operator shall notify the authority.\n"
+            + f"Article 9. Scope\n{body}"
+        )
+        chunks, _ = split_document(_doc(text))
+        assert "s. 8-10" not in _section_labels(chunks)
+
+    def test_english_article_headings(self):
+        doc = _doc(ENGLISH_ARTICLES)
+        chunks, report = split_document(doc)
+        assert report.style == "article_en"
+        # "Article 26 of this Law ..." is a sentence, not a heading
+        assert _section_labels(chunks) == ["s. 1", "s. 2", "s. 3"]
+        assert "Article 26 of this Law" in sections(chunks)[2].text
+        assert_partition(chunks, doc)
+
+    def test_a_convention_scheduled_to_an_english_act_does_not_take_over(self):
+        """An English act that schedules a convention carries "Article N"
+        headings AFTER its own sections. Its sections stay the structure."""
+        body = "The Minister may, by legislative instrument, make rules for the purposes. " * 4
+        act = "".join(f"{n} Heading of section {n}\n{body}\n" for n in range(1, 13))
+        convention = "Schedule 1\n" + "".join(
+            f"Article {n} Obligations of the parties\n{body}\n" for n in range(1, 4)
+        )
+        doc = _doc(act + convention)
+        chunks, report = split_document(doc)
+        assert report.style == "num_title"
+        assert "s. 12" in _section_labels(chunks)
+
+    def test_decomposed_vietnamese_splits_after_nfc(self):
+        import unicodedata
+
+        from regcompass.chunk import ARTICLE_WORD_RE
+
+        decomposed = unicodedata.normalize("NFD", VIETNAMESE)
+        assert decomposed != VIETNAMESE
+        # the heading word as some PDFs store it cannot match the pattern ...
+        assert ARTICLE_WORD_RE.match(decomposed.split("\n")[0]) is None
+        doc = _doc(decomposed)
+        # ... and the canonical stream is composed once, at the stream itself
+        assert doc.full_text == VIETNAMESE
+        chunks, report = split_document(doc)
+        assert report.style == "article_word"
+        assert _section_labels(chunks) == ["s. 1", "s. 2", "s. 3"]
+
+    def test_lao_glued_numbers_and_articles_over_numbered_items(self):
+        doc = _doc(LAO_0144)
+        chunks, report = split_document(doc)
+        assert report.style == "article_word"
+        assert _section_labels(chunks) == ["s. 3", "s. 4", "s. 5", "s. 6"]
+        assert_partition(chunks, doc)
+
+    def test_lao_article_word_as_the_ocr_misreads_it(self):
+        body = "ຄໍາແນະນໍາສະບັບນີ ນໍາໃຊ້ຢູ່ບັນດາອົງການຈັດຕັ້ງພັກ-ລັດ.\n"
+        text = f"ມາດຕາ 11 ການຄໍ້າປະກັນ\n{body}ນາດຕາ 12 ການຖອນວົງເງິນຄ້າປະ ກັນ\n{body}"
+        chunks, _ = split_document(_doc(text))
+        assert _section_labels(chunks) == ["s. 11", "s. 12"]
+
+
+class TestTheStreamIsComposedOnce:
+    def test_page_and_word_offsets_follow_the_composed_text(self):
+        import unicodedata
+
+        from regcompass.contracts import WordBox
+
+        pages = [unicodedata.normalize("NFD", "Điều 1. Phạm vi"), unicodedata.normalize("NFD", "Điều 2. Giải thích")]
+        text = "\n".join(pages)
+        second = len(pages[0]) + 1
+        words = [
+            WordBox(text=w, page=p, x0=0, y0=0, x1=1, y1=1, char_start=s, char_end=s + len(w))
+            for w, p, s in (
+                (unicodedata.normalize("NFD", "Phạm"), 1, pages[0].index(unicodedata.normalize("NFD", "Phạm"))),
+                (unicodedata.normalize("NFD", "thích"), 2, second + pages[1].index(unicodedata.normalize("NFD", "thích"))),
+            )
+        ]
+        doc = CanonicalText(
+            document_id="d", source_sha256="0" * 64, extractor="t", extractor_version="0",
+            full_text=text,
+            pages=[
+                PageSpan(page_number=1, char_start=0, char_end=len(pages[0])),
+                PageSpan(page_number=2, char_start=second, char_end=second + len(pages[1])),
+            ],
+            words=words,
+        )
+        assert doc.full_text == "Điều 1. Phạm vi\nĐiều 2. Giải thích"
+        assert [doc.slice(p.char_start, p.char_end) for p in doc.pages] == [
+            "Điều 1. Phạm vi", "Điều 2. Giải thích"]
+        assert [doc.slice(w.char_start, w.char_end) for w in doc.words] == ["Phạm", "thích"]
+        assert [w.text for w in doc.words] == ["Phạm", "thích"]
+
+    def test_composed_text_is_left_exactly_as_it_was(self, sg):
+        again = CanonicalText.model_validate_json(sg.model_dump_json())
+        assert again.full_text == sg.full_text
+        assert again.pages == sg.pages
+        assert again.words == sg.words
+
+
+# ---------------------------------------------------------------------------
+# The passage fallback: a Document with no credible structure is split into
+# numbered passages of about a section's size, so the Gate still reads it.
+# ---------------------------------------------------------------------------
+
+NOTICE_PARAGRAPH = (
+    "The Ministry reminds all service providers that personal information collected in the\n"
+    "course of providing an online service shall be stored on servers located within the\n"
+    "territory and shall not be transferred abroad without the approval of the Ministry.\n"
+    "Providers shall notify the Ministry of any breach within seventy-two hours of discovery.\n"
+)
+
+
+class TestPassageFallback:
+    def test_an_unstructured_document_becomes_numbered_passages(self):
+        from regcompass.chunk import PASSAGE_CHARS
+
+        text = "".join(NOTICE_PARAGRAPH + ("\n" if i % 3 == 2 else "") for i in range(24))
+        doc = _doc(text, "doc_x_notice")
+        chunks, report = split_document(doc)
+        assert report.style == "passages"
+        assert report.unstructured is True
+        assert report.fallback_used is True
+        assert len(chunks) > 3
+        assert [c.section_label for c in chunks] == [f"Passage {i}" for i in range(1, len(chunks) + 1)]
+        assert {c.chunk_kind for c in chunks} == {"section"}
+        assert report.n_sections == len(chunks)
+        for c in chunks[:-1]:
+            assert PASSAGE_CHARS // 2 <= len(c.text) <= PASSAGE_CHARS * 3 // 2
+            assert c.text.endswith("\n"), "a passage ends on a line boundary"
+        assert_partition(chunks, doc)
+
+    def test_a_short_document_is_one_passage(self):
+        doc = _doc(NOTICE_PARAGRAPH)
+        chunks, report = split_document(doc)
+        assert [(c.section_label, c.chunk_kind) for c in chunks] == [("Passage 1", "section")]
+        assert report.unstructured is True
+
+    def test_a_structured_document_is_not_marked_unstructured(self, my):
+        _, report = split_document(my)
+        assert report.unstructured is False
+
+    def test_a_document_with_no_line_breaks_still_splits(self):
+        text = NOTICE_PARAGRAPH.replace("\n", " ") * 12
+        doc = _doc(text)
+        chunks, _ = split_document(doc)
+        assert len(chunks) > 1
+        assert_partition(chunks, doc)
+
+    def test_an_empty_document_has_no_chunks(self):
+        chunks, report = split_document(_doc(""))
+        assert chunks == []
+        assert report.coverage_chars == 0
+
+
+def _translated_statute(clauses: int, articles: int = 40) -> str:
+    """An English translation in the Vietnamese drafting style: every article
+    numbers its own clauses from 1 again."""
+    clause = (
+        "agencies, organizations and individuals shall store the personal data of"
+        " users in the territory for the period prescribed by the Government and"
+        " shall provide it to the competent authority on request, within the time"
+        " limit and in the form that the Ministry of Public Security prescribes"
+        " for the verification, investigation and handling of violations."
+    )
+    return "".join(
+        f"Article {a}. Duties of enterprises providing service type {a}\n"
+        + "".join(f"{c}. Under this clause {c} of article {a}, {clause}\n" for c in range(1, clauses + 1))
+        for a in range(1, articles + 1)
+    )
+
+
+class TestArticlesOverRestartingClauses:
+    @pytest.mark.parametrize("clauses", [3, 5, 8])
+    def test_a_translation_splits_on_its_articles(self, clauses):
+        doc = _doc(_translated_statute(clauses))
+        chunks, report = split_document(doc)
+        assert report.style == "article_en"
+        assert _section_labels(chunks) == [f"s. {a}" for a in range(1, 41)]
+        assert_partition(chunks, doc)
+
+    @pytest.mark.parametrize("clauses", [3, 5, 8])
+    def test_the_label_index_reads_the_article_not_the_clause(self, clauses):
+        from regcompass.chunk import SectionLabelIndex
+
+        text = _translated_statute(clauses)
+        pos = text.index("Article 17.")
+        pos = text.index("3. Under", pos)
+        assert SectionLabelIndex(text).label_at(pos) == "s. 17"

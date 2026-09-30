@@ -9,8 +9,10 @@ Fallback: when no profile finds credible structure (degraded OCR documents),
 the LLM boundary fallback fires. The model sees line-numbered text and returns
 line positions and labels ONLY; positions are converted to character offsets
 mechanically and any text the model emits is discarded unread. On invalid
-output it gets one stricter retry, then the document degrades to a single
-whole-document chunk so coverage never breaks.
+output it gets one stricter retry. When that fails too, or no model is wired
+(the judged path), the document is split into numbered passages of about a
+section's size ("Passage N"), marked unstructured in the report: coverage
+never breaks and the Gate still reads every passage.
 
 split_document only calls the LLM when a completion_fn is explicitly passed
 (the CLI wires the LiteLLM one); the module never reaches the network by
@@ -164,18 +166,30 @@ class StyleProfile:
     # where a sentence wrapped just before a cross-reference opens with the
     # same words)
     article_tail_filter: bool = False
+    # an article-word style: where it finds a credible run it is the
+    # document's structure, however many numbered items the ambiguous styles
+    # also find (those are the clauses inside the articles)
+    article: bool = False
+    # an article word that an English act can also carry (_leads)
+    english: bool = False
 
 
 # The article word of a non-English drafting tradition followed by an arabic
 # number: Lao "ມາດຕາ 5", Thai "มาตรา 5", Indonesian "Pasal 5", Russian
-# "Статья 5", Vietnamese "Điều 5". The second branch is the Indonesian heading
+# "Статья 5", Vietnamese "Điều 5". "ນາດຕາ" is the Lao word as the OCR reads it
+# with its first letter misread (it is not a word of its own), and the number
+# may run straight into the title, "ມາດຕາ 4ການ...", because the Lao text
+# layers drop the space. The second branch is the Indonesian heading
 # as the gazette text layers misread it, "Pasal2T", "PasaJ22", "Pasal L4":
 # only ALONE on its line (where the Indonesian style puts every heading) and
 # only with at least one real digit, so the roman articles I and II of an
 # amending act are never read as numbers. _article_word_heading reads it.
+# A Russian article inserted by amendment, "Статья 8-1", is an article of its
+# own (num_ru), not article 8 with a title that starts "-1".
 ARTICLE_WORD_RE = re.compile(
     r"^\s{0,2}(?:"
-    r"(?:ມາດຕາ|มาตรา|Pasal|Статья|Điều)\s+(?P<num>\d{1,3}[A-Z]{0,2})\b"
+    r"Статья\s+(?P<num_ru>\d{1,3}-\d{1,3})(?=\.|\s*$)"
+    r"|(?:ມາດຕາ|ນາດຕາ|มาตรา|Pasal|Статья|Điều)\s+(?P<num>\d{1,3}[A-Z]{0,2})(?![0-9A-Za-z])"
     r"|Pas[a4][l1IJ]\s*(?P<misread>(?=[0-9OTLlIt]*\d)[0-9OTLlIt]{1,3}[A-C]?)\s*$"
     r")"
 )
@@ -188,6 +202,27 @@ _MISREAD_DIGITS = str.maketrans("OTLlIt", "071111")
 # after 条, so the glyph is not read as a title that every article shares
 # (a title repeated on five lines is page furniture and is thrown away).
 ARTICLE_ZH_RE = re.compile(rf"^\s{{0,2}}第(?P<num>[{_ZH_NUM_CLASS}]{_ZH_NUM_LEN})条(?P<title>.*)")
+# Mongolian and Kazakh put the number FIRST: "1 дүгээр зүйл.Хуулийн зорилт",
+# "2 дугаар зүйл", "5-р зүйл" (and the rarer "Зүйл 5"); Kazakh "1-бап.
+# Негізгі ұғымдар" or "1 бап", and "8-1-бап" for an article inserted by
+# amendment. The word must end there: "8 дугаар зүйлд
+# заасан" and "5-бабында" are the same words declined inside a sentence.
+ARTICLE_NUM_FIRST_RE = re.compile(
+    r"^\s{0,2}(?:"
+    r"(?P<num>\d{1,3})\s*(?:-\s*р|д[үу]г(?:ээ|аа)р)\s+зүйл"
+    r"|(?P<num_kz>\d{1,3}(?:-\d{1,3})?)\s*-?\s*бап"
+    r"|Зүйл\s+(?P<num_word>\d{1,3})(?!\d)"
+    r")(?![^\W\d_])(?P<title>.*)"
+)
+# English translations of civil-law statutes: "Article 1. Scope of
+# regulation", "ARTICLE 2". Unlike the words above this one CAN occur in an
+# English act, where a scheduled convention carries its own articles, so it
+# only outranks the numbered styles on the share rule in _leads. "Article
+# 8-1" is an article inserted by amendment, numbered on its own.
+ARTICLE_EN_RE = re.compile(
+    r"^\s{0,2}(?:Article|ARTICLE)\s+(?P<num>\d{1,3}(?:-\d{1,3}(?=\.|\s*$))?[A-Z]{0,2})(?![0-9A-Za-z-])"
+)
+_NUM_GROUPS = ("num", "num_ru", "num_kz", "num_word")
 
 
 def _heading_title(line: str, m: re.Match) -> str:
@@ -214,17 +249,24 @@ def _article_word_heading(line: str, m: re.Match) -> tuple[str, str] | None:
         nothing else.
 
     A number the text layer split in two, "Pasal 4 1", is article 41, and a
-    letter O inside a number is a zero ("Pasal 7O" is article 70)."""
-    if m.group("misread"):
+    letter O inside a number is a zero ("Pasal 7O" is article 70). Where the
+    article word follows the number (ARTICLE_NUM_FIRST_RE) the tail is what
+    follows the word, its "title" group."""
+    groups = m.re.groupindex
+    if "misread" in groups and m.group("misread"):
         raw = m.group("misread")
         suffix = raw[-1] if raw[-1] in "ABC" else ""
         return raw[: len(raw) - len(suffix)].translate(_MISREAD_DIGITS) + suffix, ""
-    num = m.group("num")
+    name = next(g for g in _NUM_GROUPS if g in groups and m.group(g) is not None)
+    num = m.group(name)
     while re.search(r"\dO", num):
         num = re.sub(r"(?<=\d)O", "0", num)
-    tail = line[m.end("num"):].strip()
-    if num.isdigit() and re.fullmatch(r"\d{1,2}", tail) and len(num + tail) <= 3:
-        return num + tail, ""
+    if "title" in groups:
+        tail = m.group("title").strip()
+    else:
+        tail = line[m.end(name):].strip()
+        if num.isdigit() and re.fullmatch(r"\d{1,2}", tail) and len(num + tail) <= 3:
+            return num + tail, ""
     if tail and not any(ch.isalnum() for ch in tail):
         return None
     title = tail.lstrip(".").strip()
@@ -238,14 +280,22 @@ PROFILES = (
     StyleProfile("my_section_word", re.compile(r"^\s{0,2}Section\s+(?P<num>\d{1,3}[A-Z]{0,2})\.\s+\S"), False, 2),
     # The article word of a non-English drafting tradition (ARTICLE_WORD_RE).
     # Unambiguous: none of these words occurs in an English act, so the profile can never fire on one, and a
-    # scanned non-English statute otherwise degrades to a single chunk that the
-    # Gate never sees (chunk_kind "other" is not a candidate).
-    StyleProfile("article_word", ARTICLE_WORD_RE, False, 2, article_tail_filter=True),
+    # scanned non-English statute otherwise falls back to numbered passages and
+    # its Mappings lose the article they come from.
+    StyleProfile("article_word", ARTICLE_WORD_RE, False, 2, article_tail_filter=True, article=True),
+    # Number-first article words (ARTICLE_NUM_FIRST_RE): Mongolian, Kazakh.
+    StyleProfile(
+        "article_num_first", ARTICLE_NUM_FIRST_RE, False, 2, article_tail_filter=True, article=True
+    ),
+    # "Article N" in an English translation (ARTICLE_EN_RE).
+    StyleProfile(
+        "article_en", ARTICLE_EN_RE, False, 2, article_tail_filter=True, article=True, english=True
+    ),
     # The same idea for Chinese (ARTICLE_ZH_RE). Unambiguous for the same reason,
     # and its own profile because the number is a Chinese numeral, which only
     # _num_key knows how to order. Verified against the OCR of the team's
     # Personal Information Protection Law scan: 54 articles, 16 chapter lines.
-    StyleProfile("article_zh", ARTICLE_ZH_RE, False, 2),
+    StyleProfile("article_zh", ARTICLE_ZH_RE, False, 2, article=True),
     # section number alone on its own line: "12." (SSO HTML rendering)
     StyleProfile("sso_num_alone", re.compile(r"^(?P<num>\d{1,3}[A-Z]{0,3})\.\s*$"), False, 2),
     # "12. Text" or "12.—(1) Text" (SG acts; OCR may degrade the dash)
@@ -295,6 +345,8 @@ class ChunkingReport:
     fallback_used: bool = False
     fallback_succeeded: bool = False
     fallback_attempts: int = 0
+    # no structure was found and the document was split into numbered passages
+    unstructured: bool = False
     notes: list[str] = field(default_factory=list)
 
 
@@ -311,14 +363,17 @@ def _num_key(num: str) -> tuple:
 
     A Chinese numeral becomes its integer here, which is what puts 第十条
     before 第十二条 instead of leaving the run of articles unordered."""
-    m = re.fullmatch(r"(\d+)(?:\.(\d+))?([A-Z]{0,3})", num)
+    # "8-1" (an article inserted by amendment) sits after 8 and before 9,
+    # exactly where "8.1" does; the key keeps its hyphen for the label.
+    m = re.fullmatch(r"(\d+)(?:([.-])(\d+))?([A-Z]{0,3})", num)
     if not m:
         zh = zh_numeral_to_int(num)
         if zh is not None:
             return (zh, -1, "")
         return (10**9, 10**9, num)  # defensive; the profiles produce no other shape
-    major, minor, suffix = m.groups()
-    return (int(major), int(minor) if minor is not None else -1, suffix or "")
+    major, sep, minor, suffix = m.groups()
+    key = (int(major), int(minor) if minor is not None else -1, suffix or "")
+    return key + ("-",) if sep == "-" else key
 
 
 def _line_offsets(full_text: str) -> tuple[list[str], list[int]]:
@@ -429,12 +484,41 @@ def _back_matter_start(lines: list[str], after_line: int) -> int | None:
     return None
 
 
+# The English article word leads only where its longest unbroken run of
+# numbers is at least a third of the longest run the numbered styles find.
+# Runs, not totals: a translated statute's clauses restart at 1 inside every
+# article, so however many clauses it has, their longest run is one article's
+# worth (8 clauses against 40 articles). An English act or volume that
+# schedules conventions numbers its own sections in long runs against a few
+# dozen convention articles (the Niue volume: 79 against 329).
+ENGLISH_ARTICLE_SHARE = 3
+
+
+def _longest_run(keys: Sequence[tuple]) -> int:
+    """Length of the longest strictly increasing stretch of number keys."""
+    best = run = 0
+    prev = None
+    for key in keys:
+        run = run + 1 if prev is not None and key > prev else 1
+        best, prev = max(best, run), key
+    return best
+
+
+def _leads(profile: StyleProfile, article_run: int, numbered_run: int) -> bool:
+    """Whether an article-word style outranks the numbered styles here. The
+    article words no English act carries always lead; the English one leads
+    only on the run share above."""
+    if not profile.article:
+        return False
+    return not profile.english or article_run * ENGLISH_ARTICLE_SHARE >= numbered_run
+
+
 def _select_profile(
     lines: list[str], offsets: list[int], total: int, config: PipelineConfig
 ) -> tuple[StyleProfile, list[_Candidate], tuple[int, int] | None, int | None] | None:
     """Try every profile; return (profile, kept candidates, toc, back_matter_line)
     for the highest-scoring credible one, or None (fallback fires)."""
-    best = None
+    credible: list[tuple[StyleProfile, list[_Candidate], tuple[int, int] | None, int | None]] = []
     for profile in PROFILES:
         toc = _toc_region(lines, profile)
         cands = _kill_repeated_bare_titles(_candidates(lines, profile, toc))
@@ -482,9 +566,16 @@ def _select_profile(
             if median(_spans(survivors)) < config.chunk_min_median_chars:
                 continue
             kept = survivors
-        if best is None or len(kept) > len(best[1]):
-            best = (profile, kept, toc, back)
-    return best
+        credible.append((profile, kept, toc, back))
+    if not credible:
+        return None
+    runs = {c[0].name: _longest_run([k.num_key for k in c[1]]) for c in credible}
+    numbered_run = max((runs[c[0].name] for c in credible if not c[0].article), default=0)
+    # max() keeps the first of equals, so PROFILES order breaks a tie as before
+    return max(
+        credible,
+        key=lambda c: (_leads(c[0], runs[c[0].name], numbered_run), len(c[1])),
+    )
 
 
 def _furniture(lines: list[str]) -> set[str]:
@@ -588,7 +679,8 @@ def split_document(
 ) -> tuple[list[Chunk], ChunkingReport]:
     """Chunk one document. Deterministic splitter first; if no style profile
     finds credible structure, the LLM boundary fallback fires (only when
-    completion_fn is provided), else the document degrades to one chunk."""
+    completion_fn is provided), else the document is split into numbered
+    passages ("Passage N"), marked unstructured in the report."""
     config = config or PipelineConfig()
     report = ChunkingReport()
     total = len(canonical.full_text)
@@ -613,8 +705,12 @@ def split_document(
             report.style = "llm_boundary_fallback"
             boundaries = [(p.char_start, p.section_label, p.chunk_kind) for p in proposals]
         else:
-            report.notes.append("degraded to single whole-document chunk")
-            boundaries = [(0, "unstructured document (no reliable boundaries)", "other")]
+            boundaries = _passage_boundaries(canonical.full_text)
+            report.style = "passages"
+            report.unstructured = True
+            report.notes.append(
+                f"no credible structure; split into {len(boundaries)} numbered passages"
+            )
 
     chunks: list[Chunk] = []
     for i, (start, label, kind) in enumerate(boundaries):
@@ -645,6 +741,57 @@ def split_document(
             f" {total} chars, not a partition"
         )
     return chunks, report
+
+
+# The passage size: the median section chunk across the stored Corpus is about
+# 900 characters (AU and SG acts 1,100 to 1,200, Malaysian 570, India 530), so
+# a passage of about 1,000 reads to the Gate and the Engine like a section.
+PASSAGE_CHARS = 1000
+# Sentence ends a passage prefers to close on when the text has no blank lines
+# (Latin, Chinese and Devanagari stops; Thai and Lao mark none, so their
+# passages close on a line end).
+_SENTENCE_END = (".", "。", ";", "；", ":", "!", "?", "।")
+
+
+def _passage_boundaries(text: str) -> list[tuple[int, str, str]]:
+    """(char_start, "Passage N", "section") boundaries splitting a text with no
+    credible structure into passages of about PASSAGE_CHARS characters.
+
+    Each passage ends at the break nearest to its target length within half a
+    passage either way, preferring, in order: a blank line (a paragraph), a
+    line that ends a sentence, any line end, a space. Only a text with none of
+    those (one unbroken run) is cut at the target itself. The last passage
+    takes whatever remains when that is under one and a half passages."""
+    total = len(text)
+    starts: list[int] = []
+    pos = 0
+    while pos < total:
+        starts.append(pos)
+        if total - pos <= PASSAGE_CHARS * 3 // 2:
+            break
+        pos = _passage_end(text, pos)
+    return [(start, f"Passage {i}", "section") for i, start in enumerate(starts, start=1)]
+
+
+def _passage_end(text: str, start: int) -> int:
+    target = start + PASSAGE_CHARS
+    lo, hi = start + PASSAGE_CHARS // 2, start + PASSAGE_CHARS * 3 // 2
+    window = text[lo:hi]
+
+    def nearest(offsets: list[int]) -> int | None:
+        return min(offsets, key=lambda o: abs(o - target)) if offsets else None
+
+    line_ends = [lo + i + 1 for i, ch in enumerate(window) if ch == "\n"]
+    for ends in (
+        [e for e in line_ends if text.startswith("\n", e)],  # blank line follows
+        [e for e in line_ends if text[:e - 1].rstrip().endswith(_SENTENCE_END)],
+        line_ends,
+        [lo + i + 1 for i, ch in enumerate(window) if ch == " "],
+    ):
+        best = nearest(ends)
+        if best is not None:
+            return best
+    return target
 
 
 def _deterministic_boundaries(
@@ -710,7 +857,11 @@ def _deterministic_boundaries(
             floor = max(floor, elucidation)  # the Elucidation heading opens its own chunk
         start_line = _extend_heading(lines, c.line, floor, profile, furniture)
         num = "".join(
-            p for p in (str(c.num_key[0]), f".{c.num_key[1]}" if c.num_key[1] >= 0 else "", c.num_key[2]) if p
+            p for p in (
+                str(c.num_key[0]),
+                f"{c.num_key[3] if len(c.num_key) > 3 else '.'}{c.num_key[1]}" if c.num_key[1] >= 0 else "",
+                c.num_key[2],
+            ) if p
         )
         part = part_at_line.get(c.line)
         label = f"{part} s. {num}" if part else f"s. {num}"
@@ -766,6 +917,8 @@ _REPAIR_PATTERNS = (
     re.compile(r"^\s{0,2}Section\s+(?P<num>\d{1,3}[A-Za-z]{0,4})\.\s+\S"),
     ARTICLE_WORD_RE,
     ARTICLE_ZH_RE,
+    ARTICLE_NUM_FIRST_RE,
+    ARTICLE_EN_RE,
     re.compile(r"^(?P<num>\d{1,3}[A-Za-z]{0,4})\.\s*$"),
     re.compile(r"^(?P<num>\d{1,3}[A-Za-z]{0,4})\.(?:[—–-]\(|\s+\S)"),
     _NUM_TITLE_REPAIR_RE,
@@ -775,7 +928,9 @@ _REPAIR_PATTERNS = (
 # style however many numbered items the dot styles also find: in an
 # Indonesian act those are the definitions of article 1, and taking them as
 # headings labelled every later quote "s. 2".
-_ARTICLE_REPAIR_PATTERNS = (ARTICLE_WORD_RE, ARTICLE_ZH_RE)
+_ARTICLE_REPAIR_PATTERNS = (ARTICLE_WORD_RE, ARTICLE_ZH_RE, ARTICLE_NUM_FIRST_RE, ARTICLE_EN_RE)
+# The article styles whose heading lines are read through _article_word_heading.
+_ARTICLE_TAIL_PATTERNS = (ARTICLE_WORD_RE, ARTICLE_NUM_FIRST_RE, ARTICLE_EN_RE)
 
 _LABEL_NUM_RE = re.compile(r"\bs\.\s*(\S+)\s*$")
 
@@ -819,7 +974,7 @@ class SectionLabelIndex:
                 # A cross-reference sentence or a page-foot catchword is
                 # known prose, not an unreadable heading, so it does not make
                 # its zone ambiguous either: it is no match at all.
-                if pattern is ARTICLE_WORD_RE:
+                if pattern in _ARTICLE_TAIL_PATTERNS:
                     heading = _article_word_heading(line, m)
                     if heading is None:
                         break
@@ -858,9 +1013,20 @@ class SectionLabelIndex:
             self._raw_lines: list[int] = []
             self._part_at_line: dict[int, str | None] = {}
             return
+        # The English article word leads on the chunker's share rule (_leads):
+        # a few dozen scheduled convention articles never outrank an act.
+        runs = {k: _longest_run([_num_key(c[1]) for c in v]) for k, v in by_pattern.items()}
+        numbered_run = max(
+            (runs[k] for k in by_pattern if _REPAIR_PATTERNS[k] not in _ARTICLE_REPAIR_PATTERNS),
+            default=0,
+        )
         articles = [
             k for k in by_pattern
             if _REPAIR_PATTERNS[k] in _ARTICLE_REPAIR_PATTERNS and len(by_pattern[k]) >= 2
+            and (
+                _REPAIR_PATTERNS[k] is not ARTICLE_EN_RE
+                or runs[k] * ENGLISH_ARTICLE_SHARE >= numbered_run
+            )
         ]
         dominant = max(articles or by_pattern, key=lambda k: len(by_pattern[k]))
         cands = by_pattern[dominant]

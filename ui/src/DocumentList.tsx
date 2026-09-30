@@ -131,7 +131,7 @@ export default function DocumentList({
                     {d.source_kind === 'fixture' && (
                       <span
                         className="ev-tag warn"
-                        title="Seeded by `regcompass seed` from the legislation bundled with this install, not collected from the Portal on the day of the Run. A demonstration Corpus, never a collection."
+                        title="Included with this install."
                       >
                         fixture, demo only
                       </span>

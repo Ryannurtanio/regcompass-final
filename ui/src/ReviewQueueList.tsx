@@ -1,14 +1,16 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { fetchReviewQueue } from './api'
 import type { QueueFilter, QueueRecord, ReviewQueue } from './types'
 import { useRowKeys } from './rowKeys'
 import Decision from './Decision'
 import ErrorNote from './ErrorNote'
 import { plainError, type PlainError } from './errors'
+import { orderQueue, QUEUE_SORTS, type QueueSort } from './queueOrder'
 
 /** The rows of one Run in the order a person should read them: lowest
- *  Confidence first, because the calibration rule says to hand-check the low
- *  ones. The Documents table answers what the Run found; this answers what is
+ *  Confidence first by default, because the calibration rule says to
+ *  hand-check the low ones. The reviewer can turn it round, or read the rows
+ *  in the laws' own order. The Documents table answers what the Run found; this answers what is
  *  left to look at.
  *
  *  The list is re-read whenever a decision lands (reviewTick), so a row's
@@ -20,6 +22,8 @@ export default function ReviewQueueList({
   reviewTick,
   filter,
   onFilter,
+  sort,
+  onSort,
   onOpen,
 }: {
   runId: string | null
@@ -28,13 +32,18 @@ export default function ReviewQueueList({
   // turning one on turns the other off.
   filter: QueueFilter
   onFilter: (filter: QueueFilter) => void
+  sort: QueueSort
+  onSort: (sort: QueueSort) => void
   onOpen: (row: QueueRecord) => void
 }) {
   const [queue, setQueue] = useState<ReviewQueue | null>(null)
   const [error, setError] = useState<PlainError | null>(null)
   // Bumped by Try again, to read the queue once more.
   const [retry, setRetry] = useState(0)
-  const rows = queue?.records ?? null
+  const rows = useMemo(() => (queue ? orderQueue(queue.records, sort) : null), [queue, sort])
+  // The row that had the focus when the order changed, found again once the
+  // rows are in their new places.
+  const keep = useRef<string | null>(null)
 
   const open = useCallback(
     (i: number) => {
@@ -54,6 +63,13 @@ export default function ReviewQueueList({
       .catch((e) => setError(plainError(e)))
   }, [runId, filter, reviewTick, setFocus, retry])
 
+  useEffect(() => {
+    if (keep.current === null || !rows) return
+    const at = rows.findIndex((r) => r.mapping_id === keep.current)
+    keep.current = null
+    if (at !== -1) setFocus(at)
+  }, [rows, setFocus])
+
   if (error) return <ErrorNote className="ev-error" error={error} onRetry={() => setRetry((n) => n + 1)} />
   if (!queue || !rows) return <div className="ev-note">Loading the queue…</div>
 
@@ -70,9 +86,27 @@ export default function ReviewQueueList({
             {queue.below_threshold} of {queue.total} below {threshold} Confidence,{' '}
             {queue.unreviewed} not reviewed yet.
           </span>{' '}
-          <span className="ev-muted">Lowest Confidence first: check these by hand.</span>
+          {sort === 'low' && <span className="ev-muted">Lowest Confidence first: check these by hand.</span>}
         </p>
         <span className="ev-toggles">
+          <label className="ev-toggle">
+            Order
+            <select
+              className="ev-sort"
+              data-testid="queue-sort"
+              value={sort}
+              onChange={(e) => {
+                keep.current = rows?.[focus]?.mapping_id ?? null
+                onSort(e.currentTarget.value as QueueSort)
+              }}
+            >
+              {QUEUE_SORTS.map((s) => (
+                <option key={s.value} value={s.value}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </label>
           <label className="ev-toggle">
             <input
               type="checkbox"

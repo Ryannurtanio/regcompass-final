@@ -384,7 +384,9 @@ class TestEconomyRegistryShape:
         china = load_portals()["CN"]
         assert china.strategy == "manual"
         assert china.manual_only is False
-        assert china.hosts == ["www.cac.gov.cn"]
+        # The regulator stays the Portal host; the other official hosts the
+        # baseline cites follow it.
+        assert china.hosts[0] == "www.cac.gov.cn"
         assert "flk.npc.gov.cn" not in china.hosts
 
     def test_an_empty_host_whitelist_needs_the_manual_strategy(self):

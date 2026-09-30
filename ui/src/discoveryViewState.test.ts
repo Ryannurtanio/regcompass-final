@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest'
+import { afterEach, vi } from 'vitest'
 import {
+  discoveryLog,
   discoveryViewReducer,
   emptyDiscoveryView,
+  pillarPanel,
+  revealStepMs,
+  startReveal,
   type DiscoveryViewState,
 } from './discoveryViewState'
 import type { DiscoveryEvent } from './types'
@@ -237,5 +242,224 @@ describe('the Discovery view state', () => {
 
   it('resets', () => {
     expect(discoveryViewReducer(feed(normalDiscovery()), { type: 'reset' })).toBe(emptyDiscoveryView)
+  })
+})
+
+describe('a Discovery by Pillar', () => {
+  const skippedLaw = {
+    law: 'Firm Copy Act',
+    indicators: ['4.2'],
+    urls: ['https://www.examplelawfirm.com/a.pdf'],
+    code: 'not_allowed_host',
+    reason: 'Its address (www.examplelawfirm.com) is not on this Economy\'s list of official hosts, so it was not fetched.',
+  }
+
+  function drawnDiscovery(): DiscoveryEvent[] {
+    return numbered([
+      PORTAL,
+      { type: 'discovery_found', url: A, name: 'Telecommunications Act 1999' },
+      { type: 'discovery_fetched', url: A, size_bytes: 1200, method: 'httpx' },
+      { type: 'discovery_added', url: A, document_id: 'doc_a', title: 'Telecommunications Act 1999', n_pages: 12, ocr_applied: false },
+      {
+        type: 'discovery_finished',
+        counts: {
+          run_id: 'disc_1', found: 1, fetched: 1, added: 1, skipped: 0,
+          pillar: 4, indicators: ['4.2', '4.3'], max_documents: 12,
+          found_by: [{ url: A, document_id: 'doc_a', title: 'Telecommunications Act 1999', found_by: 'baseline 4.2', status: 'fetched' }],
+          baseline_skipped: [skippedLaw],
+          notes: ['no crawl seed is tagged for Pillar 4, so the Portal crawler did not run'],
+        },
+      },
+    ])
+  }
+
+  it('keeps the draw, why each Document came in, and the laws left out', () => {
+    const s = feed(drawnDiscovery())
+    expect(s.drawn).toEqual({
+      pillar: 4,
+      indicators: ['4.2', '4.3'],
+      max_documents: 12,
+      baseline_skipped: [skippedLaw],
+      notes: ['no crawl seed is tagged for Pillar 4, so the Portal crawler did not run'],
+    })
+    expect(s.documents[0].found_by).toBe('baseline 4.2')
+  })
+
+  it('is null for a Discovery with no Pillar', () => {
+    expect(feed(normalDiscovery()).drawn).toBeNull()
+    expect(feed(normalDiscovery()).documents.every((d) => d.found_by === null)).toBe(true)
+  })
+
+  it('survives a reload', () => {
+    const s = discoveryViewReducer(emptyDiscoveryView, { type: 'replay', events: drawnDiscovery() })
+    expect(s.drawn?.baseline_skipped).toEqual([skippedLaw])
+  })
+})
+
+describe('a law found for several Indicators', () => {
+  const IN_CORPUS = 'Already in the Corpus, so it was not asked for again.'
+
+  // Law A is cited for 7.1 and 7.3: added for 7.1, then asked for again for
+  // 7.3 and reported as already in the Corpus. Law B came from the Portal.
+  function twiceCited(): DiscoveryEvent[] {
+    return numbered([
+      PORTAL,
+      { type: 'discovery_found', url: A, name: 'Personal Data Protection Act' },
+      { type: 'discovery_added', url: A, document_id: 'doc_a', title: 'Personal Data Protection Act', n_pages: 9, ocr_applied: false },
+      { type: 'discovery_skipped', url: A, code: 'in_corpus', reason: IN_CORPUS, title: 'Personal Data Protection Act' },
+      { type: 'discovery_found', url: B, name: 'Cybersecurity Act' },
+      { type: 'discovery_added', url: B, document_id: 'doc_b', title: 'Cybersecurity Act', n_pages: 4, ocr_applied: false },
+      {
+        type: 'discovery_finished',
+        counts: {
+          run_id: 'disc_1', found: 2, fetched: 2, added: 2, skipped: 1, already_in_corpus: 1,
+          pillar: 7, indicators: ['7.1', '7.2', '7.3'], max_documents: 12,
+          found_by: [
+            { url: A, document_id: 'doc_a', title: 'Personal Data Protection Act', found_by: 'baseline 7.3', status: 'fetched' },
+            { url: B, document_id: 'doc_b', title: 'Cybersecurity Act', found_by: 'portal crawler', status: 'fetched' },
+            { url: A, document_id: 'doc_a', title: 'Personal Data Protection Act', found_by: 'official source list 7.1, 6.2', status: 'already in the Corpus' },
+          ],
+          baseline_skipped: [],
+          notes: [],
+        },
+      },
+    ])
+  }
+
+  it('merges every found_by entry for the same address', () => {
+    const s = feed(twiceCited())
+    const a = s.documents.find((d) => d.url === A)!
+    expect(a.indicators).toEqual(['6.2', '7.1', '7.3'])
+    expect(s.documents.find((d) => d.url === B)!.indicators).toEqual([])
+  })
+
+  it('never demotes a Document this Discovery added to not added', () => {
+    const running = feed(twiceCited().slice(0, 4))
+    expect(running.documents[0].state).toBe('added')
+    expect(running.counts).toMatchObject({ added: 1, skipped: 0 })
+    const s = feed(twiceCited())
+    expect(s.documents.map((d) => d.state)).toEqual(['added', 'added'])
+    // The Discovery counted the second ask as skipped; the screen agrees with its list.
+    expect(s.counts).toMatchObject({ found: 2, added: 2, skipped: 0 })
+  })
+
+  it('still marks a Document an earlier Discovery added as not added', () => {
+    const s = feed(
+      numbered([
+        PORTAL,
+        { type: 'discovery_skipped', url: A, code: 'in_corpus', reason: IN_CORPUS, title: 'Held Act' },
+      ]),
+    )
+    expect(s.documents[0]).toMatchObject({ state: 'skipped', title: 'Held Act' })
+    // Found, and already in the Corpus: not counted as not added.
+    expect(s.counts).toMatchObject({ found: 1, added: 0, skipped: 0 })
+    expect(pillarPanel({ ...s, drawn: { pillar: 7, indicators: null, max_documents: null, baseline_skipped: [], notes: [] } })!.rows[0])
+      .toMatchObject({ added: false, inCorpus: true })
+  })
+
+  it('never takes a Document this Discovery added back to not added, whatever the later skip', () => {
+    const s = feed(
+      numbered([
+        PORTAL,
+        { type: 'discovery_found', url: A, name: null },
+        { type: 'discovery_added', url: A, document_id: 'doc_a', title: 'Telecommunications Act 1999', n_pages: 12, ocr_applied: false },
+        { type: 'discovery_skipped', url: A, code: 'duplicate', reason: 'Same file.' },
+        { type: 'discovery_skipped', url: A, code: 'fetch_error', reason: 'No.' },
+      ]),
+    )
+    expect(s.documents[0]).toMatchObject({ state: 'added', document_id: 'doc_a', code: null })
+    expect(s.counts).toMatchObject({ found: 1, added: 1, skipped: 0 })
+    expect(discoveryLog(s).map((l) => l.tag)).toEqual(['>', 'found', 'added'])
+  })
+
+  it('writes the log from the events, one line per law', () => {
+    const s = feed(twiceCited())
+    expect(discoveryLog(s).map((l) => [l.tag, l.text, l.right])).toEqual([
+      ['>', 'Accessing the official legal portals for Singapore…', ''],
+      ['found', 'Personal Data Protection Act', 'sso.agc.gov.sg'],
+      ['added', 'to the Corpus', 'Added 1'],
+      ['found', 'Cybersecurity Act', 'sso.agc.gov.sg'],
+      ['added', 'to the Corpus', 'Added 2'],
+      ['done', '2 laws added to the Corpus for Singapore, Pillar 7.', ''],
+    ])
+  })
+
+  it('logs a law already in the Corpus and one not added', () => {
+    const s = feed(
+      numbered([
+        PORTAL,
+        { type: 'discovery_skipped', url: A, code: 'in_corpus', reason: IN_CORPUS, title: 'Held Act' },
+        { type: 'discovery_found', url: C, name: null },
+        { type: 'discovery_skipped', url: C, code: 'fetch_error', reason: 'No.' },
+        { type: 'discovery_failed', message: 'RuntimeError: gone' },
+      ]),
+    )
+    expect(discoveryLog(s).map((l) => [l.tag, l.text])).toEqual([
+      ['>', 'Accessing the official legal portals for Singapore…'],
+      ['in Corpus', 'Held Act, already in the Corpus'],
+      ['found', 'CA2018'],
+      ['not added', 'CA2018, not added'],
+      ['stop', 'Discovery stopped.'],
+    ])
+  })
+
+  it('lays the Documents out against the Indicators asked for', () => {
+    const panel = pillarPanel(feed(twiceCited()))!
+    expect(panel.pillar).toBe(7)
+    expect(panel.columns).toEqual(['7.1', '7.2', '7.3'])
+    expect(panel.rows.map((r) => [r.title, r.ids, r.added])).toEqual([
+      ['Personal Data Protection Act', ['7.1', '7.3'], true],
+      ['Cybersecurity Act', [], true],
+    ])
+  })
+
+  it('uses the Indicators found when every one was asked for', () => {
+    const events = twiceCited()
+    const last = events[events.length - 1] as Extract<DiscoveryEvent, { type: 'discovery_finished' }>
+    const every = [...events.slice(0, -1), { ...last, counts: { ...last.counts, indicators: null } }]
+    expect(pillarPanel(feed(every))!.columns).toEqual(['7.1', '7.3'])
+  })
+
+  it('has no panel for a Discovery with no Pillar', () => {
+    expect(pillarPanel(feed(normalDiscovery()))).toBeNull()
+  })
+})
+
+describe('the reveal', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('shows one Document at a time and the whole of it inside about six seconds', () => {
+    vi.useFakeTimers()
+    const seen: number[] = []
+    startReveal(12, 12, (n) => seen.push(n))
+    expect(seen).toEqual([0])
+    vi.advanceTimersByTime(700)
+    expect(seen).toEqual([0, 1])
+    vi.advanceTimersByTime(6000)
+    expect(seen).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+    expect(700 + 11 * revealStepMs(12)).toBeLessThanOrEqual(6000)
+    expect(revealStepMs(5)).toBe(1000)
+  })
+
+  it('shows the rest at once past its limit', () => {
+    vi.useFakeTimers()
+    const seen: number[] = []
+    startReveal(20, 12, (n) => seen.push(n))
+    vi.advanceTimersByTime(10000)
+    expect(seen[seen.length - 1]).toBe(20)
+    expect(seen).not.toContain(13)
+  })
+
+  it('stops when told to, leaving no timer behind', () => {
+    vi.useFakeTimers()
+    const seen: number[] = []
+    const stop = startReveal(5, 12, (n) => seen.push(n))
+    vi.advanceTimersByTime(1700)
+    stop()
+    expect(vi.getTimerCount()).toBe(0)
+    vi.advanceTimersByTime(10000)
+    expect(seen).toEqual([0, 1, 2])
   })
 })

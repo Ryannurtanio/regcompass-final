@@ -164,6 +164,88 @@ class TestArticleSection:
         rec = mk_rec(section="Part IIIC s. 38", subsection="(1)")
         assert article_section(rec) == "Part IIIC s. 38(1)"
 
+    def test_restated_number_before_a_bracket_is_deduplicated(self):
+        rec = mk_rec(economy="LA", section="s. 19", subsection="19(1)")
+        assert article_section(rec) == "Art. 19(1)"
+
+    def test_a_bare_numbered_subsection_is_bracketed(self):
+        rec = mk_rec(economy="LA", section="s. 25", subsection="3.")
+        assert article_section(rec) == "Art. 25(3)"
+
+    def test_a_bare_numbered_subsection_after_a_longer_number_stays_right(self):
+        rec = mk_rec(economy="ID", section="s. 29", subsection="12.")
+        assert article_section(rec) == "Art. 29(12)"
+
+    def test_the_indonesian_ayat_word_is_dropped(self):
+        rec = mk_rec(economy="ID", section="Elucidation s. 31", subsection="Ayat (r)")
+        assert article_section(rec) == "Elucidation Art. 31(r)"
+
+    def test_a_pasal_subsection_restating_the_article_adds_nothing(self):
+        rec = mk_rec(economy="ID", section="s. 29", subsection="Pasal 29")
+        assert article_section(rec) == "Art. 29"
+
+    def test_a_subsection_that_only_restates_the_section_adds_nothing(self):
+        rec = mk_rec(section="Part 1 s. 21", subsection="21")
+        assert article_section(rec) == "Part 1 s. 21"
+
+    def test_a_lettered_subsection_is_bracketed(self):
+        rec = mk_rec(economy="ID", section="s. 28", subsection="f.")
+        assert article_section(rec) == "Art. 28(f)"
+
+    def test_clause_words_after_a_bracketed_marker_are_dropped(self):
+        rec = mk_rec(economy="CN", section="Passage 3", subsection="（四）确保信息数据安全。")
+        assert article_section(rec) == "Passage 3（四）"
+        rec = mk_rec(section="s. 43", subsection="(5)(h) the operator")
+        assert article_section(rec) == "s. 43(5)(h)"
+
+    def test_a_lao_subsection_restating_the_article_keeps_only_its_marker(self):
+        rec = mk_rec(economy="LA", section="s. 54", subsection="ມາດຕາ 54 (ໃຫ່)")
+        assert article_section(rec) == "Art. 54(ໃຫ່)"
+
+    def test_a_heading_caught_as_a_subsection_is_not_shown(self):
+        # "ບນວດທີ 3" is the OCR of a chapter heading, not a subdivision
+        rec = mk_rec(economy="LA", section="s. 11", subsection="ບນວດທີ 3")
+        assert article_section(rec) == "Art. 11"
+
+    def test_a_restated_article_followed_by_words_is_stripped(self):
+        rec = mk_rec(economy="ID", section="s. 19", subsection="Pasal 19 ayat (1)")
+        assert article_section(rec) == "Art. 19(1)"
+        rec = mk_rec(economy="AU", section="Part 1 s. 120", subsection="120 Subsection 5(1)")
+        assert article_section(rec) == "Part 1 s. 120, 5(1)"
+
+    def test_an_amended_acts_section_is_set_apart_by_a_comma(self):
+        rec = mk_rec(economy="AU", section="Part 2 s. 40", subsection="11(3)")
+        assert article_section(rec) == "Part 2 s. 40, 11(3)"
+        rec = mk_rec(economy="AU", section="s. 4", subsection="3ZZVJ(a)")
+        assert article_section(rec) == "s. 4, 3ZZVJ(a)"
+
+    @pytest.mark.parametrize(
+        ("subsection", "shown"),
+        [
+            ("subsection (2)", "s. 38(2)"),
+            ("para (a)", "s. 38(a)"),
+            ("Clause 21", "s. 38(21)"),
+            ("Item 1", "s. 38(1)"),
+            ("ii", "s. 38(ii)"),
+            ("iv.", "s. 38(iv)"),
+        ],
+    )
+    def test_a_named_subdivision_keeps_its_number(self, subsection, shown):
+        rec = mk_rec(section="s. 38", subsection=subsection)
+        assert article_section(rec) == shown
+
+    def test_a_chinese_subsection_restating_the_article_adds_nothing(self):
+        rec = mk_rec(economy="CN", section="Chapter 2 s. 13", subsection="第十三条")
+        assert article_section(rec) == "Chapter 2 Art. 13"
+
+    def test_a_chinese_section_heading_caught_as_a_subsection_is_not_shown(self):
+        rec = mk_rec(economy="CN", section="Chapter 3 s. 33", subsection="第三节")
+        assert article_section(rec) == "Chapter 3 Art. 33"
+
+    def test_a_literal_null_subsection_is_empty(self):
+        rec = mk_rec(economy="ID", section="s. 5", subsection="null")
+        assert article_section(rec) == "Art. 5"
+
 
 # ---------------------------------------------------------------------------
 # mechanical confidence
@@ -1301,3 +1383,436 @@ class TestManuallyAddedDocuments:
         # A database written before the column existed reads None, which means
         # Discovery: it is the only way a row could have been written then.
         assert docs["doc_my_pre_migration"].manual_added is False
+
+
+# ---------------------------------------------------------------------------
+# 7.1 and 7.2: one economy-level row each, on a law of the right family
+# ---------------------------------------------------------------------------
+
+
+class TestFrameworkRows:
+    """Indicator Reference A80: 7.1 and 7.2 are answered once per Economy, and
+    per-provision citations of them score zero. The export writes at most one
+    row per Economy for each, naming the framework law as a whole, and only a
+    data-protection law (7.1) or a cybersecurity law (7.2) can be that law."""
+
+    @pytest.mark.parametrize(
+        "indicator,title",
+        [
+            ("7.1", "Personal Data Protection Act 2010"),
+            ("7.1", "Privacy Act 1988"),
+            ("7.1", "中华人民共和国个人信息保护法"),
+            ("7.1", "พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562"),
+            ("7.1", "Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi"),
+            ("7.1", "Luật Bảo vệ dữ liệu cá nhân"),
+            ("7.1", "Закон о персональных данных"),
+            ("7.2", "Cybersecurity Act 2018"),
+            ("7.2", "中华人民共和国网络安全法"),
+            ("7.2", "Law on Network Security"),
+            ("7.2", "พระราชบัญญัติการรักษาความมั่นคงปลอดภัยไซเบอร์ พ.ศ. 2562"),
+        ],
+    )
+    def test_framework_laws_match_their_family(self, indicator, title):
+        from regcompass.export import framework_family_match
+
+        assert framework_family_match(indicator, title)
+
+    @pytest.mark.parametrize(
+        "indicator,title",
+        [
+            ("7.1", "Criminal Code Act 1995"),
+            ("7.1", "Telecommunications Act 1999"),
+            ("7.1", "Cybersecurity Act 2018"),
+            ("7.2", "Personal Data Protection Act 2010"),
+            ("7.2", "Criminal Code Act 1995"),
+            ("6.1", "Personal Data Protection Act 2010"),
+        ],
+    )
+    def test_other_laws_do_not(self, indicator, title):
+        from regcompass.export import framework_family_match
+
+        assert not framework_family_match(indicator, title)
+
+    def _export(self, tmp_path, records=None, texts=None, cosines=None, **kw):
+        if records is None:
+            records, texts, cosines = [], {}, {}
+            for slug in SLUGS:
+                records.extend(load_golden_m8(slug))
+                texts.update(chunk_texts(slug))
+                cosines.update(gate_cosines(slug))
+        return export_all(
+            tmp_path,
+            records,
+            chunk_text_lookup=texts,
+            gate_cosine_lookup=cosines,
+            coverage_stats=COVERAGE,
+            liveness_fn=lambda url: True,
+            write_xlsx=False,
+            **kw,
+        )
+
+    def _provisions(self, result, indicator):
+        return [
+            r for r in result.rows
+            if r["Indicator ID"] == indicator and r["Article / Section"] != "No provision found"
+        ]
+
+    def test_one_row_per_economy_naming_the_act_as_a_whole(self, tmp_path):
+        result = self._export(tmp_path, framework_rows=True)
+        rows_71 = self._provisions(result, "7.1")
+        # Malaysia's 14 per-provision PDPA rows become one row on the Act
+        assert [(r["Economy"], r["Article / Section"]) for r in rows_71] == [
+            ("Malaysia", "Personal Data Protection Act 2010")
+        ]
+        row = rows_71[0]
+        assert row["Law Name"] == "Personal Data Protection Act 2010"
+        assert "economy-level 7.1" in row["Notes"]
+        assert "s. " in row["Notes"]  # the quote's own provision is named
+        assert row["Verbatim Snippet"]
+
+    def test_the_wrong_law_produces_no_row(self, tmp_path):
+        """Singapore's 7.1 and 7.2 evidence is the Telecommunications Act:
+        neither a framework law nor one the baseline cites, so no row.
+        Australia's 7.2 is the Criminal Code, which the 2025 baseline itself
+        cites for Australia's 7.2, so it is the second choice and ships."""
+        result = self._export(tmp_path, framework_rows=True)
+        shipped = {
+            (r["Economy"], r["Indicator ID"])
+            for r in result.rows
+            if r["Indicator ID"] in ("7.1", "7.2")
+            and r["Article / Section"] != "No provision found"
+        }
+        assert shipped == {("Malaysia", "7.1"), ("Australia", "7.2")}
+        supp = json.loads(result.supplementary_path.read_text(encoding="utf-8"))
+        choices = {
+            (c["economy"], c["indicator_id"]): c for c in supp["framework_rows"]["choices"]
+        }
+        assert choices[("AU", "7.2")]["law_name"] == "Criminal Code Act 1995"
+        assert "2025 baseline cites" in choices[("AU", "7.2")]["reason"]
+        assert "Telecommunications Act 1999" in choices[("SG", "7.1")]["reason"]
+        assert choices[("MY", "7.1")]["n_per_provision"] == 14
+        assert choices[("SG", "7.1")]["mapping_id"] is None
+        # the zero row says evidence was found on the wrong law, and only that
+        sg_71 = [
+            r for r in result.rows
+            if r["Economy"] == "Singapore" and r["Indicator ID"] == "7.1"
+        ]
+        assert [r["Article / Section"] for r in sg_71] == ["No provision found"]
+        assert "not a data-protection law" in sg_71[0]["Notes"]
+        assert "insufficient evidence" not in sg_71[0]["Notes"]
+
+    def test_the_battery_stays_green_and_other_indicators_are_untouched(self, tmp_path):
+        plain = self._export(tmp_path / "plain")
+        framed = self._export(tmp_path / "framed", framework_rows=True)
+        assert framed.battery_failures == []
+
+        def others(result):
+            return [
+                (r["Economy"], r["Indicator ID"], r["Article / Section"])
+                for r in result.rows if r["Indicator ID"] not in ("7.1", "7.2")
+            ]
+
+        assert others(plain) == others(framed)
+        # the per-provision Mappings keep their working-JSON rows
+        assert [p.name for p in plain.working_json_paths] == [
+            p.name for p in framed.working_json_paths
+        ]
+
+    def test_off_by_default(self, tmp_path):
+        result = self._export(tmp_path)
+        assert len(self._provisions(result, "7.1")) > 1
+        supp = json.loads(result.supplementary_path.read_text(encoding="utf-8"))
+        assert "framework_rows" not in supp
+
+    def test_the_scope_or_purpose_clause_is_preferred(self, tmp_path):
+        doc = "doc_my_personal_data_protection_act_2010"
+        later = mk_rec(
+            section="Part I s. 2", subsection="(1)", indicator="7.1",
+            quote="This Act applies to any person who processes any personal data",
+        ).model_copy(update={
+            "mapping_id": f"{doc}:c0005::7.1", "chunk_id": f"{doc}:c0005",
+        })
+        earlier = mk_rec(
+            section="Part II s. 5", subsection="(1)", indicator="7.1",
+            quote="A data user shall not process personal data",
+        ).model_copy(update={
+            "mapping_id": f"{doc}:c0003::7.1", "chunk_id": f"{doc}:c0003",
+        })
+        records = [earlier, later]
+        texts = {r.chunk_id: f"PREFIX {r.verbatim_quote} SUFFIX" for r in records}
+        cosines = {(r.chunk_id, r.indicator_id): 0.6 for r in records}
+        result = self._export(
+            tmp_path, records=records, texts=texts, cosines=cosines, framework_rows=True
+        )
+        rows = self._provisions(result, "7.1")
+        assert len(rows) == 1
+        assert rows[0]["Verbatim Snippet"] == later.verbatim_quote
+        assert "Part I s. 2(1)" in rows[0]["Notes"]
+
+    def test_without_a_scope_clause_the_first_mapped_provision_is_quoted(self, tmp_path):
+        doc = "doc_my_personal_data_protection_act_2010"
+        records = [
+            mk_rec(
+                section=f"Part II s. {n}", subsection="(1)", indicator="7.1",
+                quote=f"A data user shall not process personal data under head {n}",
+            ).model_copy(update={
+                "mapping_id": f"{doc}:c{n:04d}::7.1", "chunk_id": f"{doc}:c{n:04d}",
+            })
+            for n in (9, 4, 7)
+        ]
+        texts = {r.chunk_id: f"PREFIX {r.verbatim_quote} SUFFIX" for r in records}
+        cosines = {(r.chunk_id, r.indicator_id): 0.6 for r in records}
+        result = self._export(
+            tmp_path, records=records, texts=texts, cosines=cosines, framework_rows=True
+        )
+        rows = self._provisions(result, "7.1")
+        assert [r["Verbatim Snippet"] for r in rows] == [records[1].verbatim_quote]
+
+
+class TestFrameworkChoice:
+    """economy_level_frameworks directly: which law may carry the row, and
+    which of its Mappings is quoted."""
+
+    def _rec(self, doc, n, indicator="7.1", section=None, quote=None, economy="AU"):
+        return mk_rec(
+            section=section or f"Part II s. {n}", subsection="(1)", indicator=indicator,
+            quote=quote or f"A provision of head {n} applies in this Part",
+            economy=economy, document_id=doc,
+        ).model_copy(update={"mapping_id": f"{doc}:c{n:04d}::{indicator}",
+                             "chunk_id": f"{doc}:c{n:04d}"})
+
+    def _choose(self, records, laws, corrected=frozenset()):
+        from regcompass.config import load_known_matrix
+        from regcompass.export import economy_level_frameworks
+
+        return economy_level_frameworks(records, laws, load_known_matrix(), corrected)
+
+    @pytest.mark.parametrize(
+        "indicator,title",
+        [
+            ("7.2", "Security of Critical Infrastructure Act 2018"),
+            ("7.2", "Information Technology Act, 2000"),
+            ("7.2", "Undang-Undang tentang Informasi dan Transaksi Elektronik"),
+            ("7.2", "Undang-Undang tentang Keamanan dan Ketahanan Siber"),
+            ("7.2", "О безопасности критической информационной инфраструктуры"),
+            ("7.1", "Хувийн мэдээлэл хамгаалах тухай хууль"),
+            ("7.1", "ກົດໝາຍວ່າດ້ວຍການປົກປ້ອງຂໍ້ມູນເອເລັກໂຕຣນິກ"),
+        ],
+    )
+    def test_the_baselines_own_framework_laws_match(self, indicator, title):
+        from regcompass.export import framework_family_match
+
+        assert framework_family_match(indicator, title)
+
+    def test_australias_critical_infrastructure_act_is_kept_for_7_2(self):
+        from regcompass.export import FrameworkLaw
+
+        rec = self._rec("doc_au_soci", 5, indicator="7.2")
+        kept, choices = self._choose(
+            [rec], {"doc_au_soci": FrameworkLaw("Security of Critical Infrastructure Act 2018")}
+        )
+        assert kept == [rec]
+        assert choices[0].tier == 0
+
+    def test_a_law_the_baseline_cites_is_the_second_choice(self):
+        from regcompass.export import FrameworkLaw
+
+        privacy = self._rec("doc_au_privacy", 2, indicator="7.2")
+        crime = self._rec("doc_au_crime", 1, indicator="7.1")
+        kept, choices = self._choose(
+            [privacy, crime],
+            {"doc_au_privacy": FrameworkLaw("Privacy Act 1988"),
+             "doc_au_crime": FrameworkLaw("Criminal Code Act 1995")},
+        )
+        # Privacy Act: the baseline cites it for AU 7.2; Criminal Code: not for 7.1
+        assert kept == [privacy]
+        by = {c.indicator_id: c for c in choices}
+        assert by["7.2"].tier == 2 and by["7.1"].mapping_id is None
+
+    def test_a_family_law_beats_a_baseline_cited_one(self):
+        from regcompass.export import FrameworkLaw
+
+        crime = self._rec("doc_au_crime", 1, indicator="7.2")
+        cyber = self._rec("doc_au_cyber", 9, indicator="7.2")
+        kept, _ = self._choose(
+            [crime, cyber],
+            {"doc_au_crime": FrameworkLaw("Criminal Code Act 1995"),
+             "doc_au_cyber": FrameworkLaw("Cyber Security Act 2024")},
+        )
+        assert kept == [cyber]
+
+    def test_the_title_block_names_a_law_its_short_title_does_not(self):
+        from regcompass.export import FrameworkLaw, economy_level_frameworks
+
+        rec = self._rec("doc_id_uu27", 3, economy="ID")
+        laws = {"doc_id_uu27": FrameworkLaw(
+            "UU Nomor 27 Tahun 2022",
+            head="UNDANG-UNDANG REPUBLIK INDONESIA NOMOR 27 TAHUN 2022 TENTANG PELINDUNGAN DATA PRIBADI",
+        )}
+        kept, choices = economy_level_frameworks([rec], laws, None)
+        assert kept == [rec] and choices[0].tier == 1
+
+    def test_the_principal_act_beats_its_amendment(self):
+        from regcompass.export import FrameworkLaw
+
+        amendment = self._rec("doc_my_amend", 1, economy="MY",
+                              quote="This Act applies to any person who processes data")
+        principal = self._rec("doc_my_pdpa", 40, economy="MY")
+        kept, _ = self._choose(
+            [amendment, principal],
+            {"doc_my_amend": FrameworkLaw("Personal Data Protection (Amendment) Act 2024"),
+             "doc_my_pdpa": FrameworkLaw("Personal Data Protection Act 2010")},
+        )
+        assert kept == [principal]
+
+    def test_scope_is_read_from_the_heading_or_a_strict_phrase_only(self):
+        from regcompass.export import FrameworkLaw
+
+        laws = {"doc_sg_pdpa": FrameworkLaw("Personal Data Protection Act 2012")}
+        # "purpose" in the body of a later section is not the scope clause
+        body = self._rec("doc_sg_pdpa", 30, economy="SG",
+                         quote="personal data collected for a purpose shall not be disclosed")
+        first = self._rec("doc_sg_pdpa", 12, economy="SG")
+        kept, choices = self._choose([body, first], laws)
+        assert kept == [first]
+        assert "first mapped provision" in choices[0].reason
+        heading = self._rec("doc_sg_pdpa", 20, economy="SG", section="Part 1 s. 4 Application of Act")
+        kept, choices = self._choose([body, first, heading], laws)
+        assert kept == [heading]
+        assert "scope or purpose clause" in choices[0].reason
+
+    def test_a_reviewers_correction_to_7_1_is_kept_with_a_note(self, tmp_path):
+        from regcompass.export import FrameworkChoice, FrameworkLaw, framework_row
+
+        rec = self._rec("doc_au_crime", 1, indicator="7.1")
+        kept, choices = self._choose(
+            [rec], {"doc_au_crime": FrameworkLaw("Criminal Code Act 1995")},
+            corrected={rec.mapping_id},
+        )
+        assert kept == [rec] and choices[0].tier == 3
+        row = framework_row(
+            {"Law Name": "Criminal Code Act 1995", "Notes": "", "Article / Section": "s. 1(1)"},
+            choices[0],
+        )
+        assert "kept on the reviewer's correction" in row["Notes"]
+        assert isinstance(choices[0], FrameworkChoice)
+
+    def test_the_comparison_asks_the_exports_rule(self, tmp_path):
+        """framework_checker reads the export's names and the stored title
+        block, so a Discovery-titled Indonesian law counts on both sides."""
+        from regcompass.pipeline import framework_checker
+        from regcompass.storage import Storage
+
+        storage = Storage(tmp_path / "db.sqlite")
+        storage.apply_schema()
+        storage.upsert_document(
+            "doc_id_uu27", "ID", "a" * 64, title="UU Nomor 27 Tahun 2022",
+            source_url="https://peraturan.go.id/id/uu-no-27-tahun-2022",
+            full_text="UNDANG-UNDANG REPUBLIK INDONESIA NOMOR 27 TAHUN 2022\nTENTANG\n"
+                      "PELINDUNGAN DATA PRIBADI\n" + "Pasal 1 " * 50,
+            source_kind="discovery",
+        )
+        check = framework_checker(storage)
+        assert check(self._rec("doc_id_uu27", 3, economy="ID"))
+        assert not check(self._rec("doc_id_uu27", 3, indicator="7.2", economy="ID"))
+
+    def test_a_site_header_in_the_opening_text_is_not_the_title(self):
+        """Every cac.gov.cn page opens with "<law>_中央网络安全和信息化委员会办公室"
+        (the Cyberspace Administration, whose name contains 网络安全). That is
+        the site's name, not the law's: the Cybersecurity Law carries China's
+        7.2, never the Personal Information Protection Law."""
+        from regcompass.export import FrameworkLaw
+
+        header = (
+            "{t}_中央网络安全和信息化委员会办公室\n\n设为首页\n加入收藏\n首 页\n"
+            "当前位置：\n首页\n>\n正文\n{t}\n2021年08月20日 21:21\n来源：\n中国人大网\n"
+            "{t}\n（2021年8月20日第十三届全国人民代表大会常务委员会第三十次会议通过）\n"
+            "目　　录\n第一章　总　　则\n"
+        )
+        laws = {
+            "doc_cn_pipl": FrameworkLaw(
+                "Personal Information Protection Law of the People's Republic of China",
+                head=header.format(t="中华人民共和国个人信息保护法"),
+            ),
+            "doc_cn_csl": FrameworkLaw(
+                "Cybersecurity Law of the People's Republic of China",
+                head=header.format(t="中华人民共和国网络安全法"),
+            ),
+        }
+        pipl = self._rec("doc_cn_pipl", 1, indicator="7.2", economy="CN")
+        csl = self._rec("doc_cn_csl", 40, indicator="7.2", economy="CN")
+        kept, _ = self._choose([pipl, csl], laws)
+        assert kept == [csl]
+        # and alone, PIPL is only a baseline-less, family-less 7.2 law
+        _, choices = self._choose([pipl], laws)
+        assert choices[0].mapping_id is None
+
+    def test_a_regulation_citing_the_act_does_not_outrank_the_act(self):
+        """PP 71/2019 opens by citing UU 11/2008 on Informasi dan Transaksi
+        Elektronik in its recitals; UU 11/2008 is the principal Act and
+        carries Indonesia's 7.2."""
+        from regcompass.export import FrameworkLaw
+
+        laws = {
+            "doc_id_pp71": FrameworkLaw(
+                "PP Nomor 71 Tahun 2019",
+                head="SALINAN\nPRESIDEN\nREPUBLIK INDONESIA\nPERATURAN PEMERINTAH REPUBLIK"
+                     " INDONESIA\nNOMOR 71 TAHUN 2019\nTENTANG\nPENYELENGGARAAN SISTEM DAN"
+                     " TRANSAKSI ELEKTRONIK\nDENGAN RAHMAT TUHAN YANG MAHA ESA\nMenimbang a."
+                     " bahwa ... Undang-Undang Nomor 11 Tahun 2008 tentang Informasi dan"
+                     " Transaksi Elektronik ...",
+            ),
+            "doc_id_uu11": FrameworkLaw(
+                "UU Nomor 11 Tahun 2008",
+                head="PRESIDEN\nREPUBLIK INDONESIA\nUNDANG-UNDANG REPUBLIK INDONESIA\n"
+                     "NOMOR 11 TAHUN 2008\nTENTANG\nINFORMASI DAN TRANSAKSI ELEKTRONIK\n"
+                     "DENGAN RAHMAT TUHAN YANG MAHA ESA\nMenimbang : a. bahwa ...",
+            ),
+        }
+        pp = self._rec("doc_id_pp71", 1, indicator="7.2", economy="ID")
+        uu = self._rec("doc_id_uu11", 30, indicator="7.2", economy="ID")
+        kept, choices = self._choose([pp, uu], laws)
+        assert kept == [uu]
+        assert choices[0].tier == 1
+
+    def test_between_two_laws_the_choice_does_not_depend_on_chunk_order(self):
+        from regcompass.export import FrameworkLaw
+
+        laws = {
+            "doc_b": FrameworkLaw("Privacy Act 1988"),
+            "doc_a": FrameworkLaw("Privacy Act 1988"),
+        }
+        a = self._rec("doc_a", 50)
+        b = self._rec("doc_b", 2)
+        assert self._choose([b, a], laws)[0] == [a]
+        assert self._choose([a, b], laws)[0] == [a]
+
+    def test_an_application_for_something_is_not_the_scope_clause(self):
+        from regcompass.export import FrameworkLaw
+
+        laws = {"doc_sg_pdpa": FrameworkLaw("Personal Data Protection Act 2012")}
+        licence = self._rec("doc_sg_pdpa", 20, economy="SG",
+                            section="Part 5 s. 20 Application for registration")
+        first = self._rec("doc_sg_pdpa", 12, economy="SG")
+        assert self._choose([licence, first], laws)[0] == [first]
+        act = self._rec("doc_sg_pdpa", 30, economy="SG", section="Part 1 s. 4 Application of this Act")
+        assert self._choose([licence, first, act], laws)[0] == [act]
+
+    def test_without_a_known_matrix_the_checker_uses_the_family_rule(self, tmp_path):
+        import shutil
+
+        from regcompass.config import CONFIG_DIR
+        from regcompass.pipeline import framework_checker
+        from regcompass.storage import Storage
+
+        config = tmp_path / "config"
+        shutil.copytree(CONFIG_DIR, config)
+        (config / "known_matrix.json").unlink()
+        storage = Storage(tmp_path / "db.sqlite")
+        storage.apply_schema()
+        storage.upsert_document("doc_au_privacy", "AU", "b" * 64, title="Privacy Act 1988",
+                                source_url="https://www.legislation.gov.au/C2004A03712",
+                                full_text="Privacy Act 1988", source_kind="discovery")
+        check = framework_checker(storage, config)
+        assert check(self._rec("doc_au_privacy", 2))
+        assert not check(self._rec("doc_au_privacy", 2, indicator="7.2"))

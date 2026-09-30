@@ -256,6 +256,15 @@ class TestPrompt:
         assert "NEIGHBOURING" in prompt
         assert "may legitimately be cited under more" in prompt
 
+    def test_the_impact_sentence_is_asked_for_in_english(self):
+        """A rationale mixing English with the source's own script reads as
+        broken to a reviewer; a source term may only follow its English
+        rendering, in quotation marks."""
+        defs = load_indicators()
+        prompt = build_prompt(tiny_gated("6.4"), "CN", defs["6.4"], strict=False)
+        assert "Write it in English" in prompt
+        assert "only in quotation marks after its English" in prompt
+
     def test_prompt_is_pinned_by_a_snapshot(self):
         """The prompt is the one input every Engine's measured score depends on,
         so it cannot drift silently. Regenerate ON PURPOSE with

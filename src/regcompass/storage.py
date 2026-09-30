@@ -250,6 +250,13 @@ class Storage:
             # the Lao Official Gazette's English rendering. Null on
             # every row that predates the column, which is the truth about them.
             "notes": "TEXT",
+            # A reviewer's correction of the title or the Source URL. Null on
+            # every row that predates the columns: nobody had edited them.
+            "edited_fields": "TEXT",
+            "edited_by": "TEXT",
+            "edited_at": "TEXT",
+            # The title before its first edit, for the KNOWN/NEW match.
+            "derived_title": "TEXT",
         },
         "crawl_manifest": {
             # Where that reference is recorded first: Discovery finds it on the
@@ -1090,7 +1097,17 @@ class Storage:
                 # Document (the Lao Official Gazette's English rendering). The
                 # export appends it to the row's Notes; None is the common case.
                 "notes": _get("notes"),
+                # Which of title and source_url a reviewer corrected: those
+                # win over the curated corpus file in the export.
+                "edited_fields": [
+                    f for f in (_get("edited_fields") or "").split(",") if f
+                ],
+                # The title before a reviewer renamed it; None when nobody did.
+                "derived_title": _get("derived_title"),
                 "local_path": _get("local_path"),
+                # When the bytes were fetched: tells a Document prepared in
+                # advance from one Discovery caught during the Run's pass.
+                "fetched_at": _get("fetched_at"),
                 "extractor": _get("extractor"),
                 "extractor_version": _get("extractor_version"),
                 "ocr_applied": _flag("ocr_applied"),
@@ -1255,6 +1272,12 @@ class Storage:
         address would come back blank half the time.
 
         Raises LookupError for an unknown Document."""
+        with self.conn:  # one transaction: the rows never disagree
+            return self._write_source_url(document_id, source_url)
+
+    def _write_source_url(self, document_id: str, source_url: str) -> str | None:
+        """The writes behind set_document_source_url, left to the caller's
+        transaction so a wider edit can commit them together with its own."""
         row = self.conn.execute(
             "SELECT source_url, source_sha256 FROM documents WHERE document_id = ?",
             (document_id,),
@@ -1292,24 +1315,79 @@ class Storage:
                 (row["source_sha256"],),
             ).fetchone()
 
-        with self.conn:  # one transaction: the rows never disagree
+        self.conn.execute(
+            "UPDATE documents SET source_url = ? WHERE document_id = ?",
+            (source_url, document_id),
+        )
+        if manifest_clash is None and keeper is not None:
             self.conn.execute(
-                "UPDATE documents SET source_url = ? WHERE document_id = ?",
-                (source_url, document_id),
+                "UPDATE crawl_manifest SET url = ? WHERE url = ?",
+                (key, keeper["url"]),
             )
-            if manifest_clash is None and keeper is not None:
-                self.conn.execute(
-                    "UPDATE crawl_manifest SET url = ? WHERE url = ?",
-                    (key, keeper["url"]),
-                )
-            # Exactly one manifest row per digest afterwards, and it is the one
-            # holding the address. Anything else for these bytes is a stale
-            # marker, and a re-ingest reading it would blank the address again.
-            self.conn.execute(
-                "DELETE FROM crawl_manifest WHERE sha256 = ? AND url != ?",
-                (row["source_sha256"], key),
-            )
+        # Exactly one manifest row per digest afterwards, and it is the one
+        # holding the address. Anything else for these bytes is a stale
+        # marker, and a re-ingest reading it would blank the address again.
+        self.conn.execute(
+            "DELETE FROM crawl_manifest WHERE sha256 = ? AND url != ?",
+            (row["source_sha256"], key),
+        )
         return previous
+
+    def edit_document(
+        self,
+        document_id: str,
+        *,
+        title: str | None = None,
+        source_url: str | None = None,
+        editor: str | None = None,
+        edited_at: str | None = None,
+    ) -> dict:
+        """Correct a Document's title, its Source URL, or both, and nothing
+        else: the id, the text, the chunks and every Mapping that quotes it stay
+        exactly as they were. Which fields were corrected, by whom (a name is
+        optional, as it is on a Review Decision) and when are recorded on the
+        row, and the export reads a corrected field over the curated corpus
+        file. Returns the row's values before and after.
+
+        Raises LookupError for an unknown Document."""
+        row = self.conn.execute(
+            "SELECT * FROM documents WHERE document_id = ?", (document_id,)
+        ).fetchone()
+        if row is None:
+            raise LookupError(document_id)
+        before = dict(row)
+        fields = [f for f in (before.get("edited_fields") or "").split(",") if f]
+        if source_url is not None and "source_url" not in fields:
+            fields.append("source_url")
+        if title is not None and "title" not in fields:
+            fields.append("title")
+        stamp = edited_at or utc_now_z()
+        with self.conn:  # one transaction: the address and the title together
+            if source_url is not None:
+                self._write_source_url(document_id, source_url)
+            # The first rename keeps the derived title aside, so the KNOWN/NEW
+            # match still finds the law by the name it was added under.
+            self.conn.execute(
+                "UPDATE documents SET derived_title = CASE WHEN ? IS NULL"
+                " THEN derived_title ELSE COALESCE(derived_title, title) END,"
+                " title = COALESCE(?, title), edited_fields = ?,"
+                " edited_by = ?, edited_at = ? WHERE document_id = ?",
+                (title, title, ",".join(fields), editor, stamp, document_id),
+            )
+        after = self.conn.execute(
+            "SELECT title, source_url, edited_by, edited_at FROM documents"
+            " WHERE document_id = ?",
+            (document_id,),
+        ).fetchone()
+        return {
+            "document_id": document_id,
+            "title": after["title"],
+            "source_url": after["source_url"],
+            "previous_title": before.get("title"),
+            "previous_source_url": before.get("source_url"),
+            "edited_by": after["edited_by"],
+            "edited_at": after["edited_at"],
+        }
 
     # -- Removing one Document ---------------------------------------------
     #

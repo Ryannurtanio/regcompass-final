@@ -59,7 +59,9 @@ def single_pass_completion():
         prov = _PROVISION_RE.search(prompt)
         if ind is None or prov is None:
             return "not json at all"  # M8 group prompt -> hierarchy ladder
-        if state["passed"]:
+        # Never 7.1 or 7.2: those ship once per Economy and only on a framework
+        # law, and the fixture statute is a Telecommunications Act.
+        if state["passed"] or ind.group(1) in ("7.1", "7.2"):
             return json.dumps({"maps_to_indicator": False, "verbatim_quote": ""})
         lines = [ln.strip() for ln in prov.group(1).splitlines() if len(ln.strip()) >= 40]
         if not lines:

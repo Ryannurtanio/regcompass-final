@@ -476,6 +476,49 @@ a {
   color: var(--muted);
 }
 
+/* The Evidence screen's "Showing" line: the Economy, Engine and Pillars on
+   screen, each a quiet inline choice that reads as part of the sentence. */
+.screen-head .showing {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--ink);
+}
+
+.screen-head .showing .k {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.screen-head .showing select {
+  font: inherit;
+  min-height: 30px;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  color: var(--ink);
+  max-width: 100%;
+}
+
+.screen-head .showing select:disabled {
+  opacity: 1;
+  color: var(--ink);
+  appearance: none;
+  -webkit-appearance: none;
+  border-color: transparent;
+  background: transparent;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.screen-head .showing-compare {
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+
 /* the audit view keeps the whole height for the page and the record, so its
    head is one slim bar: the way back, what is open, and the export */
 .screen-bar {
@@ -1380,26 +1423,61 @@ table.corpus th.num {
   font-size: 11px;
 }
 
-/* Recording that address, on the row where the problem is shown. */
-.set-source-url {
+/* Correcting a Document's title and Source URL, on the row itself. */
+.edit-document {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-2) var(--space-3);
+  margin-top: var(--space-2);
+  padding: var(--space-3);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-md);
+}
+
+.edit-document label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+
+.edit-document input {
+  min-width: 220px;
+}
+
+/* All three fields alike, and above the Add document form's own input rule,
+   so none of them reads as greyed out. */
+.edit-document label > input[type] {
+  font: inherit;
+  font-size: var(--text-sm);
+  min-height: 32px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.edit-document input[type='url'] {
+  min-width: 300px;
+}
+
+.edit-document-actions {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-3);
 }
 
-.set-source-url input {
-  font: inherit;
-  font-size: 12px;
-  padding: 2px 6px;
-  border: 1px solid var(--rule);
-  min-width: 260px;
+.edit-document-actions button.primary {
+  min-height: 32px;
+  padding: 4px 14px;
 }
 
-.set-source-url button {
-  font: inherit;
-  font-size: 12px;
-  padding: 2px 8px;
-  cursor: pointer;
+.edit-document .hint {
+  flex-basis: 100%;
 }
 
 table.runs {
@@ -2261,6 +2339,18 @@ button.danger:disabled {
   width: 16px;
   height: 16px;
   accent-color: var(--route);
+}
+
+/* The queue's order, beside the two filters and at their height. */
+.ev-toggle .ev-sort {
+  font: inherit;
+  min-height: 30px;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
 }
 
 .ev-card {
@@ -3877,6 +3967,35 @@ button.danger:disabled {
   font-size: var(--text-lg);
 }
 
+/* The title opens the Document where it is published: ink like any other
+   title, with the underline saying it goes somewhere. */
+.add-document table.corpus td.doc-title a.law {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--rule);
+  text-underline-offset: 3px;
+}
+
+.add-document table.corpus td.doc-title a.law:hover {
+  color: var(--route);
+  text-decoration-color: currentColor;
+}
+
+/* the quiet line under a title: no address, our copy, Edit, who edited */
+.doc-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px var(--space-3);
+  margin-top: 2px;
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+
+.doc-meta .corpus-flag {
+  font-size: var(--text-sm);
+}
+
 @media (max-width: 720px) {
   .run-screen .add-document {
     padding: var(--space-4);
@@ -3890,11 +4009,9 @@ button.danger:disabled {
     padding-top: 0;
   }
 
-  .set-source-url {
-    flex-wrap: wrap;
-  }
-
-  .set-source-url input {
+  .edit-document label,
+  .edit-document input,
+  .edit-document input[type='url'] {
     min-width: 0;
     width: 100%;
   }

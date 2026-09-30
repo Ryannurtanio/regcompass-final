@@ -20,6 +20,7 @@ from __future__ import annotations
 import csv
 import json
 import re
+import unicodedata
 from collections import Counter
 from dataclasses import dataclass, field
 from functools import lru_cache
@@ -45,7 +46,7 @@ from .classify import (
     apply_classifications,
     derive_scores_v2,
 )
-from .chunk import SectionLabelIndex, quote_is_above_its_chunks_heading
+from .chunk import SectionLabelIndex, quote_is_above_its_chunks_heading, zh_numeral_to_int
 from .contracts import (
     FIXTURE_SOURCE_KIND,
     GLOSS_LABEL,
@@ -60,8 +61,11 @@ from .contracts import (
 )
 from .engines import resolve_engine
 from .extract import FormatTag, format_for_extractor
+from .labels import drafting_label
 from .languages import non_latin_share
-from .workbook import ROW_CAP, template_path, write_workbook
+from .traps import flag_traps
+from .wording import plain_rationale
+from .workbook import ROW_CAP, RunRecordSheet, template_path, write_workbook
 
 COLUMNS = (
     "Economy",
@@ -247,6 +251,9 @@ class SyntheticDoc:
     # exemption means here; on a whitelisted host no exemption is needed and
     # the off-whitelist note would be false.
     manual_added: bool = False
+    # Discovery fetched the Document while the Corpus was prepared, well
+    # before the Run, so it is not a catch of the Run's own pass.
+    prepared: bool = False
 
 
 LAW_NAME_MECHANICAL_NOTE = (
@@ -259,6 +266,12 @@ LAW_NAME_MECHANICAL_MANUAL_NOTE = (
     "law name mechanically derived from the document title (off-corpus document:"
     " added by a reviewer, not a curated corpus entry)"
 )
+# The same fact for a Document Discovery fetched while the Corpus was
+# prepared, before the Run: found by a crawl, but not during this Run's pass.
+LAW_NAME_MECHANICAL_PREPARED_NOTE = (
+    "law name mechanically derived from the document title (off-corpus document:"
+    " fetched by Discovery when the Corpus was prepared, not a curated corpus entry)"
+)
 ALLOW_ANY_HOST_NOTE = (
     "user-supplied document, host not on the Round 1 portal whitelist"
 )
@@ -267,6 +280,35 @@ MANUAL_ADD_NOTE = (
     " supplied by hand and is not an automated Portal catch"
 )
 FIXTURE_ADD_NOTE = "fixture legislation seeded from the install, demo only"
+
+
+def with_document_edits(
+    corpus: dict[str, CorpusDoc], document_meta: dict[str, dict]
+) -> dict[str, CorpusDoc]:
+    """The export metadata with every reviewer correction applied. A title or
+    Source URL a reviewer corrected on the Document is the newer word, so it
+    replaces what the curated corpus file (or the derived stand-in) says; a
+    field nobody corrected is left alone. The KNOWN/NEW match keeps the name
+    the ESCAP database knew the law by, so renaming a law never changes its
+    Discovery Tag. Returns a new mapping; the input is not changed."""
+    out = dict(corpus)
+    for doc_id, meta in document_meta.items():
+        doc = out.get(doc_id)
+        edited = set((meta or {}).get("edited_fields") or ())
+        if doc is None or not edited:
+            continue
+        update: dict = {}
+        title = (meta.get("title") or "").strip()
+        if "title" in edited and title and title != doc.law_name:
+            update["law_name"] = title
+            update["known_matrix_law_name"] = doc.known_matrix_law_name or doc.law_name
+        url = meta.get("source_url") or ""
+        if "source_url" in edited and re.match(r"^https?://", url):
+            update["source_url"] = url
+            update["url_is_direct"] = True
+        if update:
+            out[doc_id] = doc.model_copy(update=update)
+    return out
 
 
 def synthetic_notes(
@@ -296,7 +338,9 @@ def synthetic_notes(
     if doc is not None:
         if doc.law_name_mechanical:
             notes.append(
-                LAW_NAME_MECHANICAL_MANUAL_NOTE if doc.manual_added else LAW_NAME_MECHANICAL_NOTE
+                LAW_NAME_MECHANICAL_MANUAL_NOTE if doc.manual_added
+                else LAW_NAME_MECHANICAL_PREPARED_NOTE if doc.prepared
+                else LAW_NAME_MECHANICAL_NOTE
             )
         if doc.allow_any_host:
             notes.append(ALLOW_ANY_HOST_NOTE)
@@ -315,12 +359,120 @@ def synthetic_notes(
 
 
 def norm_law(name: str) -> str:
-    """Normalized law-name key: lowercase, parentheticals and punctuation
-    stripped, whitespace collapsed. Containment on these keys = law match.
-    (scripts/extract_known_matrix.py uses the same function.)"""
+    """Normalized law-name key: NFKC, casefolded, parentheticals and
+    punctuation stripped, whitespace collapsed. Letters, marks and digits of
+    any script are kept, so a Chinese, Thai, Lao or Cyrillic title keeps its
+    words; a Latin title normalizes exactly as it always has. Containment on
+    these keys = law match. (scripts/extract_known_matrix.py uses this
+    function.)"""
+    name = unicodedata.normalize("NFKC", name)
     name = re.sub(r"\([^)]*\)", " ", name)
-    name = re.sub(r"[^a-z0-9 ]", " ", name.lower())
+    name = "".join(
+        ch if unicodedata.category(ch)[0] in "LMN" else " " for ch in name.casefold()
+    )
     return re.sub(r"\s+", " ", name).strip()
+
+
+_QUOTED_RE = re.compile(r"《([^》]*)》|“([^”]*)”|«([^»]*)»|\"([^\"]*)\"")
+
+
+def _is_non_latin(text: str) -> bool:
+    return any(
+        unicodedata.category(ch).startswith("L") and not unicodedata.name(ch, "").startswith("LATIN")
+        for ch in text
+    )
+
+
+def _parentheticals(text: str) -> list[str]:
+    """The contents of each outermost (...) group, nested groups included."""
+    out, depth, start = [], 0, 0
+    for i, ch in enumerate(text):
+        if ch == "(":
+            if depth == 0:
+                start = i + 1
+            depth += 1
+        elif ch == ")" and depth:
+            depth -= 1
+            if depth == 0:
+                out.append(text[start:i])
+    return out
+
+
+def law_keys(title: str) -> list[str]:
+    """Every key a law title can be matched on: its normalized whole, plus
+    each non-Latin name it carries in parentheses, 《》 or quotes. The
+    database writes "Personal Data Protection Act B.E.2562 (พระราชบัญญัติ...
+    พ.ศ. 2562)", and norm_law drops parentheticals, so without the extra key
+    the Thai title a portal serves could never match."""
+    keys = [norm_law(title)]
+    text = unicodedata.normalize("NFKC", title)
+    segments = _parentheticals(text) + [
+        next(g for g in m.groups() if g is not None) for m in _QUOTED_RE.finditer(text)
+    ]
+    for segment in segments:
+        key = norm_law(segment)
+        if _is_non_latin(segment) and key and key not in keys:
+            keys.append(key)
+    return [k for k in keys if k]
+
+
+def norm_url(url: str | None) -> str:
+    """A Source URL reduced for comparison: no scheme, no `www.`, host in
+    lower case, no trailing slash. A fragment is kept only when it is an
+    in-page route ("#/public/doc/<id>"), which names a different document.
+    Empty for a missing URL or a bare host (a portal root identifies no law)."""
+    if not url:
+        return ""
+    parsed = urlparse(url.strip())
+    host = parsed.netloc.lower()
+    if host.startswith("www."):
+        host = host[4:]
+    path = parsed.path.rstrip("/")
+    route = parsed.fragment if parsed.fragment.startswith("/") else ""
+    if not host or not (path or parsed.query or route):
+        return ""
+    return (
+        host + path + (f"?{parsed.query}" if parsed.query else "") + (f"#{route}" if route else "")
+    )
+
+
+#: The note a row carries when its Economy has no 2025 RDTII baseline, so
+#: every row is NEW by definition rather than by comparison.
+NO_BASELINE_NOTE = "No 2025 baseline exists for this Economy"
+
+# Indonesian instruments are cited in English by the database ("Law No.27 on
+# Personal Data Protection 2022") and titled in Indonesian by the portal
+# ("UU Nomor 27 Tahun 2022"); the kind, number and year identify the same
+# instrument across the two languages.
+_ID_INSTRUMENT_RES = (
+    ("uu", re.compile(r"\b(?:uu|undang[- ]undang|law)\s*(?:no\.?|nomor|number)\s*(\d+)\b", re.I)),
+    (
+        "pp",
+        re.compile(
+            r"\b(?:pp|peraturan pemerintah|government regulation|regulation of the government"
+            r"(?: of the republic of indonesia)?)\s*(?:no\.?|nomor|number)\s*(\d+)\b",
+            re.I,
+        ),
+    ),
+)
+_YEAR_RE = re.compile(r"(?<!\d)(1[89]\d\d|20\d\d)(?!\d)")
+
+
+@lru_cache(maxsize=4096)
+def instrument_ident(economy: str, name: str) -> str | None:
+    """Language-neutral identity of an Indonesian Law (UU) or Government
+    Regulation (PP): kind, number and the title's last year. None elsewhere,
+    or when the title names no numbered instrument."""
+    if economy != "ID":
+        return None
+    years = _YEAR_RE.findall(name)
+    if not years:
+        return None
+    for kind, pattern in _ID_INSTRUMENT_RES:
+        m = pattern.search(name)
+        if m:
+            return f"{kind}:{int(m.group(1))}:{years[-1]}"
+    return None
 
 
 _SECTION_BASE_RE = re.compile(r"(?:\bs\.?|\bsections?|\barts?\.?|\barticles?)\s*(\d+[A-Za-z]{0,3})", re.I)
@@ -340,25 +492,41 @@ def _law_matches(key: str, entry_key: str) -> bool:
     return bool(key) and bool(entry_key) and (key in entry_key or entry_key in key)
 
 
-def discovery_tag(record: MappingRecord, law_name: str, matrix: dict) -> tuple[str, str | None]:
+def discovery_tag(
+    record: MappingRecord, law_name: str, matrix: dict, source_url: str | None = None
+) -> tuple[str, str | None]:
     """PROVISION-level NEW/KNOWN. KNOWN when the
-    Round 1 Database cites this law for this indicator AND either cites this
+    RDTII database cites this law for this indicator AND either cites this
     provision's section or is an article-less general reference (law-level
     match governs that row). Otherwise NEW, with novelty_scope 'provision' if
-    the law itself is in the database or the Legal Inventory, else 'law'."""
-    key = norm_law(law_name)
+    the law itself is in the database or the Legal Inventory, else 'law'.
+
+    The law is recognised by its normalized title, by its Indonesian
+    instrument identity, or by its Source URL: a URL the database gives for
+    exactly one law identifies that law whatever the Document is titled."""
+    economy = record.economy
+    keys = law_keys(law_name)
+    keys += matrix.get("baseline_url_laws", {}).get(economy, {}).get(norm_url(source_url), [])
+    ident = instrument_ident(economy, law_name)
+
+    def matches(entry: dict) -> bool:
+        entry_keys = entry.get("law_keys") or [entry["law_key"]]
+        if any(_law_matches(k, ek) for k in keys for ek in entry_keys):
+            return True
+        return ident is not None and ident == instrument_ident(economy, entry["law"])
+
     sec = _section_base(record.section)
-    for e in matrix["database"].get(record.economy, {}).get(record.indicator_id, []):
-        if _law_matches(key, e["law_key"]):
+    for e in matrix["database"].get(economy, {}).get(record.indicator_id, []):
+        if matches(e):
             if not e["sections"]:
                 return "KNOWN", None
             if sec and sec in {_ref_base(s) for s in e["sections"]}:
                 return "KNOWN", None
     law_known = any(
-        _law_matches(key, e["law_key"])
-        for entries in matrix["database"].get(record.economy, {}).values()
-        for e in entries
-    ) or any(_law_matches(key, k) for k in matrix["inventory_law_keys"].get(record.economy, []))
+        matches(e) for entries in matrix["database"].get(economy, {}).values() for e in entries
+    ) or any(
+        _law_matches(k, inv) for k in keys for inv in matrix["inventory_law_keys"].get(economy, [])
+    )
     return "NEW", "provision" if law_known else "law"
 
 
@@ -424,16 +592,79 @@ _SECTION_TAIL_NUM_RE = re.compile(r"\bs\.\s*(\S+)\s*$")
 
 
 def article_section(record: MappingRecord) -> str:
-    if not record.subsection:
+    """The provision label in the Economy's drafting word (labels.drafting_label)."""
+    return drafting_label(_article_section(record), record.economy)
+
+
+# A drafting word the extraction sometimes leaves at the head of a
+# subsection: Indonesian "Pasal" (Article) and "Ayat" (paragraph), the Lao,
+# Thai, Russian or Vietnamese article word, or an English one. The label
+# already carries the drafting word.
+_SUBSECTION_WORD_RE = re.compile(
+    r"^(?:Pasal|Ayat|Article|Art\.|Section|s\.|ມາດຕາ|มาตรา|Статья|Điều"
+    r"|subsection|paragraph|para\.?|clause|item)\s*",
+    re.IGNORECASE,
+)
+_ZH_ARTICLE_SUBSECTION_RE = re.compile(r"^第(\S+?)条$")
+# A Chinese part, chapter or section heading ("第三节") caught as a subsection.
+_ZH_HEADING_SUBSECTION_RE = re.compile(r"^第\S+?[编章节]$")
+# A lower-case Roman subdivision written bare ("ii", "iv.").
+_ROMAN_SUBSECTION_RE = re.compile(r"^([ivxlc]{1,5})\.?$")
+# A subsection that opens with a word rather than a number or a bracket is a
+# heading the extraction caught (a Lao chapter line), not a subdivision. A
+# Chinese paragraph ("第二款") is a subdivision and stays.
+_WORD_SUBSECTION_RE = re.compile(r"^(?!第)[^\W\d_]{2,}")
+# A subsection written bare ("3.", "12.", "f.", "5B"), which reads as part of
+# the section number unless it is bracketed.
+_BARE_SUBSECTION_RE = re.compile(r"^([0-9]+[A-Za-z]?|[A-Za-z])\.?$")
+# Bracketed markers ("(5)(h)", "（四）") followed by the clause's own words:
+# the label is the markers alone.
+_MARKERS_THEN_WORDS_RE = re.compile(r"^((?:[(（][^()（）]{1,6}[)）])+)\s*[^\s(（].*$")
+
+
+def _article_section(record: MappingRecord) -> str:
+    """Display label only: the Gate reads record.section, never this."""
+    sub = (record.subsection or "").strip()
+    if not sub or sub.lower() == "null":
         return record.section
-    # SG dot-style extractions can restate the section number inside the
-    # subsection field ("s. 2" + "2.(1)"); rendering both duplicates the
-    # number ("s. 22.(1)"). Strip the restated prefix, keeping the rest.
-    sub = record.subsection
+    sub = _SUBSECTION_WORD_RE.sub("", sub)
+    # Extractions can restate the section number inside the subsection field
+    # ("s. 2" + "2.(1)", "s. 19" + "19(1)", "s. 21" + "21"); rendering both
+    # duplicates the number ("s. 22.(1)"). Strip the restated prefix, keeping
+    # the rest.
     m = _SECTION_TAIL_NUM_RE.search(record.section or "")
-    if m and sub.startswith(m.group(1) + "."):
-        sub = sub[len(m.group(1)) + 1 :].lstrip("—–-")
-    return f"{record.section}{sub}" if sub else record.section
+    # The Chinese article heading restated in the subsection ("第十三条").
+    zh = _ZH_ARTICLE_SUBSECTION_RE.match(sub)
+    if (m and zh and str(zh_numeral_to_int(zh.group(1))) == m.group(1)) or (
+        _ZH_HEADING_SUBSECTION_RE.match(sub)
+    ):
+        return record.section
+    if m:
+        num = m.group(1)
+        rest = sub[len(num):]
+        if sub.startswith(num) and (
+            not rest or rest[:1].isspace() or rest[:1] in ("(", ".", "—", "–", "-")
+        ):
+            sub = _SUBSECTION_WORD_RE.sub("", rest.strip().lstrip(".").lstrip("—–-").strip())
+    roman = _ROMAN_SUBSECTION_RE.match(sub)
+    if roman:
+        sub = f"({roman.group(1)})"
+    if _WORD_SUBSECTION_RE.match(sub):
+        return record.section
+    markers = _MARKERS_THEN_WORDS_RE.match(sub)
+    if markers:
+        sub = markers.group(1)
+    bare = _BARE_SUBSECTION_RE.match(sub)
+    if bare:
+        sub = f"({bare.group(1)})"
+    if not sub:
+        return record.section
+    # Still opening with a number: an amending Act citing the section it
+    # amends ("s. 40" + "11(3)"). Set apart, so the two numbers never read
+    # as one.
+    if sub[:1].isascii() and sub[:1].isalnum():
+        return f"{record.section}, {sub}"
+    return f"{record.section}{sub}"
 
 
 def location_reference(record: MappingRecord, format_tag: FormatTag = "pdf") -> str:
@@ -595,6 +826,7 @@ def build_row(
     format_tag: FormatTag = "pdf",
     proposed_indicator_id: str | None = None,
     reviewer: str | None = None,
+    trap_check: bool = False,
 ) -> dict:
     """One submission row (13 columns + sanctioned extras + hidden _keys used
     only by the gate battery and stripped before writing).
@@ -619,9 +851,15 @@ def build_row(
     proposed, when the record arrives already moved to the reviewer's one
     (apply_correction). Confidence is looked up under the proposed Indicator,
     because that is the pair the pipeline scored, and Notes disclose the
-    override naming the reviewer."""
+    override naming the reviewer.
+
+    trap_check (final round): Notes carry a flag for any scoring trap of the
+    Indicator Reference the row falls into (traps.flag_traps). Off for the
+    Round 1 lanes, whose exports are pinned byte for byte."""
     portals = _portals(str(config_dir))
-    tag, novelty = discovery_tag(record, doc.known_matrix_law_name or doc.law_name, matrix)
+    tag, novelty = discovery_tag(
+        record, doc.known_matrix_law_name or doc.law_name, matrix, doc.source_url
+    )
     scored_as = proposed_indicator_id or record.indicator_id
     cosine = float(gate_cosine_lookup.get((record.chunk_id, scored_as), 0.0))
     conf = confidence_score(
@@ -656,6 +894,8 @@ def build_row(
         notes.append(
             "controlling by legal hierarchy only: no group member's classification evidences this indicator"
         )
+    if record.economy in matrix.get("no_baseline_economies", ()):
+        notes.append(NO_BASELINE_NOTE)
     if extra_notes:
         notes.extend(extra_notes)
     language_of_source, language_disclosed = resolve_language(language, portals[record.economy])
@@ -676,7 +916,7 @@ def build_row(
         "Discovery Tag": tag,
         "Location Reference": location_reference(record, format_tag),
         "Verbatim Snippet": record.verbatim_quote,
-        "Mapping Rationale": _rationale(record.impact),
+        "Mapping Rationale": _rationale(plain_rationale(record.impact, scored_as, config_dir)),
         "Source URL": doc.source_url,
         "Confidence": f"{conf:.2f}",
         "Notes": "; ".join(notes),
@@ -697,7 +937,7 @@ def build_row(
         "_score_contribution": record.rdtii_score_contribution,
         "_allow_any_host": allow_any_host,
     }
-    return row
+    return flag_traps(row, record.indicator_id) if trap_check else row
 
 
 def pillar_of(indicator_id: str) -> int:
@@ -734,10 +974,12 @@ def build_absence_rows(
     coverage_stats: dict[str, dict],
     config_dir=CONFIG_DIR,
     run_pillars: tuple[int, ...] | None = None,
+    run_indicators: tuple[str, ...] | None = None,
     languages: dict[str, str | None] | None = None,
     synthetic_docs: dict[str, SyntheticDoc] | None = None,
     source_kinds: dict[str, str | None] | None = None,
     withheld: dict[tuple[str, str], int] | None = None,
+    framework_misses: dict[tuple[str, str], str] | None = None,
 ) -> list[dict]:
     """A zero must be EARNED: every (economy, indicator) with no verified
     provision gets a 'No provision found' row whose Notes record what was
@@ -746,6 +988,10 @@ def build_absence_rows(
     Scoped to the Run's Pillars. A Pillar 12 Run must not emit nine Pillar 6
     and 7 rows saying every candidate was screened and found wanting: the Gate
     never queried those Indicators, so the claim would be false.
+
+    run_indicators: the same rule one level down. A Run narrowed to a few
+    Indicators earns zeros for those alone. None means every Indicator of the
+    Run's Pillars was searched.
 
     synthetic_docs: an absence row whose reference-basis document is off-corpus
     carries that document's own disclosures and its whitelist exemption. An
@@ -765,7 +1011,11 @@ def build_absence_rows(
     fact as a search that found nothing and must not be written as one."""
     portals = _portals(str(config_dir))
     covered = run_pillars if run_pillars is not None else run_pillars_of(records, None, config_dir)
-    scored_here = [i for i in SCORE_IF_PRESENT if pillar_of(i) in covered]
+    scored_here = [
+        i for i in SCORE_IF_PRESENT
+        if pillar_of(i) in covered
+        and (run_indicators is None or i in run_indicators)
+    ]
     matrix = load_known_matrix(config_dir)
     indicators = load_indicators(config_dir)
     present: dict[str, set[str]] = {}
@@ -830,8 +1080,10 @@ def build_absence_rows(
                 else f"Searched {law}; "
             )
             n_withheld = (withheld or {}).get((econ, ind), 0)
+            missed = (framework_misses or {}).get((econ, ind))
             outcome = (
-                f"{n_withheld} verified Mapping{'' if n_withheld == 1 else 's'}"
+                f"{missed[0].upper()}{missed[1:]}. " if missed
+                else f"{n_withheld} verified Mapping{'' if n_withheld == 1 else 's'}"
                 " for this indicator "
                 f"{'was' if n_withheld == 1 else 'were'} found but not accepted"
                 " in review, so none enters this export. "
@@ -1020,6 +1272,326 @@ def collapse_duplicate_provisions(
 
 
 # ---------------------------------------------------------------------------
+# 7.1 and 7.2: one economy-level row each
+# ---------------------------------------------------------------------------
+#
+# The organizers score 7.1 and 7.2 once per Economy: does the framework exist?
+# "Per-provision citations of a data-protection or cybersecurity act tagged
+# 7.1/7.2 are not discoveries and score zero" (Indicator Reference A80). So the
+# export writes at most one row per Economy for each, naming the framework law
+# as a whole, and only a law of the right family can be that law: a Criminal
+# Code is not a data-protection framework, however many of its sections an
+# Engine tagged 7.1. The per-provision Mappings stay in the app and in the
+# working JSONs; only the export collapses them.
+
+FRAMEWORK_INDICATORS = ("7.1", "7.2")
+
+#: Words a law title carries when it IS the framework, in the Economies'
+#: languages. Matched case-folded, anywhere in the title (or in the title
+#: block at the head of the Document's own text).
+FRAMEWORK_FAMILIES: dict[str, tuple[str, ...]] = {
+    "7.1": (
+        "personal data", "privacy", "personal information", "data protection",
+        "个人信息", "個人資料", "ข้อมูลส่วนบุคคล", "персональных данных",
+        "персональные данные", "дербес деректер", "хувь хүний мэдээлэл",
+        "хувийн мэдээлэл", "data pribadi", "data peribadi", "dữ liệu cá nhân",
+        "thông tin cá nhân", "ຂໍ້ມູນສ່ວນບຸກຄົນ", "ປົກປ້ອງຂໍ້ມູນ",
+    ),
+    "7.2": (
+        "cyber", "siber", "network security", "information security",
+        "critical infrastructure", "critical information infrastructure",
+        "information technology act", "informasi dan transaksi elektronik",
+        "网络安全", "網路安全", "ไซเบอร์", "кибер",
+        "критической информационной инфраструктуры", "an ninh mạng",
+        "an toàn thông tin", "ໄຊເບີ",
+    ),
+}
+
+FRAMEWORK_FAMILY_NAMES = {"7.1": "data-protection", "7.2": "cybersecurity"}
+
+#: How much of a Document's stored text is read as its title block.
+TITLE_BLOCK_CHARS = 600
+
+#: A section HEADING that names the scope or purpose clause.
+_SCOPE_HEADINGS = (
+    "scope", "purpose", "objective", "objects", "目的", "适用范围",
+    "tujuan", "ruang lingkup", "วัตถุประสงค์", "mục đích", "phạm vi", "цель",
+    "ຈຸດປະສົງ", "ຂອບເຂດ",
+)
+#: Phrases in the QUOTE that only a scope or purpose clause says.
+_SCOPE_PHRASES = (
+    "this act applies", "this act shall apply", "this law applies",
+    "this law shall apply", "the purpose of this act", "the purposes of this act",
+    "the objects of this act", "the object of this act", "the purpose of this law",
+    "本法适用", "为了保护个人信息", "undang-undang ini berlaku", "akta ini terpakai",
+    "พระราชบัญญัตินี้ใช้บังคับ", "настоящий федеральный закон регулирует",
+)
+#: Titles ranked below the principal Act (Indicator Reference A85: an amending
+#: act instead of the principal act scores zero; a code of practice is not the
+#: framework law either).
+_SUBORDINATE_TITLE_WORDS = (
+    "amendment", "amending", "code of practice", "perubahan", "pindaan", "bill",
+    "修正", "修改", "peraturan pemerintah", "peraturan menteri",
+)
+#: A title that opens with a subordinate instrument's type ("PP Nomor 71",
+#: "Regulation of the Minister ..."), as opposed to a principal instrument
+#: that merely ends in the word ("... Protection Regulation").
+_SUBORDINATE_TYPE_RE = re.compile(r"^\s*(?:pp|permen\w*|regulations?|rules?|peraturan)\b", re.I)
+#: A section heading "Application", "Application of this Act", never
+#: "Application for a licence".
+_APPLICATION_HEADING_RE = re.compile(
+    r"\bapplication\b(?:\s+of\s+(?:this\s+)?(?:act|law|part|code|regulations?)\b|\s*$)"
+)
+#: Where a Document's title block ends: the enacting formula, the recitals or
+#: the table of contents. Only the text before it is read as the title block.
+_TITLE_BLOCK_END_RE = re.compile(
+    r"dengan rahmat|menimbang|目\s*录|第一章|whereas|be it enacted|table of contents"
+    r"|arrangement of sections|contents\b",
+    re.I,
+)
+
+_CHUNK_INDEX_RE = re.compile(r":c(\d+)$")
+
+
+def _fold(text: str | None) -> str:
+    return unicodedata.normalize("NFC", text or "").casefold()
+
+
+def framework_family_match(indicator_id: str, law_name: str | None) -> bool:
+    """True when the text names a framework of the Indicator's family: a
+    data-protection law for 7.1, a cybersecurity law for 7.2."""
+    terms = FRAMEWORK_FAMILIES.get(indicator_id)
+    if not terms or not law_name:
+        return False
+    title = _fold(law_name)
+    return any(_fold(t) in title for t in terms)
+
+
+def baseline_cites(
+    economy: str, indicator_id: str, law_name: str, source_url: str | None, matrix: dict
+) -> bool:
+    """True when the 2025 RDTII baseline cites this law for this Economy and
+    Indicator, recognised the way the Discovery Tag recognises a law: by its
+    title keys, its Indonesian instrument identity, or its Source URL."""
+    keys = law_keys(law_name)
+    keys += matrix.get("baseline_url_laws", {}).get(economy, {}).get(norm_url(source_url), [])
+    ident = instrument_ident(economy, law_name)
+    for entry in matrix.get("database", {}).get(economy, {}).get(indicator_id, []):
+        entry_keys = entry.get("law_keys") or [entry["law_key"]]
+        if any(_law_matches(k, ek) for k in keys for ek in entry_keys):
+            return True
+        if ident is not None and ident == instrument_ident(economy, entry["law"]):
+            return True
+    return False
+
+
+@dataclass(frozen=True)
+class FrameworkLaw:
+    """What the framework rule reads about one Document."""
+
+    law_name: str
+    head: str = ""  # the title block at the head of its stored text
+    source_url: str | None = None
+
+
+def title_block(head: str | None) -> str:
+    """The title block of a Document's opening text: site-header lines left
+    out (a web page's "<title>_<site name>" or "<title> | <site name>" line,
+    which on cac.gov.cn names the Cyberspace Administration for every law),
+    and nothing from the enacting formula, recitals or contents onward, where
+    other laws are cited."""
+    lines = [
+        ln for ln in (head or "")[:TITLE_BLOCK_CHARS].splitlines()
+        if not re.search(r"[_|｜]", ln)
+    ]
+    text = "\n".join(lines)
+    m = _TITLE_BLOCK_END_RE.search(text)
+    return text[: m.start()] if m else text
+
+
+def framework_tier(
+    economy: str, indicator_id: str, law: FrameworkLaw | None, matrix: dict | None
+) -> int | None:
+    """0 when the law's title is of the right family, 1 when its opening
+    title block is, 2 when the 2025 baseline cites it for this Economy and
+    Indicator, None when it is none of these. THE rule: the export and the
+    Engine Comparison both ask it."""
+    if law is None:
+        return None
+    if framework_family_match(indicator_id, law.law_name):
+        return 0
+    if framework_family_match(indicator_id, title_block(law.head)):
+        return 1
+    if matrix and baseline_cites(economy, indicator_id, law.law_name, law.source_url, matrix):
+        return 2
+    return None
+
+
+def _looks_like_scope(record: MappingRecord) -> bool:
+    heading = _fold(f"{record.section or ''} {record.subsection or ''}")
+    if any(w in heading for w in _SCOPE_HEADINGS) or _APPLICATION_HEADING_RE.search(heading):
+        return True
+    quote = _fold(record.verbatim_quote)
+    return any(p in quote for p in _SCOPE_PHRASES)
+
+
+def _is_subordinate(law: "FrameworkLaw | None", fallback: str = "") -> bool:
+    """An amending act, a code of practice or a regulation, by its title or by
+    the instrument type its title block opens with."""
+    title = _fold(law.law_name if law else fallback)
+    block = _fold(title_block(law.head))[:200] if law else ""
+    return (
+        any(w in title for w in _SUBORDINATE_TITLE_WORDS)
+        or bool(_SUBORDINATE_TYPE_RE.match(title))
+        or any(w in block for w in _SUBORDINATE_TITLE_WORDS)
+    )
+
+
+def _chunk_index(record: MappingRecord) -> int:
+    m = _CHUNK_INDEX_RE.search(record.chunk_id or "")
+    return int(m.group(1)) if m else 10**9
+
+
+@dataclass
+class FrameworkChoice:
+    """What the export did for one Economy's 7.1 or 7.2: the Mapping whose
+    quote stands for the framework law as a whole, or None with the reason."""
+
+    economy: str
+    indicator_id: str
+    mapping_id: str | None
+    law_name: str | None
+    quoted_provision: str | None
+    n_per_provision: int
+    reason: str
+    # 0 family law by title, 1 by title block, 2 baseline-cited law,
+    # 3 kept on a reviewer's correction
+    tier: int | None = None
+
+
+def economy_level_frameworks(
+    records: list[MappingRecord],
+    laws: dict[str, FrameworkLaw],
+    matrix: dict | None = None,
+    corrected: set[str] | frozenset[str] = frozenset(),
+) -> tuple[list[MappingRecord], list[FrameworkChoice]]:
+    """The records that ship, with 7.1 and 7.2 cut to at most one per Economy.
+
+    Candidates, best first: a Mapping on a law whose title is of the right
+    family; then one whose opening title block is; then one on a law the 2025
+    baseline cites for that Economy and Indicator; then one a reviewer
+    corrected to the Indicator, because the reviewer's word wins. Among them
+    the principal Act beats an amending act, a code of practice or a
+    regulation, a scope or purpose clause beats any other provision, then the
+    law's name and id decide between laws, and the earliest provision in
+    document order within one. Every other 7.1/7.2 record is left out of the rows, and
+    each (Economy, Indicator) gets a FrameworkChoice saying what happened."""
+    kept: list[MappingRecord] = []
+    groups: dict[tuple[str, str], list[MappingRecord]] = {}
+    for r in records:
+        if r.indicator_id in FRAMEWORK_INDICATORS:
+            groups.setdefault((r.economy, r.indicator_id), []).append(r)
+        else:
+            kept.append(r)
+
+    def name(r: MappingRecord) -> str:
+        law = laws.get(r.document_id)
+        return law.law_name if law else r.document_id
+
+    choices: list[FrameworkChoice] = []
+    for (economy, indicator_id), group in sorted(groups.items()):
+        family = FRAMEWORK_FAMILY_NAMES[indicator_id]
+        tiers = {}
+        for r in group:
+            tier = framework_tier(economy, indicator_id, laws.get(r.document_id), matrix)
+            if tier is None and r.mapping_id in corrected:
+                tier = 3
+            if tier is not None:
+                tiers[r.mapping_id] = tier
+        candidates = [r for r in group if r.mapping_id in tiers]
+        if not candidates:
+            names = sorted({name(r) for r in group})
+            choices.append(FrameworkChoice(
+                economy=economy, indicator_id=indicator_id, mapping_id=None,
+                law_name=None, quoted_provision=None, n_per_provision=len(group),
+                reason=(
+                    f"{len(group)} verified {indicator_id} Mapping"
+                    f"{'' if len(group) == 1 else 's'} cite {'; '.join(names)},"
+                    f" which is not a {family} law and not one the 2025 baseline"
+                    f" cites for {indicator_id}, so no {indicator_id} row ships"
+                ),
+            ))
+            continue
+        best = min(
+            candidates,
+            key=lambda r: (
+                tiers[r.mapping_id],
+                1 if _is_subordinate(laws.get(r.document_id), name(r)) else 0,
+                0 if _looks_like_scope(r) else 1,
+                # one law before another by a stable key, then its earliest
+                # provision: the chunk order of two Documents means nothing
+                name(r),
+                r.document_id,
+                _chunk_index(r),
+                r.mapping_id,
+            ),
+        )
+        kept.append(best)
+        basis = {
+            0: f"the {family} law as a whole",
+            1: f"the {family} law as a whole (named in its title block)",
+            2: f"the law the 2025 baseline cites for {indicator_id}, as a whole",
+            3: "the law a reviewer placed under this Indicator, as a whole",
+        }[tiers[best.mapping_id]]
+        where = (
+            "quoted at its scope or purpose clause" if _looks_like_scope(best)
+            else "quoted at its first mapped provision"
+        )
+        choices.append(FrameworkChoice(
+            economy=economy, indicator_id=indicator_id, mapping_id=best.mapping_id,
+            law_name=name(best), quoted_provision=article_section(best),
+            n_per_provision=len(group),
+            reason=f"economy-level: {basis}, {where}",
+            tier=tiers[best.mapping_id],
+        ))
+    return kept, choices
+
+
+def framework_laws(
+    corpus: dict[str, CorpusDoc], heads: dict[str, str] | None, document_ids
+) -> dict[str, FrameworkLaw]:
+    """document_id -> what the framework rule reads about it, from the same
+    export metadata the rows are built from."""
+    heads = heads or {}
+    return {
+        d: FrameworkLaw(
+            law_name=corpus[d].law_name, head=heads.get(d, "") or "",
+            source_url=corpus[d].source_url,
+        )
+        for d in document_ids if d in corpus
+    }
+
+
+def framework_row(row: dict, choice: FrameworkChoice) -> dict:
+    """The row as the organizers read 7.1/7.2: the Act as a whole in the
+    provision field, the quote's own place named in Notes."""
+    out = dict(row)
+    out["Article / Section"] = row["Law Name"]
+    note = (
+        f"economy-level {choice.indicator_id}: the framework law as a whole;"
+        f" quote from {choice.quoted_provision}"
+    )
+    if choice.tier == 3:
+        note += (
+            f"; kept on the reviewer's correction, although the law is neither a"
+            f" {FRAMEWORK_FAMILY_NAMES[choice.indicator_id]} law nor one the 2025"
+            f" baseline cites for {choice.indicator_id}"
+        )
+    out["Notes"] = f"{row['Notes']}; {note}" if row["Notes"] else note
+    return out
+
+
+# ---------------------------------------------------------------------------
 # the gate battery (green or nothing ships)
 # ---------------------------------------------------------------------------
 
@@ -1147,6 +1719,9 @@ def live_url_ok(url: str) -> bool:
         return False
 
 
+_PASSAGE_LABEL_RE = re.compile(r"^Passage \d+$")
+
+
 def pointer_gate(
     records: list[MappingRecord],
     text_loader: Callable[[str], str],
@@ -1172,6 +1747,11 @@ def pointer_gate(
     texts: dict[str, str] = {}
     for r in records:
         if not r.controlling_evidence or r.verification_status != "passed":
+            continue
+        if _PASSAGE_LABEL_RE.match(r.section or ""):
+            # A Document with no structure was split into numbered passages;
+            # there is no heading of its own to hold the label against.
+            notes.append(f"{r.mapping_id}: passage, no heading to check ({r.section!r})")
             continue
         doc = r.document_id
         if doc not in indexes:
@@ -1445,6 +2025,8 @@ class ExportResult:
     # would look exactly like a green Export. The count is what makes that
     # visible; the CLI and the Run narrate it.
     glosses_unavailable: int = 0
+    # What the export did for each Economy's 7.1 and 7.2 (framework_rows).
+    framework_choices: list[FrameworkChoice] = field(default_factory=list)
 
 
 def duplicate_collapse_notice(result: "ExportResult") -> str | None:
@@ -1478,9 +2060,9 @@ def select_rows(rows: list[dict], cap: int = ROW_CAP) -> tuple[list[dict], int]:
     """The provision rows that fit the organizers' entry area, and how many
     were cut.
 
-    Output Data holds 101 rows (9 to 109) and every formula that counts them -
-    the autofilter, the Pillar fill, the Coverage Matrix COUNTIFS - stops at
-    109, so a 102nd row is not a long file, it is an uncounted one. Over the
+    Output Data holds 101 rows (7 to 107 once the example rows are deleted)
+    and every formula that counts them - the autofilter, the Pillar fill, the
+    Coverage Matrix COUNTIFS - stops at its last row, so a 102nd row is not a long file, it is an uncounted one. Over the
     cap, Economies take turns: each contributes its next-best row by Confidence
     until the sheet is full, so a single deep Economy cannot crowd the others
     out of the Coverage Matrix. Ties break on (Economy, Indicator ID, Article /
@@ -1531,6 +2113,11 @@ def export_all(
     write_xlsx: bool = True,
     glosses: dict | None = None,
     run_pillars: tuple[int, ...] | None = None,
+    run_indicators: tuple[str, ...] | None = None,
+    framework_rows: bool = False,
+    run_record: "RunRecordSheet | None" = None,
+    document_heads: dict[str, str] | None = None,
+    trap_check: bool = False,
 ) -> ExportResult:
     """Assemble rows, run the battery, and only then write: one consolidated
     CSV, the per-document working JSONs, the supplementary JSON, and the
@@ -1590,7 +2177,19 @@ def export_all(
     run_pillars (optional): the Pillars the Run itself was asked to search, off
     its Run Record. Given, absence rows are written for exactly those, so a Run
     with nothing accepted never claims a search of a Pillar it did not make.
-    Omitted, the Pillars are read off the records and the Gate scores."""
+    Omitted, the Pillars are read off the records and the Gate scores.
+
+    run_indicators (optional): the Indicators a narrowed Run searched. Given,
+    absence rows are written for those alone; omitted, for every Indicator of
+    the Run's Pillars.
+
+    framework_rows (final round): 7.1 and 7.2 ship as at most one
+    economy-level row each, on a law of the right family
+    (economy_level_frameworks). Off by default so the Round 1 evidence lane
+    stays byte-for-byte what it was; the database export turns it on.
+
+    run_record (final round, optional): the organizers' Run Record sheet as
+    the Run Records say the hour went, written into the same workbook."""
     outdir = Path(outdir)
     corpus = load_corpus(config_dir)
     # Off-corpus documents (a live crawl catch, a map-pdf input) get a synthetic
@@ -1600,6 +2199,7 @@ def export_all(
     synthetic_docs = synthetic_docs or {}
     if synthetic_docs:
         corpus = {**{k: s.corpus_doc for k, s in synthetic_docs.items()}, **corpus}
+    corpus = with_document_edits(corpus, document_meta or {})
     crosswalk = load_crosswalk(config_dir)
     matrix = load_known_matrix(config_dir)
     portals = load_portals(config_dir)
@@ -1741,16 +2341,32 @@ def export_all(
         doc_id: format_for_extractor((meta or {}).get("extractor"))
         for doc_id, meta in (document_meta or {}).items()
     }
+    # The records that become rows. Everything verified and accepted, except
+    # that 7.1 and 7.2 are cut to one economy-level record each when asked.
+    row_records = passed
+    framework_choices: list[FrameworkChoice] = []
+    if framework_rows:
+        row_records, framework_choices = economy_level_frameworks(
+            passed,
+            framework_laws(corpus, document_heads, {r.document_id for r in passed}),
+            matrix,
+            corrected=set(proposed),
+        )
+    chosen = {c.mapping_id: c for c in framework_choices if c.mapping_id}
     rows = [
         build_row(
             r, corpus[r.document_id], crosswalk, matrix, gate_cosine_lookup,
             per_chunk, config_dir, language=languages.get(r.document_id),
             glosses=glosses, format_tag=formats.get(r.document_id, "pdf"),
             proposed_indicator_id=proposed.get(r.mapping_id),
-            reviewer=reviewers.get(r.mapping_id),
+            reviewer=reviewers.get(r.mapping_id), trap_check=trap_check,
             **_synthetic_kwargs(r.document_id),
         )
-        for r in passed
+        for r in row_records
+    ]
+    rows = [
+        framework_row(row, chosen[row["_mapping_id"]]) if row["_mapping_id"] in chosen else row
+        for row in rows
     ]
     # One row per provision before the battery sees them: two accepted
     # Mappings can describe the same provision under the same Indicator (two
@@ -1759,22 +2375,30 @@ def export_all(
     # after this.
     rows, collapsed = collapse_duplicate_provisions(rows)
     rows += build_absence_rows(
-        passed, corpus, crosswalk, coverage_stats, config_dir,
+        row_records, corpus, crosswalk, coverage_stats, config_dir,
         run_pillars=(
             tuple(sorted(run_pillars)) if run_pillars
             else run_pillars_of(records, gate_cosine_lookup, config_dir)
         ),
+        run_indicators=tuple(run_indicators) if run_indicators else None,
         languages=languages,
         synthetic_docs=synthetic_docs,
         source_kinds=source_kinds,
         withheld=withheld,
+        # An Economy whose 7.1 or 7.2 evidence sat on the wrong law earns a
+        # zero like any other; its row says evidence was found and why it
+        # does not count, rather than reading as a search that found nothing.
+        framework_misses={
+            (c.economy, c.indicator_id): c.reason
+            for c in framework_choices if not c.mapping_id
+        },
     )
     rows.sort(key=lambda r: (r["Economy"], r["Indicator ID"], r["Article / Section"]))
 
-    scores = derive_scores(passed)
+    scores = derive_scores(row_records)
     score_cells: dict[tuple[str, str], ScoreCell] | None = None
     if classifications is not None:
-        score_cells = derive_scores_v2(passed, classifications)
+        score_cells = derive_scores_v2(row_records, classifications)
     failures = run_gate_battery(rows, chunk_text_lookup, portals, liveness_fn)
     failures += [
         f"derived score {s} for {econ} {ind} outside the allowed values"
@@ -1823,7 +2447,8 @@ def export_all(
     xlsx_path: Path | None = None
     if write_xlsx:
         xlsx_path = write_workbook(
-            template_path(config_dir), outdir / "submission.xlsx", provision_rows
+            template_path(config_dir), outdir / "submission.xlsx", provision_rows,
+            run_record=run_record,
         ).path
 
     working_paths: list[Path] = []
@@ -1877,8 +2502,9 @@ def export_all(
             "cap": ROW_CAP,
             "rows_cut": rows_cut,
             "rule": (
-                "the organizers' Output Data entry area is rows 9 to 109 and every"
-                " formula that counts it stops at 109; over the cap, Economies take"
+                "the organizers' Output Data entry area holds 101 rows (7 to 107"
+                " once the example rows are deleted) and every formula that counts"
+                " it stops at row 107; over the cap, Economies take"
                 " turns contributing their next-best row by Confidence"
             ),
         }
@@ -1904,6 +2530,29 @@ def export_all(
                     "dropped_mapping_ids": list(c.dropped_mapping_ids),
                 }
                 for c in collapsed
+            ],
+        }
+    if framework_rows:
+        supplementary["framework_rows"] = {
+            "rule": (
+                "7.1 and 7.2 are answered once per Economy (Indicator Reference"
+                " A80): at most one row each, naming the framework law as a"
+                " whole and quoting its scope or purpose clause, chosen only"
+                " among verified Mappings on a data-protection law (7.1) or a"
+                " cybersecurity law (7.2). The per-provision Mappings keep"
+                " their working-JSON rows"
+            ),
+            "choices": [
+                {
+                    "economy": c.economy,
+                    "indicator_id": c.indicator_id,
+                    "mapping_id": c.mapping_id,
+                    "law_name": c.law_name,
+                    "quoted_provision": c.quoted_provision,
+                    "n_per_provision": c.n_per_provision,
+                    "reason": c.reason,
+                }
+                for c in framework_choices
             ],
         }
     if applied_drops:
@@ -2021,4 +2670,5 @@ def export_all(
         glosses_unavailable=sum(
             1 for r in rows if str(r.get(VERBATIM_ENGLISH_COLUMN, "")) == GLOSS_UNAVAILABLE
         ),
+        framework_choices=framework_choices,
     )

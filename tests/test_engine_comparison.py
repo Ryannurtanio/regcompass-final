@@ -21,6 +21,7 @@ from regcompass.compare import (
     compare_runs,
     engine_sheet_csv,
     engine_summary,
+    hour_discoveries,
     pass_discoveries,
     provision_number,
 )
@@ -94,6 +95,18 @@ class TestProvisionRows:
             "Engine A cited s. 26(1), Engine B cited s. 26,"
             " A is the more precise citation; same quoted words"
         )
+
+    def test_a_shared_article_is_named_in_the_drafting_word(self):
+        """Same Article, different subdivisions: the row names the Article the
+        way the Economy drafts it, as the Difference line beside it does."""
+        [row] = rows_of(
+            [a_mapping("7.1", DOC_A, "Chapter 2 s. 7", subsection="(4)").model_copy(
+                update={"economy": "CN"})],
+            [a_mapping("7.1", DOC_A, "Chapter 2 s. 7", subsection="(1)").model_copy(
+                update={"economy": "CN"})],
+        )
+        assert row.citation_differs == "Yes"
+        assert row.article_section == "Chapter 2 Art. 7"
 
     def test_full_agreement_says_so(self):
         [row] = rows_of(
@@ -248,10 +261,45 @@ class TestEngineSummary:
         assert summary.documents_fetched == 0
         assert summary.elapsed_minutes == 10.5
 
-    def test_a_fetch_between_the_two_runs_is_charged_to_engine_b(self):
+    def test_a_fetch_between_the_two_runs_is_engine_a_s(self):
+        """Runs never fetch: an add made between the two Runs was fetched for
+        the first pass, and the second pass still fetched nothing."""
         stray = a_discovery("disc_2", started_at="2026-10-15T03:41:00Z",
                             ended_at="2026-10-15T03:42:00Z", fetched=2)
-        assert engine_summary(RUN_B, [*RECORDS, stray]).documents_fetched == 2
+        records = [*RECORDS, stray]
+        hour = hour_discoveries(RUN_A, RUN_B, records)
+        assert [r.run_id for r in hour] == ["disc_1", "disc_2"]
+        a = engine_summary(RUN_A, records, discoveries=hour)
+        assert a.documents_fetched == 7
+        assert (a.start_hhmm, a.end_hhmm) == ("10:00", "10:42")
+        assert engine_summary(RUN_B, records, second_pass=True).documents_fetched == 0
+        comparison = compare_runs(RUN_A, RUN_B, [], [], ("7.3",), economy_records=records)
+        assert (comparison.pass_a.documents_fetched, comparison.pass_b.documents_fetched) == (7, 0)
+
+    def test_a_stopped_run_never_closes_the_window(self):
+        """Discovery, Engine A Run stopped, Engine A restarted, then Engine B:
+        the Discovery is still the first pass's."""
+        stopped = a_run("run_a0", "engine-a", started_at="2026-10-15T03:09:00Z",
+                        ended_at="2026-10-15T03:09:30Z", status="failed")
+        records = [OLD_DISCOVERY, YESTERDAY_RUN, DISCOVERY, stopped, RUN_A, RUN_B]
+        assert [r.run_id for r in pass_discoveries(RUN_A, records)] == ["disc_1"]
+        assert engine_summary(
+            RUN_A, records, discoveries=hour_discoveries(RUN_A, RUN_B, records)
+        ).documents_fetched == 5
+        # nor does a completed earlier Run on the same Engine (a re-run)
+        rerun = a_run("run_a1", "engine-a", started_at="2026-10-15T03:08:30Z",
+                      ended_at="2026-10-15T03:09:00Z")
+        assert [r.run_id for r in pass_discoveries(RUN_A, [*records, rerun])] == ["disc_1"]
+
+    def test_runs_started_together_claim_the_discovery_once(self):
+        """Engine B started while Engine A was still running: the Discovery is
+        the first pass's, and the second pass fetched nothing."""
+        b_early = a_run("run_b", "engine-b", started_at="2026-10-15T03:20:00Z",
+                        ended_at="2026-10-15T03:50:00Z")
+        records = [DISCOVERY, RUN_A, b_early]
+        comparison = compare_runs(RUN_A, b_early, [], [], ("7.3",), economy_records=records)
+        assert comparison.pass_a.documents_fetched == 5
+        assert comparison.pass_b.documents_fetched == 0
 
     def test_a_discovery_before_an_earlier_run_is_not_this_pass(self):
         assert [r.run_id for r in pass_discoveries(RUN_A, RECORDS)] == ["disc_1"]
@@ -447,3 +495,39 @@ class TestEngineComparisonApi:
         assert payload["pass_a"]["documents_fetched"] == 4
         assert payload["pass_a"]["discovery_run_ids"] == ["disc_1"]
         assert payload["pass_b"]["documents_fetched"] == 0
+
+
+class TestFrameworkNote:
+    """7.1 and 7.2 reach the evidence file once per Economy and only on a law
+    of the right family, so a side with no such law ships no row for it; the
+    Engine Comparison says so where the two Engines are set side by side."""
+
+    def test_a_side_without_a_framework_law_is_named(self):
+        # Engine A tagged 7.2 on the data-protection Act; Engine B has no 7.2
+        comparison = a_comparison()
+        side = (
+            " has no 7.2 Mapping on a cybersecurity law or a law the 2025 baseline"
+            " cites for 7.2, so its evidence file has no 7.2 row"
+        )
+        assert comparison.framework_note == f"Engine A{side}; Engine B{side}."
+
+    def test_both_sides_on_the_right_laws_say_nothing(self):
+        mappings = [a_mapping("7.1", DOC_A, "s. 26"), a_mapping("7.2", DOC_B, "s. 3")]
+        comparison = compare_runs(
+            RUN_A, RUN_B, mappings, list(mappings), ("7.1", "7.2"),
+            document_titles=TITLES, economy_records=RECORDS,
+        )
+        assert comparison.framework_note is None
+
+    def test_a_pillar_without_7_1_or_7_2_says_nothing(self):
+        mappings = [a_mapping("7.4", DOC_B, "s. 12")]
+        comparison = compare_runs(
+            RUN_A, RUN_B, mappings, list(mappings), ("7.3", "7.4"),
+            document_titles=TITLES, economy_records=RECORDS,
+        )
+        assert comparison.framework_note is None
+
+    def test_the_note_is_written_in_row_57(self, tmp_path):
+        comparison = a_comparison()
+        _, wb = sheet_of(tmp_path, comparison)
+        assert wb[ENGINE_SHEET]["A57"].value == comparison.framework_note

@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import {
   deleteDocument,
   fetchCorpus,
   fetchDocumentRemoval,
-  patchSourceUrl,
+  patchDocument,
+  pdfUrl,
   postDocumentUpload,
   postDocumentUrl,
 } from './api'
@@ -25,86 +26,215 @@ function shortWhen(ts: string | null): string {
     : d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
 }
 
-/** The way back for a Document uploaded without an address. Adding it again
- *  by URL would fetch the file a second time and leave a SECOND Document in
- *  the Corpus, so the fix has to edit the one already there. It sits on the
- *  row itself because that is where a reviewer sees the problem, and it is
- *  the control the Evidence Export's refusal names. */
-function SetSourceUrl({
-  documentId,
+// The name a reviewer last worked under, shared with the Correct control, so
+// they type it once. A browser that keeps nothing simply asks again.
+const NAME_KEY = 'regcompass.reviewerName'
+function rememberedName(): string {
+  try {
+    return window.localStorage.getItem(NAME_KEY) ?? ''
+  } catch {
+    return ''
+  }
+}
+function rememberName(name: string) {
+  try {
+    if (name) window.localStorage.setItem(NAME_KEY, name)
+  } catch {
+    // nothing kept; the field is simply empty next time
+  }
+}
+
+/** Who corrected this row and when, in the quiet meta line. */
+function editedLine(d: CorpusDocument): string | null {
+  if (!d.edited_at) return null
+  const who = d.edited_by ? ` by ${d.edited_by}` : ''
+  return `edited${who}, ${shortWhen(d.edited_at)}`
+}
+
+/** A row's title, linked to where the Document is published when that is
+ *  recorded, and the ways to check and correct it: "our copy" opens the file
+ *  the Corpus stored, and Edit changes the Source URL and the title in place.
+ *  Adding the Document again by URL would fetch the file a second time and
+ *  leave a SECOND Document in the Corpus, so the fix edits the one already
+ *  there. A row with no address says so, because the Evidence Export refuses
+ *  it, and its control carries the name that refusal gives it. */
+function DocumentTitle({
+  doc,
   onSaved,
 }: {
-  documentId: string
+  doc: CorpusDocument
   onSaved: () => void
 }) {
+  const id = doc.document_id
   const [open, setOpen] = useState(false)
-  const [url, setUrl] = useState('')
+  const [title, setTitle] = useState(doc.title)
+  const [url, setUrl] = useState(doc.source_url ?? '')
+  const [name, setName] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<PlainError | null>(null)
+  const titleInput = useRef<HTMLInputElement>(null)
 
-  if (!open) {
-    return (
-      <>
-        <span
-          className="corpus-flag"
-          title="No Source URL recorded: this Document's rows open the local copy, and the Evidence Export refuses them until an official address is given."
-        >
-          {' '}no Source URL
-        </span>{' '}
-        <button
-          type="button"
-          className="link-btn"
-          data-testid={`set-source-url-${documentId}`}
-          onClick={() => setOpen(true)}
-        >
-          Set Source URL
-        </button>
-      </>
-    )
+  // A long title opens showing its beginning, with the caret there, rather
+  // than scrolled to its end.
+  useEffect(() => {
+    const el = titleInput.current
+    if (!open || !el) return
+    el.focus()
+    el.setSelectionRange(0, 0)
+    el.scrollLeft = 0
+  }, [open])
+
+  const start = () => {
+    setTitle(doc.title)
+    setUrl(doc.source_url ?? '')
+    setName(rememberedName())
+    setError(null)
+    setOpen(true)
   }
 
+  const titleChanged = title.trim() !== '' && title.trim() !== doc.title
+  const urlChanged = url.trim() !== '' && url.trim() !== (doc.source_url ?? '')
+  const canSave = !busy && (titleChanged || urlChanged)
+
   const save = () => {
+    if (!canSave) return
     setBusy(true)
     setError(null)
-    patchSourceUrl(documentId, url)
+    patchDocument(id, {
+      ...(titleChanged ? { title } : {}),
+      ...(urlChanged ? { sourceUrl: url } : {}),
+      reviewer: name,
+    })
       .then(() => {
+        rememberName(name.trim())
         setOpen(false)
-        setUrl('')
         onSaved()
       })
       .catch((e) => setError(plainError(e)))
       .finally(() => setBusy(false))
   }
 
+  const onKey = (e: KeyboardEvent) => {
+    if (e.key === 'Enter') save()
+    if (e.key === 'Escape') setOpen(false)
+  }
+
+  const edited = editedLine(doc)
+
   return (
-    <span className="set-source-url">
-      <input
-        type="url"
-        value={url}
-        disabled={busy}
-        autoFocus
-        placeholder="https://official.portal/act.pdf"
-        aria-label={`Source URL for ${documentId}`}
-        data-testid={`source-url-input-${documentId}`}
-        onChange={(e) => setUrl(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' && url.trim() && !busy) save()
-          if (e.key === 'Escape') setOpen(false)
-        }}
-      />
-      <button
-        type="button"
-        disabled={busy || !url.trim()}
-        data-testid={`save-source-url-${documentId}`}
-        onClick={save}
-      >
-        {busy ? 'Saving…' : 'Save'}
-      </button>
-      <button type="button" className="link-btn" disabled={busy} onClick={() => setOpen(false)}>
-        Cancel
-      </button>
-      {error && <span className="corpus-flag"> {error.message}</span>}
-    </span>
+    <>
+      {doc.source_url ? (
+        <a
+          className="law"
+          href={doc.source_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          title={`Open the source: ${doc.source_url}`}
+          data-testid={`source-link-${id}`}
+        >
+          {doc.title}
+        </a>
+      ) : (
+        <span className="law">{doc.title}</span>
+      )}
+      <span className="doc-meta">
+        {doc.source_url === null && (
+          <span
+            className="corpus-flag"
+            title="No Source URL recorded: this Document's rows open the local copy, and the Evidence Export refuses them until an official address is given."
+          >
+            no Source URL
+          </span>
+        )}
+        {doc.has_copy && (
+          <a
+            href={pdfUrl(id)}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Open the file the Corpus stored for this Document"
+            data-testid={`our-copy-${id}`}
+          >
+            our copy
+          </a>
+        )}
+        {!open && (
+          <button
+            type="button"
+            className="link-btn"
+            data-testid={
+              doc.source_url === null ? `set-source-url-${id}` : `edit-document-${id}`
+            }
+            onClick={start}
+          >
+            {doc.source_url === null ? 'Set Source URL' : 'Edit'}
+          </button>
+        )}
+        {edited && <span data-testid={`edited-${id}`}>{edited}</span>}
+      </span>
+      {open && (
+        <span className="edit-document" role="group" aria-label={`Edit ${doc.title}`}>
+          <label>
+            <span>Title</span>
+            <input
+              type="text"
+              value={title}
+              disabled={busy}
+              ref={titleInput}
+              data-testid={`title-input-${id}`}
+              onChange={(e) => setTitle(e.target.value)}
+              onKeyDown={onKey}
+            />
+          </label>
+          <label>
+            <span>Source URL</span>
+            <input
+              type="url"
+              value={url}
+              disabled={busy}
+              placeholder="https://official.portal/act.pdf"
+              data-testid={`source-url-input-${id}`}
+              onChange={(e) => setUrl(e.target.value)}
+              onKeyDown={onKey}
+            />
+          </label>
+          <label>
+            <span>Your name (optional)</span>
+            <input
+              type="text"
+              value={name}
+              disabled={busy}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={onKey}
+            />
+          </label>
+          <span className="edit-document-actions">
+            <button
+              type="button"
+              className="primary"
+              disabled={!canSave}
+              data-testid={`save-document-${id}`}
+              onClick={save}
+            >
+              {busy ? 'Saving…' : 'Save'}
+            </button>
+            <button
+              type="button"
+              className="link-btn"
+              disabled={busy}
+              onClick={() => setOpen(false)}
+            >
+              Cancel
+            </button>
+          </span>
+          <span className="hint">
+            Changes the title and link only. The Document, its text and its
+            Mappings stay as they are; the next Evidence Export uses the new
+            values.
+          </span>
+          {error && <span className="corpus-flag">{error.message}</span>}
+        </span>
+      )}
+    </>
   )
 }
 
@@ -587,17 +717,8 @@ export default function AddDocument({
                         {/* A row carrying the inline control must not be
                             clipped: a truncated cell hides the control and
                             swallows the click meant for it. */}
-                        <td
-                          className={d.source_url === null ? 'roomy doc-title' : 'doc-title'}
-                          title={d.document_id}
-                        >
-                          <span className="law">{d.title}</span>
-                          {d.source_url === null ? (
-                            <SetSourceUrl
-                              documentId={d.document_id}
-                              onSaved={reloadCorpus}
-                            />
-                          ) : null}
+                        <td className="roomy doc-title" title={d.document_id}>
+                          <DocumentTitle doc={d} onSaved={reloadCorpus} />
                         </td>
                         <td>{d.source_kind}</td>
                         <td>{d.language ?? '-'}</td>

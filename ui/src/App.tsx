@@ -3,17 +3,35 @@ import {
   fetchAuditRun,
   fetchDocuments,
   fetchEngines,
+  fetchEvidenceRuns,
   fetchStatus,
   logout,
   outputDownloadUrl,
   postExport,
 } from './api'
-import type { AuditRun, DocumentSummary, ExportFile, QueueFilter } from './types'
+import type {
+  AuditRun,
+  DocumentSummary,
+  EvidenceEconomy,
+  ExportFile,
+  QueueFilter,
+} from './types'
 import AuditView from './AuditView'
 import Comparison from './Comparison'
 import DocumentList from './DocumentList'
+import EvidenceShowing from './EvidenceShowing'
+import {
+  choiceFor,
+  choiceSearch,
+  hasChoice,
+  parseChoice,
+  pillarText,
+  resolveRun,
+  type EvidenceChoice,
+} from './evidenceChoice'
 import ExportPreview from './ExportPreview'
 import ReviewQueueList from './ReviewQueueList'
+import { DEFAULT_QUEUE_SORT, parseQueueSort, queueSortSearch, type QueueSort } from './queueOrder'
 import RunPanel from './RunPanel'
 import RunReplay from './RunReplay'
 import RunsList from './RunsList'
@@ -106,12 +124,46 @@ function ThemeIcon({ theme }: { theme: Theme }) {
   )
 }
 
+/** The Evidence choice the page was opened with (a reload, or a link someone
+ *  shared), read once. An address that names evidence opens on Evidence. */
+function openingChoice(): EvidenceChoice {
+  try {
+    return parseChoice(window.location.search)
+  } catch {
+    return {}
+  }
+}
+
+/** Write the page address without adding a history step. */
+function replaceSearch(search: string) {
+  try {
+    const { pathname, hash } = window.location
+    if (search !== window.location.search) {
+      window.history.replaceState(window.history.state, '', `${pathname}${search}${hash}`)
+    }
+  } catch {
+    // an address that cannot be written leaves the screen as it is
+  }
+}
+
 export default function App() {
+  // The Evidence choice in the address when the page opened. A choice with no
+  // Run named waits for the list of Runs to say which Run it means.
+  const [opening] = useState(openingChoice)
+  const pendingChoice = useRef<EvidenceChoice | null>(
+    hasChoice(opening) && !opening.run ? opening : null,
+  )
   const [docs, setDocs] = useState<DocumentSummary[] | null>(null)
-  const [route, setRoute] = useState<Route>({ kind: 'screen', screen: 'run' })
+  const [route, setRoute] = useState<Route>(() => ({
+    kind: 'screen',
+    screen: hasChoice(opening) ? 'evidence' : 'run',
+  }))
   // Which Run the Evidence screen is showing. null means the newest completed
   // Run, which is what the server falls back to.
-  const [runId, setRunId] = useState<string | null>(null)
+  const [runId, setRunId] = useState<string | null>(opening.run ?? null)
+  // Every Economy with a finished Run, for the Evidence screen's pickers.
+  const [evidenceRuns, setEvidenceRuns] = useState<EvidenceEconomy[] | null>(null)
+  const [economyNames, setEconomyNames] = useState<Record<string, string>>({})
   const [error, setError] = useState<PlainError | null>(null)
   const [exportNote, setExportNote] = useState<string | null>(null)
   // Why the last Export wrote nothing, shown beside the Export button and
@@ -149,6 +201,14 @@ export default function App() {
   // on the list they left, in the state they left it.
   const [evidenceView, setEvidenceView] = useState<EvidenceView>('documents')
   const [queueFilter, setQueueFilter] = useState<QueueFilter>('all')
+  // The queue's order, read from the address so a reload keeps it.
+  const [queueSort, setQueueSort] = useState<QueueSort>(() => {
+    try {
+      return parseQueueSort(window.location.search)
+    } catch {
+      return DEFAULT_QUEUE_SORT
+    }
+  })
   // The Document the audit view is on. In queue order it changes as the
   // reviewer steps, so the view reports it rather than the header guessing.
   const [auditTitle, setAuditTitle] = useState<string | null>(null)
@@ -224,7 +284,10 @@ export default function App() {
 
   useEffect(() => {
     fetchStatus()
-      .then((s) => setLoginOn(s.login === true))
+      .then((s) => {
+        setLoginOn(s.login === true)
+        setEconomyNames(s.economy_names ?? {})
+      })
       .catch(() => setLoginOn(false))
   }, [])
 
@@ -243,6 +306,55 @@ export default function App() {
       )
       .catch(() => setEngineNames({}))
   }, [])
+
+  const onEvidence = route.kind === 'audit' || route.screen === 'evidence'
+
+  // The pickers' list, read again whenever Evidence is opened: a Run may have
+  // finished since. A choice the page opened with is resolved against it once.
+  useEffect(() => {
+    if (!onEvidence) return
+    let live = true
+    fetchEvidenceRuns()
+      .then((r) => {
+        if (!live) return
+        setEvidenceRuns(r.economies)
+        const pending = pendingChoice.current
+        if (pending) {
+          pendingChoice.current = null
+          const resolved = resolveRun(r.economies, pending)
+          if (resolved) {
+            setRunId(resolved)
+            setDocs(null)
+          }
+        }
+      })
+      .catch(() => {
+        if (live) setEvidenceRuns(null)
+        pendingChoice.current = null
+      })
+    return () => {
+      live = false
+    }
+  }, [onEvidence, clearTick])
+
+  // The address follows the choice while Evidence is open, so a reload or a
+  // shared link opens the same evidence, and lets go of it elsewhere.
+  useEffect(() => {
+    if (!onEvidence) {
+      replaceSearch(choiceSearch(window.location.search, null))
+      return
+    }
+    const rec = auditRun?.record
+    if (pendingChoice.current || !rec || !evidenceRuns) return
+    if (runId !== null && rec.run_id !== runId) return
+    replaceSearch(choiceSearch(window.location.search, choiceFor(evidenceRuns, rec)))
+  }, [onEvidence, auditRun, evidenceRuns, runId])
+
+  // The queue's order rides in the address beside the choice, and leaves it
+  // with the choice.
+  useEffect(() => {
+    replaceSearch(queueSortSearch(window.location.search, onEvidence ? queueSort : null))
+  }, [onEvidence, queueSort])
 
   const current =
     route.kind === 'audit' && !route.fromQueue && docs
@@ -263,10 +375,8 @@ export default function App() {
   const runLabel = record
     ? [
         `Run ${record.run_id}`,
-        record.economy,
-        record.pillars.length
-          ? `Pillar ${record.pillars.join(', ')}`
-          : null,
+        economyNames[record.economy] ?? record.economy,
+        record.pillars.length ? pillarText(record.pillars) : null,
         record.engine ? engineNames[record.engine] ?? record.engine : null,
       ]
         .filter(Boolean)
@@ -486,11 +596,25 @@ export default function App() {
             <div className="titles">
               <h1>{screen === 'run' && watching !== null ? REPLAY_HEAD.label : here.label}</h1>
               <p className="lead">{screen === 'run' && watching !== null ? REPLAY_HEAD.line : here.line}</p>
-              {screen === 'evidence' && runLabel && (
-                <p className="context" data-testid="context">
-                  <span className="k">Showing </span>
-                  {runLabel}
-                </p>
+              {screen === 'evidence' && record && evidenceRuns ? (
+                <EvidenceShowing
+                  listing={evidenceRuns}
+                  record={record}
+                  engineNames={engineNames}
+                  onChoose={(id) => openRun(id)}
+                  onCompare={(economy, pillar) => {
+                    setComparePreset({ economy, pillar })
+                    setRoute({ kind: 'screen', screen: 'compare' })
+                  }}
+                />
+              ) : (
+                screen === 'evidence' &&
+                runLabel && (
+                  <p className="context" data-testid="context">
+                    <span className="k">Showing </span>
+                    {runLabel}
+                  </p>
+                )
               )}
             </div>
             {screen === 'evidence' && exportButton}
@@ -514,6 +638,7 @@ export default function App() {
             runId={runId}
             queue={route.fromQueue ?? false}
             queueFilter={queueFilter}
+            queueSort={queueSort}
             startMappingId={route.mappingId ?? null}
             onBack={goBack}
             onReviewSaved={reloadDocs}
@@ -620,6 +745,8 @@ export default function App() {
                 reviewTick={reviewTick}
                 filter={queueFilter}
                 onFilter={setQueueFilter}
+                sort={queueSort}
+                onSort={setQueueSort}
                 onOpen={(row) =>
                   setRoute({
                     kind: 'audit',

@@ -39,6 +39,11 @@ TESSERACT_BY_LANGUAGE: dict[str, str] = {
     "Thai": "tha+eng",
     "Lao": "lao+eng",
     "Russian": "rus+eng",
+    "Chinese": "chi_sim+eng",
+    "Vietnamese": "vie+eng",
+    "Kazakh": "kaz+eng",
+    "Mongolian": "mon+eng",
+    "Hindi": "hin+eng",
 }
 
 DEFAULT_TESSERACT = "eng"
@@ -49,6 +54,13 @@ MALAYSIA_ECONOMY = "MY"
 MALAYSIA_TESSERACT = "eng+msa"
 _MALAYSIA_DEFAULT_LANGUAGES = (None, "English", "Other")
 
+# Languages written in a script of their own, outside the Latin alphabet. A
+# text layer of one of these that is nearly all Latin letters is not the
+# Document's text (shortlist.garbage_text_layer).
+NON_LATIN_SCRIPT_LANGUAGES = frozenset(
+    {"Thai", "Lao", "Chinese", "Hindi", "Kazakh", "Russian", "Mongolian"}
+)
+
 # Languages written in the Latin alphabet. `ocr.dictionary_hit_rate` counts hits
 # against an English legal wordlist, so it only means something for these.
 LATIN_SCRIPT_LANGUAGES = frozenset({"English", "Bahasa Indonesia", "Vietnamese", "Other"})
@@ -57,8 +69,8 @@ LATIN_SCRIPT_LANGUAGES = frozenset({"English", "Bahasa Indonesia", "Vietnamese",
 # its default models covers Latin text and Chinese; it has no Lao, Thai,
 # Devanagari or Cyrillic model, and re-running one of those through it can only
 # make the stream worse. This is a SEPARATE question from the dictionary proxy:
-# a Chinese scan has no English dictionary hit rate but escalating it is exactly
-# the right move, since tesseract is reading it without Chinese traineddata.
+# a Chinese scan has no English dictionary hit rate, but when tesseract reads
+# it with low confidence RapidOCR's Chinese model is a genuine second reader.
 RAPIDOCR_LANGUAGES = LATIN_SCRIPT_LANGUAGES | {"Chinese"}
 
 # The Languages whose Documents keep the Gate's English keyword tier. Everything
@@ -130,8 +142,8 @@ class OcrPolicy:
     """What the OCR quality ladder may do for one Document's script. The three
     answers travel together because they are one decision made three ways, and
     they are NOT the same answer: a Chinese scan skips the English dictionary
-    proxy, still escalates to RapidOCR (which reads Chinese), and is flagged for
-    a human because no Chinese traineddata is vendored."""
+    proxy yet still escalates to RapidOCR (which reads Chinese), and only a
+    Language with no vendored traineddata is flagged for a human outright."""
 
     dictionary_proxy: bool  # the English wordlist hit rate is meaningful
     rapidocr_escalation: bool  # RapidOCR has a model for this script
@@ -199,3 +211,53 @@ def keyword_tier_applies(
     if text and non_latin_share(text) > non_latin_share_max:
         return False
     return True
+
+
+# Scripts a text layer can still show when its words are garbage, and the
+# Language each is read as. Cyrillic is written by three Languages on the
+# organizers' list, so the Economy's own Languages decide which.
+_SCRIPT_LANGUAGE = (
+    ("฀", "๿", "Thai"),
+    ("຀", "໿", "Lao"),
+    ("ऀ", "ॿ", "Hindi"),
+    ("一", "鿿", "Chinese"),
+    ("Ѐ", "ӿ", "Russian"),
+)
+_CYRILLIC_LANGUAGES = ("Kazakh", "Mongolian", "Russian")
+# Characters of one script a layer must show before it counts as present.
+_SCRIPT_MIN_CHARS = 20
+
+
+def garbage_ocr_languages(
+    language: str | None,
+    economy: str | None,
+    text: str,
+    economy_languages: tuple[str, ...] | list[str] = (),
+) -> tuple[str, str | None]:
+    """(tesseract `-l` string, the Language to read it as) for a PDF whose text
+    layer was judged garbage. The layer's own Language may be wrong, and its
+    words are gone, so OCR is given every script the Document could be in:
+    what the layer still shows, the Document's Language, and the Languages its
+    Economy publishes in (India's Hindi gazettes are filed as English by
+    default). English stays last, as the secondary language every string
+    carries. The Language returned is the first non-Latin one among them, and
+    decides the OCR quality ladder (languages.ocr_policy)."""
+    sample = text[:_SCRIPT_SAMPLE_CHARS]
+    names: list[str] = []
+    for lo, hi, name in _SCRIPT_LANGUAGE:
+        if sum(1 for ch in sample if lo <= ch <= hi) >= _SCRIPT_MIN_CHARS:
+            if name == "Russian":
+                names.extend(
+                    [n for n in economy_languages if n in _CYRILLIC_LANGUAGES] or ["Russian"]
+                )
+            else:
+                names.append(name)
+    names += [n for n in (language, *economy_languages) if n]
+    codes: list[str] = []
+    for name in names:
+        for code in tesseract_languages(name, economy).split("+"):
+            if code not in codes:
+                codes.append(code)
+    codes = [c for c in codes if c != "eng"] + ["eng"]
+    reading = next((n for n in names if n in NON_LATIN_SCRIPT_LANGUAGES), language)
+    return "+".join(codes), reading

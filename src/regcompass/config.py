@@ -143,10 +143,55 @@ def load_crawl_seeds(config_dir: Path | None = None) -> dict[str, CrawlSeedsEcon
 
 def load_known_matrix(config_dir: Path | None = None) -> dict:
     """The provision-level KNOWN matrix (M9 Discovery Tag). Keys: 'database'
-    (economy -> indicator -> [{law, law_key, sections}]) and
-    'inventory_law_keys' (economy -> [normalized law keys])."""
-    raw = json.loads((_dir(config_dir) / "known_matrix.json").read_text(encoding="utf-8"))
-    return {k: v for k, v in raw.items() if not k.startswith("_")}
+    (economy -> indicator -> [{law, law_key, sections}]),
+    'inventory_law_keys' (economy -> [normalized law keys]),
+    each entry also carrying 'law_keys' (its title's keys in every script it
+    names, see export.law_keys),
+    'no_baseline_economies' (Economies the 2025 baseline does not cover) and
+    'baseline_url_laws' (economy -> normalized URL -> [law_key]), built from
+    the Baseline Law List for the URLs the database gives for exactly one law."""
+    directory = _dir(config_dir)
+    raw = json.loads((directory / "known_matrix.json").read_text(encoding="utf-8"))
+    matrix = {k: v for k, v in raw.items() if not k.startswith("_")}
+    from .export import law_keys
+
+    for indicators in matrix.get("database", {}).values():
+        for entries in indicators.values():
+            for entry in entries:
+                entry["law_keys"] = law_keys(entry["law"])
+    baseline = load_baseline_laws(directory) if (directory / "baseline_laws.json").exists() else {}
+    matrix["baseline_url_laws"] = baseline_url_laws(baseline)
+    return matrix
+
+
+def load_baseline_laws(config_dir: Path | None = None) -> dict:
+    """The Baseline Law List: economy -> {name, laws: [{law, law_key, year,
+    indicators, urls, url_pairing}]}, every law the 2025 RDTII baseline cites
+    for that Economy with the reference URLs to try, in order."""
+    raw = json.loads((_dir(config_dir) / "baseline_laws.json").read_text(encoding="utf-8"))
+    return raw["economies"]
+
+
+def baseline_url_laws(economies: dict) -> dict[str, dict[str, list[str]]]:
+    """economy -> normalized URL -> [law_key] for every baseline URL that
+    belongs to exactly one law of that Economy. A URL the database gives for
+    several laws identifies none of them, so it is left out; two spellings of
+    one Indonesian instrument (same kind, number and year) count as one law."""
+    from .export import instrument_ident, norm_url
+
+    out: dict[str, dict[str, list[str]]] = {}
+    for code, econ in economies.items():
+        owners: dict[str, dict[str, str]] = {}
+        for law in econ["laws"]:
+            identity = instrument_ident(code, law["law"]) or law["law_key"]
+            for url in law["urls"]:
+                key = norm_url(url)
+                if key:
+                    owners.setdefault(key, {})[law["law_key"]] = identity
+        out[code] = {
+            u: sorted(keys) for u, keys in owners.items() if len(set(keys.values())) == 1
+        }
+    return out
 
 
 def load_review_drops(config_dir: Path | None = None) -> dict[str, str]:

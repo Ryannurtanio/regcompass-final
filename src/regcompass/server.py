@@ -864,6 +864,14 @@ class RunManager(RunProgress):
                 "escalated_to_impersonation": getattr(
                     report, "escalated_to_impersonation", False
                 ),
+                # A Discovery by Pillar: the draw, why each Document came in,
+                # and each baseline law it left out, for the operator to upload.
+                "pillar": getattr(report, "pillar", None),
+                "indicators": getattr(report, "indicators", None),
+                "max_documents": getattr(report, "max_documents", None),
+                "found_by": list(getattr(report, "found_by", None) or []),
+                "baseline_skipped": list(getattr(report, "baseline_skipped", None) or []),
+                "notes": list(getattr(report, "notes", None) or []),
             }
 
     def telemetry_snapshot(self) -> dict:
@@ -1090,6 +1098,7 @@ def _make_e2e_worker(
     max_documents: int,
     indicators: tuple[str, ...] | None = None,
     concurrency: int | None = None,
+    discover_by_pillar: bool = False,
 ):
     """Build the worker for the LIVE crawl e2e lane: a bounded Discovery flows
     straight into extract -> map -> reconcile -> export. Same lazy-import
@@ -1124,6 +1133,10 @@ def _make_e2e_worker(
                 indicators=None if indicators is None else list(indicators),
                 progress=manager.push, hook=manager,
                 concurrency=concurrency, report_watch=manager.attach_report,
+                **({"discover_by_pillar": True} if discover_by_pillar else {}),
+                # Discovery's own events, so the Discovery view shows what it
+                # fetched and each baseline law it left out.
+                discovery_hook=_DiscoveryEvents(manager),
             )
             run = report.run
             if run is not None:
@@ -1245,7 +1258,8 @@ class _DiscoveryEvents(DiscoveryProgress):
 
 
 def _make_discover_worker(
-    economy: str, refresh: bool, db_path: str, data_dir: str
+    economy: str, refresh: bool, db_path: str, data_dir: str,
+    drawn: dict | None = None,
 ):
     """Build the worker that fills one Economy's Corpus. Discovery is the only
     step that touches the internet, so it runs in the same single worker slot a
@@ -1259,11 +1273,16 @@ def _make_discover_worker(
 
             manager.push(
                 f"M0 start | discover economy={economy} refresh={refresh}"
+                + (
+                    f" pillar={drawn['pillar']} indicators={drawn['indicators']}"
+                    f" max_documents={drawn['max_documents']}"
+                    if drawn else ""
+                )
             )
             storage = _open_for_write(db_path)
             report = discovery_mod.discover_economy(
                 economy, storage, refresh=refresh, data_dir=Path(data_dir),
-                progress=manager.push, hook=events,
+                progress=manager.push, hook=events, **(drawn or {}),
             )
             events.finished_from(report)
             manager.set_discovery_report(report)
@@ -1284,9 +1303,30 @@ def _make_discover_worker(
     return worker
 
 
+# A Discovery by Pillar fetches at most this many Documents unless told
+# otherwise, and never more than the upper bound: both Engine passes have to
+# fit inside the live hour.
+DRAWN_CAP_DEFAULT = 12
+DRAWN_CAP_MAX = 30
+
+
+def _drawn_cap(requested: int | None) -> int:
+    """The Document cap of a Discovery by Pillar, clamped to 1..30."""
+    if requested is None:
+        return DRAWN_CAP_DEFAULT
+    return max(1, min(int(requested), DRAWN_CAP_MAX))
+
+
 class DiscoverRequest(BaseModel):
     economy: str
     refresh: bool = False
+    # A Discovery by Pillar: the laws the baseline cites for these Indicators
+    # (every Indicator of the Pillar when none are named), then the Portal
+    # crawler's seeds for that Pillar, at most max_documents in all. Left out,
+    # Discovery is the Economy's fixed seed list, as before.
+    pillar: int | None = None
+    indicators: list[str] | None = None
+    max_documents: int | None = None
 
 
 class RunRequest(BaseModel):
@@ -1298,6 +1338,8 @@ class RunRequest(BaseModel):
     engine: str | None = None  # an Engine name from config/models.yaml
     mode: str = "run"  # "run" (read the Corpus) or "e2e" (Discovery then a Run)
     max_documents: int | None = None
+    # e2e only: the Discovery is by the Run's one Pillar and its Indicators.
+    discover_by_pillar: bool = False
     # Mapping calls to keep in flight. None takes the Engine's own declared
     # value; the records and the export are the same bytes either way.
     concurrency: int | None = None
@@ -1328,11 +1370,15 @@ class ClearRequest(BaseModel):
 
 
 class SetSourceUrlRequest(BaseModel):
-    """Where an already-added Document is published. The upload lane lets a
-    reviewer skip this when the clock is running; this is how they supply it
-    afterwards, on the Document that is already in the Corpus."""
+    """A correction of an already-added Document: where it is published, its
+    title, or both. The upload lane lets a reviewer skip the address when the
+    clock is running; this is how they supply it afterwards, and how a wrong
+    link or a misread title is put right, on the Document that is already in
+    the Corpus. `reviewer` is the optional name the edit is recorded under."""
 
-    source_url: str
+    source_url: str | None = None
+    title: str | None = None
+    reviewer: str | None = None
 
 
 class SettingsKeyRequest(BaseModel):
@@ -2279,16 +2325,27 @@ def create_app(
         except ConfigError as e:
             raise HTTPException(400, str(e))
 
+        by_pillar = mode == "e2e" and bool(req.discover_by_pillar)
+        if by_pillar and len(pillars) != 1:
+            raise HTTPException(
+                400,
+                "a Discovery by Pillar takes exactly one Pillar; got"
+                f" {list(pillars)}",
+            )
         if mode == "e2e":
-            max_documents = max(1, min(int(req.max_documents or 1), 10))
+            max_documents = (
+                _drawn_cap(req.max_documents) if by_pillar
+                else max(1, min(int(req.max_documents or 1), 10))
+            )
             worker = _make_e2e_worker(
                 economy, pillars, engine, db_path, crawl_data_dir, str(out_dir),
                 max_documents, indicators, concurrency=concurrency,
+                discover_by_pillar=by_pillar,
             )
             meta = {
                 "economy": economy, "pillars": list(pillars),
                 "engine": engine.name, "mode": "e2e", "db": db_path,
-                "max_documents": max_documents,
+                "max_documents": max_documents, "discover_by_pillar": by_pillar,
                 "indicators": None if indicators is None else list(indicators),
                 "concurrency": concurrency,
             }
@@ -2386,10 +2443,13 @@ def create_app(
                 f" {', '.join(configured)}",
             )
         portal = configured[economy]
+        drawn = _drawn_discovery(req)
         # Two different refusals, and the interface has to be able to say which
         # one it is: a Portal whose rules do not permit automated collection
         # never gains a strategy and has no URL lane; an Economy whose plan is
-        # simply not wired yet keeps both possibilities.
+        # simply not wired yet keeps both possibilities. A Discovery by Pillar
+        # reaches the baseline laws through the add-by-URL lane, so only the
+        # first refusal binds it.
         if portal.manual_only:
             raise HTTPException(
                 400,
@@ -2397,7 +2457,7 @@ def create_app(
                 " Portal's own site rules do not permit automated collection,"
                 " so Discovery never runs here. Upload each Document instead.",
             )
-        if portal.strategy == MANUAL_STRATEGY:
+        if portal.strategy == MANUAL_STRATEGY and drawn is None:
             raise HTTPException(
                 400,
                 f"{portal.official_name} ({economy}) has no Discovery strategy"
@@ -2406,17 +2466,55 @@ def create_app(
                 " Portal host is whitelisted, or by uploading the file.",
             )
 
-        worker = _make_discover_worker(economy, bool(req.refresh), db_path, crawl_data_dir)
+        worker = _make_discover_worker(
+            economy, bool(req.refresh), db_path, crawl_data_dir, drawn
+        )
         meta = {
-            "economy": economy, "pillars": [], "engine": None,
+            "economy": economy,
+            "pillars": [drawn["pillar"]] if drawn else [],
+            "engine": None,
             "mode": "discover", "db": db_path, "refresh": bool(req.refresh),
         }
+        if drawn:
+            meta.update(
+                indicators=drawn["indicators"], max_documents=drawn["max_documents"]
+            )
         if not manager.start(worker, meta):
             raise HTTPException(409, "a Run is already active; wait for it to finish")
-        return {
+        out = {
             "status": "started", "economy": economy, "mode": "discover",
             "refresh": bool(req.refresh),
             "corpus_documents": _corpus_size(db_path, economy),
+        }
+        if drawn:
+            out.update(drawn)
+        return out
+
+    def _drawn_discovery(req: DiscoverRequest) -> dict | None:
+        """The Pillar, Indicators and cap of a Discovery by Pillar, checked the
+        way a Run's are; None for a Discovery with no Pillar."""
+        if req.pillar is None:
+            if req.indicators:
+                raise HTTPException(
+                    400, "Indicators narrow a Discovery by Pillar; name the Pillar too"
+                )
+            return None
+        if req.pillar not in valid_pillars():
+            raise HTTPException(
+                400,
+                f"invalid pillar {req.pillar}: expected one of"
+                f" {list(valid_pillars())}",
+            )
+        from regcompass.config import UnknownIndicator, narrow_indicators
+
+        try:
+            indicators = narrow_indicators(req.indicators, (req.pillar,))
+        except UnknownIndicator as e:
+            raise HTTPException(400, str(e))
+        return {
+            "pillar": int(req.pillar),
+            "indicators": None if indicators is None else list(indicators),
+            "max_documents": _drawn_cap(req.max_documents),
         }
 
     # -- Starting empty: clear the downloads and the caches -------------------
@@ -2598,9 +2696,11 @@ def create_app(
             details["robots_unavailable_status"] = added.robots_unavailable_status
         if added.robots_unavailable_policy:
             details["robots_unavailable_policy"] = added.robots_unavailable_policy
+        # An upload downloads nothing: the file came from the reviewer's
+        # machine, so it is not a Document fetched (Run Record sheet, A2/A9).
         storage.run_finish(
             run_id, status="completed", ended_at=utc_now_z(),
-            documents_fetched=1, details=details,
+            documents_fetched=0 if source == "upload" else 1, details=details,
         )
         storage.close()
         answer = {
@@ -2671,9 +2771,18 @@ def create_app(
         the same robots check, politeness floor and identified user agent
         Discovery uses. Closed on a manual-only Economy, whose Portal rules do
         not distinguish one request from a crawl."""
-        from regcompass.corpus import add_document_from_url, check_host_allowed
+        from regcompass.corpus import (
+            add_document_from_url,
+            check_host_allowed,
+            seeded_family,
+        )
 
-        code, portal, language = _validated_add(req.economy, req.language)
+        # An address on the source list carries its own Language when the
+        # operator named none.
+        seed = seeded_family((req.economy or "").upper(), req.source_url)
+        code, portal, language = _validated_add(
+            req.economy, req.language or (seed.language if seed else None)
+        )
         if portal.manual_only:
             raise HTTPException(
                 400,
@@ -2698,22 +2807,28 @@ def create_app(
 
     @app.patch("/api/documents/{document_id}")
     def set_source_url(document_id: str, req: SetSourceUrlRequest) -> dict:
-        """Record where an already-added Document is published.
+        """Correct where an already-added Document is published, its title, or
+        both. Metadata only: the id, the text, the chunks and the Mappings are
+        never touched, and the next Evidence Export reads the new values.
 
-        The other half of an optional Source URL on upload. Without this a
-        Document added without an address could never gain one: adding it
-        again by URL would FETCH the file a second time and put a second
-        Document in the Corpus under a second id, which is not a correction,
-        it is a duplicate. This edits the Document that is already there, so
-        its rows stop following the local-copy rule and the Evidence Export
-        stops refusing them."""
-        url = (req.source_url or "").strip()
-        if not url.lower().startswith(("http://", "https://")):
+        The other half of an optional Source URL on upload, and the way to fix
+        a wrong one. Without this a Document could only be corrected by adding
+        it again by URL, which would FETCH the file a second time and put a
+        second Document in the Corpus under a second id: not a correction, a
+        duplicate. This edits the Document that is already there."""
+        url = None if req.source_url is None else req.source_url.strip()
+        title = None if req.title is None else " ".join(req.title.split())
+        reviewer = (req.reviewer or "").strip() or None
+        if url is None and title is None:
+            raise HTTPException(400, "nothing to change: give a Source URL or a title")
+        if url is not None and not url.lower().startswith(("http://", "https://")):
             raise HTTPException(
                 400,
                 "a Source URL must be the http(s) address the Document is"
                 f" published at; got {url!r}",
             )
+        if title is not None and not title:
+            raise HTTPException(400, "a title cannot be empty")
         if bundle is not None:
             raise HTTPException(409, BUNDLE_REVIEW_MESSAGE)
         # A Run reads the Corpus while it works, and an ingest rewrites the
@@ -2728,18 +2843,16 @@ def create_app(
             raise HTTPException(404, f"no such Document: {document_id}")
         storage = Storage(db_path)
         try:
-            previous = storage.set_document_source_url(document_id, url)
+            storage.apply_schema()
+            return storage.edit_document(
+                document_id, title=title, source_url=url, editor=reviewer
+            )
         except LookupError:
             raise HTTPException(404, f"no such Document: {document_id}") from None
         except ValueError as exc:
             raise HTTPException(409, str(exc)) from None
         finally:
             storage.close()
-        return {
-            "document_id": document_id,
-            "source_url": url,
-            "previous_source_url": previous,
-        }
 
     def _removal(document_id: str, *, remove: bool) -> dict:
         """Remove one Document, or say what removing it would take. The same
@@ -2825,6 +2938,10 @@ def create_app(
                     "n_pages": d.get("n_pages"),
                     "ocr_applied": bool(d.get("ocr_applied")),
                     "added_at": d.get("created_at"),
+                    # Whether the stored file is on disk to open as "our copy".
+                    "has_copy": bool(d.get("local_path")),
+                    "edited_by": d.get("edited_by"),
+                    "edited_at": d.get("edited_at"),
                 }
             )
         return {"economy": code, "n": len(documents), "documents": documents}
@@ -2944,6 +3061,42 @@ def create_app(
             "record": found[0] if found else None,
             "bundle_mode": bundle is not None,
         }
+
+    @app.get("/api/evidence/runs")
+    def evidence_runs() -> dict:
+        """The finished Runs the Evidence screen chooses from: every Economy
+        with one, newest first, and within it the newest Run for each Engine
+        and set of Pillars. The Economy's first Run is the one it opens on."""
+        configured = economies()
+        found: dict[str, dict] = {}
+        for record in _read_runs(
+            db_path, kind="run", status="completed", limit=MAX_LIMIT
+        ):
+            code = record["economy"]
+            entry = found.setdefault(
+                code,
+                {
+                    "economy": code,
+                    "name": getattr(configured.get(code), "official_name", None) or code,
+                    "newest_run_id": record["run_id"],
+                    "runs": [],
+                },
+            )
+            pillars = sorted(record.get("pillars") or [])
+            if any(
+                r["engine"] == record.get("engine") and r["pillars"] == pillars
+                for r in entry["runs"]
+            ):
+                continue
+            entry["runs"].append(
+                {
+                    "run_id": record["run_id"],
+                    "engine": record.get("engine"),
+                    "pillars": pillars,
+                    "started_at": record.get("started_at"),
+                }
+            )
+        return {"economies": list(found.values())}
 
     @app.get("/api/runs/{run_id}")
     def run_record(run_id: str) -> dict:
@@ -3192,6 +3345,10 @@ def create_app(
             # nothing about the Mapping Engine B chose for the same Indicator.
             reviews_a = _review_statuses(storage, record_a.run_id)
             reviews_b = _review_statuses(storage, record_b.run_id)
+            # The 7.1/7.2 note asks the export's own rule, on the export's names.
+            from regcompass.pipeline import framework_checker
+
+            framework_check = framework_checker(storage)
         finally:
             storage.close()
 
@@ -3199,15 +3356,10 @@ def create_app(
         displays = {
             name: engine.display_name for name, engine in models.engines.items()
         }
-        # "provider / model" as the organizers' sheet asks for it: the model id
-        # without the routing prefix the provider already names.
-        engine_models = {}
-        for name, engine in models.engines.items():
-            model_id = engine.litellm_model
-            prefix = f"{engine.provider}/"
-            if model_id.startswith(prefix):
-                model_id = model_id[len(prefix):]
-            engine_models[name] = f"{engine.provider} / {model_id}"
+        # "provider / model" as the organizers' sheet asks for it.
+        from regcompass.compare import engine_model_names
+
+        engine_models = engine_model_names(models)
         # Every record on the Economy, Runs and Discoveries, so each pass can
         # count the documents its own Discovery fetched.
         economy_records = [
@@ -3226,6 +3378,7 @@ def create_app(
                 note=note,
                 economy_records=economy_records,
                 engine_models=engine_models,
+                framework_check=framework_check,
             )
         except ComparisonMismatch as e:
             raise HTTPException(400, str(e))

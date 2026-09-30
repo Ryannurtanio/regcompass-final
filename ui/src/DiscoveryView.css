@@ -1,5 +1,7 @@
 /* The Discovery view on the shared tokens (styles.css), light and dark alike.
-   Quiet by design: the one thing that moves is the working phase's centre. */
+   While it runs, a log adds each law as it comes; once it has finished, each
+   Document is placed against the Pillar's Indicators. Reduced motion shows the
+   end state at once. */
 .dv {
   display: flex;
   flex-direction: column;
@@ -110,43 +112,194 @@
   flex: none;
 }
 
-/* ---- the four phases ---------------------------------------------------- */
+/* ---- while it runs: the access line, the sweep, the log ----------------- */
 
-.dv-phases {
-  list-style: none;
-  margin: 0;
-  padding: var(--space-5) var(--space-5);
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--space-5);
-  background: var(--surface);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius-lg);
-}
-
-.dv-phase {
+.dv-meta-block {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
-  min-width: 0;
+  gap: 10px;
+  min-width: min(520px, 100%);
 }
 
-.dv-phase-name {
+.dv-head-text .dv-meta {
+  color: var(--ink);
+  font-size: 17px;
+}
+
+.dv-dots i {
+  font-style: normal;
+  animation: dv-dot 1.2s var(--ease) infinite;
+}
+
+.dv-dots i:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.dv-dots i:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes dv-dot {
+  0%,
+  20% {
+    opacity: 0.15;
+  }
+  40%,
+  100% {
+    opacity: 1;
+  }
+}
+
+/* The total is not known ahead, so the bar sweeps rather than fills. */
+.dv-sweep {
+  position: relative;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--rule);
+  overflow: hidden;
+}
+
+.dv-sweep i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 40%;
+  border-radius: 2px;
+  background: var(--route);
+  animation: dv-sweep 1.4s var(--ease) infinite;
+}
+
+.dv-sweep-full i {
+  width: 100%;
+  animation: none;
+}
+
+@keyframes dv-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+
+.dv-live {
+  transform-origin: 6px 6px;
+  animation: dv-pulse 1.6s ease-in-out infinite;
+}
+
+/* The log is dark in both themes, like a terminal. */
+.dv-log {
+  --dv-log-bg: #14252e;
+  --dv-log-ink: #e3e9e5;
+  --dv-log-dim: #93a3a9;
+  --dv-log-found: #a9bcf2;
+  --dv-log-added: #f9faf8;
+  --dv-log-rule: #2a3d47;
+  background: var(--dv-log-bg);
+  color: var(--dv-log-ink);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.dv-log-head {
   display: flex;
-  gap: var(--space-2);
+  flex-wrap: wrap;
+  justify-content: space-between;
   align-items: center;
+  gap: var(--space-1) var(--space-4);
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--dv-log-rule);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--dv-log-dim);
+}
+
+.dv-log-tally {
+  display: flex;
+  gap: 1.5ch;
+  color: var(--dv-log-ink);
+}
+
+.dv-log-body {
+  padding: 16px 20px 18px;
+  min-height: 240px;
+  max-height: 372px;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+  line-height: 2;
+}
+
+.dv-line {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) minmax(0, 190px);
+  gap: 16px;
+  align-items: baseline;
+  animation: dv-line 0.28s var(--ease) both;
+}
+
+@keyframes dv-line {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.dv-line-tag {
+  color: var(--dv-log-dim);
+}
+
+.dv-line-text {
+  color: var(--dv-log-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dv-line-right {
+  color: var(--dv-log-dim);
+  font-size: var(--text-xs);
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dv-line-found .dv-line-tag {
+  color: var(--dv-log-found);
+}
+
+.dv-line-added .dv-line-tag,
+.dv-line-done .dv-line-tag {
+  color: var(--dv-log-added);
   font-weight: 600;
 }
 
-.dv-phase-line {
-  font-size: var(--text-sm);
-  color: var(--muted);
+.dv-line-access .dv-line-text,
+.dv-line-added .dv-line-text,
+.dv-line-corpus .dv-line-text,
+.dv-line-left .dv-line-text {
+  color: var(--dv-log-dim);
 }
 
-.dv-phase-waiting .dv-phase-name,
-.dv-phase-nothing .dv-phase-name {
-  color: var(--muted);
-  font-weight: 500;
+.dv-cursor {
+  display: inline-block;
+  width: 9px;
+  height: 17px;
+  margin-left: 6px;
+  vertical-align: -3px;
+  background: var(--dv-log-ink);
+  animation: dv-blink 1.05s steps(1) infinite;
+}
+
+@keyframes dv-blink {
+  50% {
+    opacity: 0;
+  }
 }
 
 .dv-pulse {
@@ -164,6 +317,144 @@
     opacity: 0.35;
     transform: scale(0.7);
   }
+}
+
+/* ---- once it has finished: Filter by Pillar ---------------------------- */
+
+.dv-filter-head {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.dv-filter-head h3 {
+  font-size: 19px;
+}
+
+.dv-k {
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+
+.dv-frow {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto 84px;
+  gap: var(--space-4);
+  align-items: center;
+  padding: 14px var(--space-5);
+  border-top: 1px solid var(--rule);
+  transition:
+    background var(--dur) var(--ease),
+    opacity var(--dur) var(--ease);
+}
+
+.dv-frow-head {
+  align-items: end;
+  padding-top: 4px;
+  padding-bottom: 10px;
+  border-top: 0;
+}
+
+.dv-frow-cur {
+  background: var(--route-soft);
+}
+
+.dv-frow-wait {
+  opacity: 0.5;
+}
+
+.dv-frow-state {
+  text-align: right;
+  font-size: var(--text-md);
+  font-weight: 500;
+}
+
+.dv-frow-head .dv-frow-state {
+  font-weight: 400;
+}
+
+.dv-chips {
+  display: grid;
+  grid-template-columns: repeat(var(--dv-cols, 5), 56px);
+  gap: 10px;
+}
+
+.dv-chips-none {
+  display: block;
+  min-width: 12em;
+  font-size: var(--text-sm);
+  color: var(--muted);
+  text-align: right;
+}
+
+.dv-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  white-space: nowrap;
+}
+
+.dv-col b {
+  font-size: 15px;
+}
+
+.dv-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 30px;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  border: 1px solid var(--rule);
+  color: transparent;
+}
+
+.dv-chip-wait {
+  border-style: dashed;
+}
+
+.dv-chip-off {
+  border-color: transparent;
+}
+
+.dv-chip-on {
+  border-color: var(--route);
+  background: var(--route);
+  color: var(--surface);
+  animation: dv-chip 0.45s var(--ease) both;
+}
+
+@keyframes dv-chip {
+  0% {
+    background: var(--surface);
+    color: var(--ink);
+    transform: scale(0.86);
+  }
+  60% {
+    transform: scale(1.08);
+  }
+  100% {
+    background: var(--route);
+    color: var(--surface);
+    transform: none;
+  }
+}
+
+.dv-filter-foot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 18px var(--space-5);
+  border-top: 1px solid var(--rule);
+}
+
+.dv-filter-foot b {
+  font-size: 17px;
+  font-weight: 600;
+  animation: dv-line 0.35s var(--ease) both;
 }
 
 /* ---- the Documents ------------------------------------------------------ */
@@ -204,7 +495,7 @@
 
 .dv-doc {
   display: grid;
-  grid-template-columns: 18px minmax(0, 1fr) auto minmax(9.5em, auto);
+  grid-template-columns: 18px minmax(0, 1fr) minmax(9.5em, auto);
   gap: var(--space-4);
   align-items: baseline;
   padding: 10px var(--space-5);
@@ -239,9 +530,10 @@
   color: var(--ink);
 }
 
-.dv-doc-pages {
-  text-align: right;
-  white-space: nowrap;
+.dv-note {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--muted);
 }
 
 .dv-doc-state {
@@ -254,7 +546,7 @@
   color: var(--ink);
 }
 
-.dv-skipped .dv-doc-title,
+.dv-left .dv-doc-title,
 .dv-found .dv-doc-title {
   color: var(--muted);
 }
@@ -303,10 +595,38 @@
     align-items: flex-start;
   }
 
-  .dv-phases {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    padding: var(--space-4);
-    gap: var(--space-4);
+  .dv-line {
+    grid-template-columns: 48px minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .dv-line-right {
+    display: none;
+  }
+
+  .dv-frow {
+    grid-template-columns: 18px minmax(0, 1fr) auto;
+    gap: var(--space-2) var(--space-3);
+    padding: 12px var(--space-4);
+  }
+
+  .dv-frow .dv-chips {
+    grid-column: 2 / 4;
+    grid-template-columns: repeat(var(--dv-cols, 5), 48px);
+    gap: 6px;
+  }
+
+  .dv-frow-head .dv-chips {
+    grid-column: 2 / 4;
+    grid-row: 2;
+  }
+
+  .dv-chip {
+    width: 48px;
+  }
+
+  .dv-chips-none {
+    text-align: left;
   }
 
   .dv-list-head {
@@ -314,38 +634,30 @@
   }
 
   .dv-doc {
-    grid-template-columns: 18px minmax(0, 1fr) auto;
+    grid-template-columns: 18px minmax(0, 1fr);
     gap: var(--space-1) var(--space-3);
     padding: 10px var(--space-4);
   }
 
   .dv-doc-state {
-    grid-column: 2 / 4;
+    grid-column: 2;
     text-align: left;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .dv-pulse {
+  .dv-pulse,
+  .dv-live,
+  .dv-dots i,
+  .dv-sweep i,
+  .dv-cursor,
+  .dv-line,
+  .dv-chip-on,
+  .dv-filter-foot b {
     animation: none;
   }
-}
 
-.dv-technical {
-  margin-top: var(--space-1);
-  font-size: var(--text-sm);
-  color: var(--muted);
-}
-
-.dv-technical summary {
-  cursor: pointer;
-}
-
-.dv-technical code {
-  display: block;
-  margin-top: var(--space-1);
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  color: var(--ink);
-  overflow-wrap: anywhere;
+  .dv-frow {
+    transition: none;
+  }
 }

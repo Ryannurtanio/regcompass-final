@@ -7,7 +7,10 @@ Checks, in order (stdlib string/regex only, deliberately boring):
    that identity too).
 2. Every component of the cited subsection reference ("(2)(a)" -> "(2)", "(a)")
    is actually present in the chunk text; a reference with no parseable
-   component is a failure.
+   component is a failure. Markers are compared the way the law writes them:
+   full-width brackets, Chinese numerals and non-ASCII digits read as numbers,
+   letters of any script, and "(a)", "a)", "a." count as the same marker. Only
+   this marker comparison is normalised; the quote check stays byte-exact.
 
 A failure triggers the stricter-retry escalation: re-map the pair (M6) with
 mechanical feedback appended to the prompt, sharing the SAME attempt budget
@@ -19,9 +22,11 @@ visible here; no library retry magic.
 from __future__ import annotations
 
 import re
+import unicodedata
 from dataclasses import dataclass, field
 from typing import Literal
 
+from .chunk import zh_numeral_to_int
 from .config import CONFIG_DIR
 from .contracts import (
     CanonicalText,
@@ -37,7 +42,54 @@ from .map import MIN_QUOTE_CHARS, CompletionFn, map_gated_chunk
 from .observability import log_stage
 from .storage import Storage
 
-_SUBSECTION_COMPONENT = re.compile(r"\([0-9A-Za-z]+\)")
+# A marker is a short run of letters or digits of any script ([^\W_]), in
+# brackets "(a)" or followed by ")", "." or the Chinese list comma "、".
+# Full-width brackets and stops count as their ASCII twins: （一） is (一).
+_OPEN, _CLOSE, _STOP = "[(（]", "[)）]", "[.．]"
+_BRACKETED = re.compile(rf"{_OPEN}\s*([^\W_]+)\s*{_CLOSE}")
+# "x." and "x)" count as the same marker as "(x)". Trade-off: a marker only has
+# to be present somewhere in the chunk; the exact quote is the real guard.
+# The "." style must end at a space, which keeps decimals such as "11.1" out.
+_SUFFIX = rf"([^\W_]{{1,4}})(?:{_CLOSE}|、|{_STOP}(?=\s|$))"
+# In the chunk, an unbracketed marker must start a line (after any spaces or
+# an opening bracket) so a word ending a sentence ("... Pribadi.") is not
+# read as the marker "i.".
+_CHUNK_SUFFIX_MARKER = re.compile(rf"^[ \t\u3000(（]*{_SUFFIX}", re.MULTILINE)
+# A cited reference made only of unbracketed markers: "a.", "1)", "2) a.".
+_CITED_SUFFIX_MARKER = re.compile(_SUFFIX)
+_CITED_SUFFIX_ONLY = re.compile(rf"\s*(?:{_SUFFIX}\s*)+")
+
+
+def _marker_key(token: str) -> str:
+    """One marker as a comparable key: numbers in any script become their
+    ASCII value (一, ๑, １ and 1 are all "1"), everything else stays as
+    written, case included, because (a) and (A) are different markers."""
+    token = unicodedata.normalize("NFKC", token)
+    if token.isdecimal():
+        return str(int(token))
+    if token.isdigit():  # digit-like but not decimal (Ethiopic ፩): keep as written
+        return token
+    try:
+        number = zh_numeral_to_int(token)
+    except ValueError:
+        return token
+    return str(number) if number is not None else token
+
+
+def _cited_components(subsection: str) -> list[tuple[str, str]]:
+    """(as cited, key) for every marker in the cited reference. Bracketed
+    markers win wherever they sit ("Ayat (1)", "第十一条（一）"); otherwise the
+    whole reference must be unbracketed markers, or nothing parses."""
+    found = list(_BRACKETED.finditer(subsection))
+    if not found and _CITED_SUFFIX_ONLY.fullmatch(subsection):
+        found = list(_CITED_SUFFIX_MARKER.finditer(subsection))
+    return [(m.group(0), _marker_key(m.group(1))) for m in found]
+
+
+def _chunk_marker_keys(text: str) -> set[str]:
+    tokens = [m.group(1) for m in _BRACKETED.finditer(text)]
+    tokens += [m.group(1) for m in _CHUNK_SUFFIX_MARKER.finditer(text)]
+    return {_marker_key(t) for t in tokens}
 
 
 def verify_record(
@@ -61,12 +113,13 @@ def verify_record(
         failures.append(f"quote too short or trivial ({len(quote.strip())} chars after strip)")
     elif quote not in chunk.text:
         failures.append("quote is not a byte-for-byte substring of the chunk text")
-    if record.subsection is not None:
-        components = _SUBSECTION_COMPONENT.findall(record.subsection)
+    if record.subsection is not None and record.subsection.strip():
+        components = _cited_components(record.subsection)
         if not components:
             failures.append(f"unparseable subsection reference {record.subsection!r}")
         else:
-            missing = [c for c in components if c not in chunk.text]
+            present = _chunk_marker_keys(chunk.text)
+            missing = [cited for cited, key in components if key not in present]
             if missing:
                 failures.append(
                     f"subsection component(s) {', '.join(missing)} not present in the chunk"

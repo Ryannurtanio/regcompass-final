@@ -961,14 +961,18 @@ class TestTheOperatorSuppliedEconomies:
         assert portal.manual_only is False, "these are waiting, not forbidden"
         assert portal.min_interval_seconds >= 2.0
 
-    def test_the_russian_portal_has_no_verified_host(self):
-        """publication.pravo.gov.ru never answered from our network, so no
-        host may be whitelisted on its behalf: an operator-supplied Russian
-        URL is vouched for by the person who supplies it."""
+    def test_the_russian_portal_lists_its_two_plain_http_hosts(self):
+        """publication.pravo.gov.ru (image scans, amendments only) is never
+        whitelisted; the consolidated texts on pravo.gov.ru and the acts bank
+        on kremlin.ru are, over plain http because port 443 is closed on our
+        path; the Eurasian Economic Commission's own PDFs are, over https.
+        Discovery by Pillar fetches their seeded addresses."""
         from regcompass.config import load_portals
 
         portal = load_portals()["RU"]
-        assert portal.hosts == []
+        assert portal.hosts == ["pravo.gov.ru", "kremlin.ru", "eec.eaeunion.org"]
+        assert "publication.pravo.gov.ru" not in portal.hosts
+        assert portal.http_hosts == ["pravo.gov.ru", "kremlin.ru"]
         assert portal.strategy == "manual"
 
     def test_an_operator_supplied_document_reaches_the_corpus(

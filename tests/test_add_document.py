@@ -602,7 +602,8 @@ class TestUploadingADocument:
         assert record["run_id"] == r.json()["run_id"]
         assert record["status"] == "completed"
         assert record["engine"] is None
-        assert record["documents_fetched"] == 1
+        # a file from the reviewer's machine is not a Document downloaded
+        assert record["documents_fetched"] == 0
         assert record["details"]["manual"] is True
         assert record["details"]["source"] == "upload"
         assert record["details"]["source_url"] == MY_URL
@@ -718,6 +719,43 @@ class TestAddingByUrl:
         assert row["language"] == "English"
         assert row["source_url"] == SG_URL
         assert row["full_text"]
+
+    def test_a_seeded_official_address_takes_its_seeds_title_and_language(
+        self, storage, tmp_path
+    ):
+        """An address the source list already names is a known law: added by
+        URL with no title or Language given, it is filed under the law's own
+        name and Language, not its file name and the Portal's default."""
+        from regcompass.config import load_crawl_seeds
+
+        seed = load_crawl_seeds()["KZ"].families["data_protection"]
+        url = seed.urls[0]
+        fetch = recorded_fetch({url: SG_PDF.read_bytes()})
+        result = add_document_from_url(
+            storage, tmp_path / "data", "KZ", url, fetch=fetch, limiter=SpyLimiter(),
+        )
+        row = storage.conn.execute(
+            "SELECT * FROM documents WHERE document_id = ?", (result.document_id,)
+        ).fetchone()
+        assert row["title"] == seed.law
+        assert row["language"] == seed.language == "English"
+        assert result.language == "English"
+
+    def test_the_operators_own_title_and_language_still_win_on_a_seeded_address(
+        self, storage, tmp_path
+    ):
+        from regcompass.config import load_crawl_seeds
+
+        url = load_crawl_seeds()["KZ"].families["data_protection"].urls[0]
+        fetch = recorded_fetch({url: SG_PDF.read_bytes()})
+        result = add_document_from_url(
+            storage, tmp_path / "data", "KZ", url, language="Russian",
+            title="My own name", fetch=fetch, limiter=SpyLimiter(),
+        )
+        row = storage.conn.execute(
+            "SELECT * FROM documents WHERE document_id = ?", (result.document_id,)
+        ).fetchone()
+        assert (row["title"], row["language"]) == ("My own name", "Russian")
 
     def test_robots_is_read_and_the_rate_limiter_is_waited_on_before_the_fetch(
         self, storage, tmp_path
@@ -932,6 +970,8 @@ class TestAddingAnIndiaActWhileItsRulesAreUnreadable:
         record = Storage(db).runs_list(kind="discovery")[0]
         assert record["details"]["robots_unavailable_status"] == 500
         assert record["details"]["robots_unavailable_policy"] == "proceed"
+        # adding by address IS a download, and counts as one
+        assert record["documents_fetched"] == 1
 
     def test_the_endpoint_answers_503_on_the_default_policy(
         self, app_client, monkeypatch, tmp_path
@@ -1151,10 +1191,11 @@ class TestChinaAddsByUrlFromTheRegulator:
 
     CAC_PIPL = "https://www.cac.gov.cn/2021-08/20/c_1631050028355286.htm"
 
-    def test_the_regulator_is_the_only_whitelisted_host(self):
+    def test_the_regulator_is_the_portal_host_and_the_law_database_is_never_listed(self):
         china = load_portals()["CN"]
         assert china.manual_only is False
-        assert china.hosts == ["www.cac.gov.cn"]
+        assert china.hosts[0] == "www.cac.gov.cn"
+        assert "flk.npc.gov.cn" not in china.hosts
         assert china.min_interval_seconds >= 3.0
 
     def test_a_statute_on_the_regulator_host_is_fetched_politely_and_added(

@@ -437,7 +437,7 @@ export default function RecordPane({
         ) : null}
 
         <dl className="ev-meta">
-          <MetaRow label="Rationale" value={rec?.impact} />
+          <MetaRow label="Rationale" value={detail?.impact_display ?? rec?.impact} />
           <MetaRow
             label="Confidence"
             value={

@@ -869,8 +869,11 @@ class TestExportFromTheWorkingDatabase:
         assert gate["n_accepted"] == 0
         assert "accepted" in gate["rule"]
 
-        # Accept exactly one: that Mapping, and only that one, ships.
-        accepted = recs[0]
+        # Accept exactly one: that Mapping, and only that one, ships. Not a 7.1
+        # or 7.2 one: those ship once per Economy and only on a framework law,
+        # and this fixture's Act is not one.
+        accepted = next(r for r in recs if r["indicator_id"] not in ("7.1", "7.2"))
+        other = next(r for r in recs if r["mapping_id"] != accepted["mapping_id"])
         assert c.post(
             "/api/reviews",
             json={
@@ -881,7 +884,7 @@ class TestExportFromTheWorkingDatabase:
         c.post(
             "/api/reviews",
             json={
-                "run_id": run_id, "mapping_id": recs[1]["mapping_id"],
+                "run_id": run_id, "mapping_id": other["mapping_id"],
                 "review_status": "rejected",
             },
         )
@@ -904,15 +907,15 @@ class TestExportFromTheWorkingDatabase:
 
         # A correction is saved beside the accepted row, and the corrected
         # Mapping ships too, under the reviewer's Indicator.
-        own = recs[1]["indicator_id"]
+        own = other["indicator_id"]
         detail = c.get(
-            f"/api/records/{recs[1]['mapping_id']}", params={"run_id": run_id}
+            f"/api/records/{other['mapping_id']}", params={"run_id": run_id}
         ).json()
-        to = next(ch["id"] for ch in detail["correction_choices"] if ch["id"] != own)
+        to = next(ch["id"] for ch in detail["correction_choices"] if ch["id"] not in (own, "7.1", "7.2"))
         corrected = c.post(
             "/api/reviews",
             json={
-                "run_id": run_id, "mapping_id": recs[1]["mapping_id"],
+                "run_id": run_id, "mapping_id": other["mapping_id"],
                 "review_status": "corrected", "corrected_indicator_id": to,
                 "comment": "Right provision, other Indicator.",
             },
@@ -928,7 +931,7 @@ class TestExportFromTheWorkingDatabase:
         gate = json.loads(
             Path(third.json()["supplementary_path"]).read_text(encoding="utf-8")
         )["review_gate"]
-        assert [o["mapping_id"] for o in gate["overrides"]] == [recs[1]["mapping_id"]]
+        assert [o["mapping_id"] for o in gate["overrides"]] == [other["mapping_id"]]
 
 
 class TestBundleLaneStillWorks:

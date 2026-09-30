@@ -58,6 +58,65 @@ SKIP_REASONS = {
     "not_fetched": "Not fetched in this Discovery.",
 }
 
+# Why a law the 2025 baseline cites for the drawn Indicators was not fetched by
+# a Discovery by Pillar, in the words the screen shows. The operator uploads
+# these by hand if they need them.
+BASELINE_SKIP_REASONS = {
+    "not_allowed_host": (
+        "Its address is not on this Economy's list of official hosts, so it"
+        " was not fetched."
+    ),
+    "unreachable": "The host could not be reached or did not send the law.",
+    "no_law_text": "The page has no law text that can be read.",
+    "over_cap": "Not fetched: Discovery stopped at its limit of Documents.",
+    "no_url": "The baseline gives no address for this law.",
+    "robots": "The host's robots.txt asks crawlers not to fetch it, so it was not fetched.",
+    "duplicate": "The same file is already in the Corpus under another address.",
+    "not_added": "Fetched, but it could not be added to the Corpus.",
+    "redirected_off": (
+        "Its address redirected off the official hosts, so the redirect was"
+        " not followed."
+    ),
+    "time_limit": "Not fetched: Discovery reached its time limit for baseline laws.",
+    "attempt_limit": (
+        "Not fetched: Discovery had already tried as many addresses as it"
+        " allows."
+    ),
+    "no_title_match": (
+        "The Portal's title search has no law under exactly this title, and"
+        " the baseline gives no official address for it."
+    ),
+    "wrong_law": (
+        "The baseline link points to a different law, so what it fetched was"
+        " not kept."
+    ),
+    "summary_page": (
+        "The baseline gives only the Portal's summary page for this law, not"
+        " its text; add the statute by hand."
+    ),
+}
+
+
+def baseline_skip_reason(code: str, detail: str | None = None) -> str:
+    """The plain sentence for a baseline law that was not fetched, with the
+    detail that makes it checkable (the host, the status, the limit)."""
+    if code == "not_allowed_host" and detail:
+        return (
+            f"Its address ({detail}) is not on this Economy's list of official"
+            " hosts, so it was not fetched."
+        )
+    if code == "over_cap" and detail:
+        return f"Not fetched: Discovery stopped at its limit of {detail} Documents."
+    if code == "time_limit" and detail:
+        return f"Not fetched: Discovery reached its time limit of {detail} for baseline laws."
+    if code == "attempt_limit" and detail:
+        return f"Not fetched: Discovery had already tried {detail} addresses, its limit."
+    base = BASELINE_SKIP_REASONS[code]
+    if detail and code in ("unreachable", "no_law_text", "robots", "not_added", "redirected_off"):
+        return f"{base[:-1]} ({detail})."
+    return base
+
+
 # How an earlier refusal by robots.txt is recorded on the address's row.
 _ROBOTS_MARK = "robots.txt disallows"
 

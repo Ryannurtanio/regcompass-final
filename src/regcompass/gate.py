@@ -18,6 +18,7 @@ Storage is supplied (chunk rows must exist; store_embedding raises otherwise).
 
 from __future__ import annotations
 
+import logging
 import os
 import re
 from dataclasses import dataclass, field
@@ -37,8 +38,13 @@ from .storage import Storage
 
 EmbedFn = Callable[[list[str]], np.ndarray]
 
+log = logging.getLogger(__name__)
+
 EMBED_BATCH = 32
 EMBED_MAX_CHARS = 4000  # deterministic embedding-input truncation; bm25 sees full text
+# A piece the embedder refuses as longer than its context window is retried
+# alone, then cut in half at most this many times before it is skipped.
+EMBED_SHORTER_CUTS = 2
 
 # The two shortlisting rules, named on the GateReport and the m5_gate audit row.
 TWO_TIER = "two_tier"
@@ -147,6 +153,14 @@ def _embedder_model() -> str:
     return litellm_name.split("/", 1)[1] if "/" in litellm_name else litellm_name
 
 
+class EmbedInputTooLongError(RuntimeError):
+    """The embedder refused an input as longer than its context window."""
+
+
+def _too_long(exc: BaseException) -> bool:
+    return isinstance(exc, EmbedInputTooLongError) or "context length" in str(exc).casefold()
+
+
 def embed_ollama(texts: list[str], model: str | None = None, timeout: float = 300.0) -> np.ndarray:
     """Embed texts with the local Ollama server. Batched; any failure raises
     (a partial result is never returned)."""
@@ -161,7 +175,12 @@ def embed_ollama(texts: list[str], model: str | None = None, timeout: float = 30
                 batch = texts[i : i + EMBED_BATCH]
                 resp = client.post(f"{base}/api/embed", json={"model": model, "input": batch})
                 if resp.status_code != 200:
-                    raise RuntimeError(
+                    error = (
+                        EmbedInputTooLongError
+                        if "context length" in resp.text.casefold()
+                        else RuntimeError
+                    )
+                    raise error(
                         f"ollama embed failed (HTTP {resp.status_code}) at {base}: "
                         f"{resp.text[:300]}"
                     )
@@ -179,6 +198,46 @@ def embed_ollama(texts: list[str], model: str | None = None, timeout: float = 30
             "present (`ollama pull bge-m3`). No partial results were produced."
         ) from e
     return np.vstack(rows) if rows else np.empty((0, 0), dtype=np.float32)
+
+
+def _embed_pieces(embed_fn: EmbedFn, texts: list[str]) -> tuple[np.ndarray, list[int]]:
+    """Embed the pieces of one Document. When the embedder refuses the batch
+    as too long for its context window, each piece is embedded alone, and a
+    piece still refused is retried with its text cut in half (at most
+    EMBED_SHORTER_CUTS times). A piece that never fits gets a zero vector and
+    its index is returned, so one piece never empties a whole Document. Any
+    other failure is raised as before."""
+    try:
+        return np.asarray(embed_fn(texts), dtype=np.float32), []
+    except Exception as exc:
+        if not _too_long(exc) or len(texts) == 0:
+            raise
+    rows: list[np.ndarray | None] = []
+    skipped: list[int] = []
+    for i, text in enumerate(texts):
+        vec = None
+        cut = text
+        for _ in range(EMBED_SHORTER_CUTS + 1):
+            try:
+                vec = np.asarray(embed_fn([cut]), dtype=np.float32)[0]
+                break
+            except Exception as exc:
+                if not _too_long(exc):
+                    raise
+                cut = cut[: len(cut) // 2]
+        if vec is None:
+            skipped.append(i)
+        rows.append(vec)
+    width = next((len(r) for r in rows if r is not None), 0)
+    if width == 0:
+        raise EmbedInputTooLongError(
+            "no piece of this Document fits the embedder's context length,"
+            " even cut to a quarter"
+        )
+    matrix = np.vstack(
+        [r if r is not None else np.zeros(width, dtype=np.float32) for r in rows]
+    )
+    return matrix, skipped
 
 
 # ---------------------------------------------------------------------------
@@ -200,6 +259,9 @@ class GateReport:
     # top-k). The caller logs it on the m5_gate audit row, so a reviewer can see
     # from the record which rule shortlisted a Document.
     gate_mode: str = TWO_TIER
+    # Chunk ids of pieces the embedder refused even cut to a quarter: their
+    # rows are logged as excluded, and the rest of the Document is gated.
+    unembedded: list = field(default_factory=list)
 
 
 def _unit(matrix: np.ndarray) -> np.ndarray:
@@ -261,16 +323,27 @@ def gate_document(
     pillar_vecs = _unit(
         np.asarray(embed_fn([pillar_texts[p] for p in ordered_pillars]), dtype=np.float32)
     )
-    chunk_vecs = np.asarray(
-        embed_fn([c.text[:EMBED_MAX_CHARS] for c in candidates]), dtype=np.float32
+    chunk_vecs, skipped = _embed_pieces(
+        embed_fn, [c.text[:EMBED_MAX_CHARS] for c in candidates]
     )
+    unembedded = set(skipped)
+    for i in skipped:
+        c = candidates[i]
+        report.unembedded.append(c.chunk_id)
+        note = (
+            f"{c.section_label or c.chunk_id} could not be embedded (longer than the"
+            " embedder's context length even cut to a quarter); its rows are excluded"
+        )
+        report.notes.append(note)
+        log.warning("gate: %s: %s", c.chunk_id, note)
     report.embed_dim = int(chunk_vecs.shape[1])
     unit_vecs = _unit(chunk_vecs)
     cosine = {p: unit_vecs @ pillar_vecs[i] for i, p in enumerate(ordered_pillars)}
 
     if storage is not None:
-        for c, vec in zip(candidates, chunk_vecs):
-            storage.store_embedding(c.chunk_id, vec)
+        for i, (c, vec) in enumerate(zip(candidates, chunk_vecs)):
+            if i not in unembedded:
+                storage.store_embedding(c.chunk_id, vec)
 
     # Tier 2: bm25 score of every chunk for every indicator vocabulary.
     n = len(candidates)
@@ -308,7 +381,8 @@ def gate_document(
         top_idx = set(order[: config.gate_bm25_top_k].tolist())
         for i, c in enumerate(candidates):
             passed = (
-                float(cos[i]) >= config.gate_pillar_cosine_min
+                i not in unembedded
+                and float(cos[i]) >= config.gate_pillar_cosine_min
                 and i in top_idx
                 and (not keyword_tier or float(scores[i]) > 0.0)
             )

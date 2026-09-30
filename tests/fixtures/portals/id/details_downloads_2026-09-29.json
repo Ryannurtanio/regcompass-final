@@ -1,0 +1,581 @@
+{
+ "recorded": "2026-09-29",
+ "host": "peraturan.bpk.go.id",
+ "how": "One request per /Details/ page the 2025 baseline cites for Indonesia, as RegCompass/0.1.0 (identified, no impersonation), at least 5 s apart, no redirect followed off the host; then one request per statute PDF. 'download' is the page's statute link (data-kategori Peraturan); pages, text_chars and low_text_pages are what the Corpus extractor reads from that PDF; read_by_ocr is its scanned-document decision.",
+ "pages": {
+  "5664": {
+   "details": "https://peraturan.bpk.go.id/Details/5664/pp-no-85-tahun-2015",
+   "title": "PP No. 85 Tahun 2015 tentang Perubahan Atas Peraturan Pemerintah Nomor 32 Tahun 2009 Tentang Tempat Penimbunan Berikat",
+   "download": "/Download/29683/PP%20Nomor%2085%20Tahun%202015.pdf",
+   "pages": 35,
+   "text_chars": 45034,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "37536": {
+   "details": "https://peraturan.bpk.go.id/Details/37536/uu-no-13-tahun-2016",
+   "title": "UU No. 13 Tahun 2016 tentang Paten",
+   "download": "/Download/26629/UU%20Nomor%2013%20Tahun%202016.pdf",
+   "pages": 119,
+   "text_chars": 158861,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "37582": {
+   "details": "https://peraturan.bpk.go.id/Details/37582/uu-no-19-tahun-2016",
+   "title": "UU No. 19 Tahun 2016 tentang Perubahan Atas Undang-Undang Nomor 11 Tahun 2008 Tentang Informasi Dan Transaksi Elektronik",
+   "download": "/Download/26676/UU%20Nomor%20%2019%20Tahun%202016.pdf",
+   "pages": 21,
+   "text_chars": 31538,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "37589": {
+   "details": "https://peraturan.bpk.go.id/Details/37589/uu-no-11-tahun-2008",
+   "title": "UU No. 11 Tahun 2008 tentang Informasi dan Transaksi Elektronik",
+   "download": "/Download/26683/UU%20Nomor%2011%20Tahun%202008.pdf",
+   "pages": 38,
+   "text_chars": 59482,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "37644": {
+   "details": "https://peraturan.bpk.go.id/Details/37644/uu-no-7-tahun-2017",
+   "title": "UU No. 7 Tahun 2017 tentang Pemilihan Umum",
+   "download": "/Download/26738/UU_Nomor_7_Tahun_2017_-_Batang_Tubuh_-_Hal._1-150.pdf",
+   "pages": 150,
+   "text_chars": 206490,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "38584": {
+   "details": "https://peraturan.bpk.go.id/Details/38584/uu-no-7-tahun-2014",
+   "title": "UU No. 7 Tahun 2014 tentang Perdagangan",
+   "download": "/Download/27842/UU%20Nomor%2007%20Tahun%202014.pdf",
+   "pages": 79,
+   "text_chars": 103692,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "38663": {
+   "details": "https://peraturan.bpk.go.id/Details/38663/uu-no-20-tahun-2014",
+   "title": "UU No. 20 Tahun 2014 tentang Standardisasi dan Penilaian Kesesuaian",
+   "download": "/Download/27975/UU%20Nomor%2020%20Tahun%202014.pdf",
+   "pages": 39,
+   "text_chars": 44752,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "38690": {
+   "details": "https://peraturan.bpk.go.id/Details/38690/uu-no-28-tahun-2014",
+   "title": "UU No. 28 Tahun 2014 tentang Hak Cipta",
+   "asked_as": "https://peraturan.bpk.go.id/Details/38690",
+   "download": "/Download/28018/UU%20Nomor%2028%20Tahun%202014.pdf",
+   "pages": 84,
+   "text_chars": 114165,
+   "low_text_pages": 1,
+   "read_by_ocr": false
+  },
+  "38778": {
+   "details": "https://peraturan.bpk.go.id/Details/38778/uu-no-36-tahun-2009",
+   "title": "UU No. 36 Tahun 2009 tentang Kesehatan",
+   "download": "/Download/28107/UU%20Nomor%2036%20Tahun%202009.pdf",
+   "pages": 111,
+   "text_chars": 127284,
+   "low_text_pages": 1,
+   "read_by_ocr": false
+  },
+  "39740": {
+   "details": "https://peraturan.bpk.go.id/Details/39740/uu-no-44-tahun-2008",
+   "title": "UU No. 44 Tahun 2008 tentang Pornografi",
+   "asked_as": "https://peraturan.bpk.go.id/Details/39740",
+   "download": "/Download/29322/UU%20Nomor%2044%20Tahun%202008.pdf",
+   "pages": 23,
+   "text_chars": 27531,
+   "low_text_pages": 1,
+   "read_by_ocr": false
+  },
+  "44500": {
+   "details": "https://peraturan.bpk.go.id/Details/44500/uu-no-32-tahun-2002",
+   "title": "UU No. 32 Tahun 2002 tentang Penyiaran",
+   "download": "/Download/32772/UU%20Nomor%2032%20Tahun%202002.pdf",
+   "pages": 39,
+   "text_chars": 56649,
+   "low_text_pages": 1,
+   "read_by_ocr": false
+  },
+  "45357": {
+   "details": "https://peraturan.bpk.go.id/Details/45357/uu-no-36-tahun-1999",
+   "title": "UU No. 36 Tahun 1999 tentang Telekomunikasi",
+   "download": "/Download/33857/UU%20Nomor%2036%20Tahun%201999.pdf",
+   "pages": 40,
+   "text_chars": 60229,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "45486": {
+   "details": "https://peraturan.bpk.go.id/Details/45486/uu-no-10-tahun-1998",
+   "title": "UU No. 10 Tahun 1998 tentang Perubahan atas Undang-Undang Nomor 7 Tahun 1992 tentang Perbankan",
+   "download": "/Download/34003/UU%20Nomor%2010%20Tahun%201998.pdf",
+   "pages": 63,
+   "text_chars": 74453,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "45929": {
+   "details": "https://peraturan.bpk.go.id/Details/45929/uu-no-8-tahun-1997",
+   "title": "UU No. 8 Tahun 1997 tentang Dokumen Perusahaan",
+   "asked_as": "https://peraturan.bpk.go.id/Details/45929",
+   "download": "/Download/34482/UU%20Nomor%208%20Tahun%201997.pdf",
+   "pages": 22,
+   "text_chars": 33307,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "73586": {
+   "details": "https://peraturan.bpk.go.id/Details/73586/perpres-no-16-tahun-2018",
+   "title": "PERPRES No. 16 Tahun 2018 tentang Pengadaan Barang/Jasa Pemerintah",
+   "download": "/Download/64076/Perpres%20Nomor%2016%20Tahun%202018.pdf",
+   "pages": 90,
+   "text_chars": 106370,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "82994": {
+   "details": "https://peraturan.bpk.go.id/Details/82994/pp-no-24-tahun-2018",
+   "title": "PP No. 24 Tahun 2018 tentang Pelayanan Perizinan Berusaha Terintegrasi Secara Elektronik",
+   "download": "/Download/75913/PP%20Nomor%2024%20Tahun%202018.pdf"
+  },
+  "89213": {
+   "details": "https://peraturan.bpk.go.id/Details/89213/pp-no-29-tahun-2018",
+   "title": "PP No. 29 Tahun 2018 tentang Pemberdayaan Industri",
+   "download": "/Download/80065/PP%20Nomor%2029%20Tahun%202018.pdf",
+   "pages": 71,
+   "text_chars": 95292,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "98096": {
+   "details": "https://peraturan.bpk.go.id/Details/98096/perbup-kab-lumajang-no-14-tahun-2018",
+   "title": "PERBUP Kab. Lumajang No. 14 Tahun 2018 tentang MASTERPLAN TEKNOLOGI INFORMASI DAN KOMUNIKASI DI LINGKUNGAN PEMERINTAH DAERAH KABUPATEN LUMAJANG\r\nTAHUN 2018-2019",
+   "download": "/Download/88768/Perbup%20No.%2014_2018%20tentang%20Masterplan%20Teknologi%20Informasi%20dan%20Komunikasi%20di%20Lingkungan%20Pemerintah%20Daerah%20Kabupaten%20Lumajang%20Tahun%202018%20-%202019.pdf"
+  },
+  "111984": {
+   "details": "https://peraturan.bpk.go.id/Details/111984/pmk-no-17pmk0102018",
+   "title": "PMK No. 17/PMK.010/2018 tentang Perubahan Kedua Atas Peraturan Menteri Keuangan Nomor 6/PMK.010/2017 Tentang Penetapan Sistem Klasifikasi Barang Dan Pembebanan Tarif Bea Masuk Atas Barang Impor",
+   "download": "/Download/102937/PMK%20Nomor%2017%20Tahun%202018.pdf",
+   "pages": 8,
+   "text_chars": 10417,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "113234": {
+   "details": "https://peraturan.bpk.go.id/Details/113234/pmk-no-131pmk042018",
+   "title": "PMK No. 131/PMK.04/2018 tentang Kawasan Berikat",
+   "download": "/Download/104194/PMK%20Nomor%20131%20Tahun%202018.pdf",
+   "pages": 55,
+   "text_chars": 78155,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "122030": {
+   "details": "https://peraturan.bpk.go.id/Details/122030/pp-no-71-tahun-2019",
+   "title": "PP No. 71 Tahun 2019 tentang Penyelenggaraan Sistem dan Transaksi Elektronik",
+   "download": "/Download/112816/PP%20Nomor%2071%20Tahun%202019.pdf",
+   "pages": 90,
+   "text_chars": 120052,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "126143": {
+   "details": "https://peraturan.bpk.go.id/Details/126143/pp-no-80-tahun-2019",
+   "title": "PP No. 80 Tahun 2019 tentang Perdagangan Melalui Sistem Elektronik",
+   "download": "/Download/117172/PP%20Nomor%2080%20Tahun%202019.pdf",
+   "pages": 61,
+   "text_chars": 86242,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "128443": {
+   "details": "https://peraturan.bpk.go.id/Details/128443/permendag-no-75-tahun-2018",
+   "title": "Permendag No. 75 Tahun 2018 tentang Angka Pengenal Importir",
+   "download": "/Download/119389/Permendag%20No.%2075%20Tahun%202018.pdf"
+  },
+  "128929": {
+   "details": "https://peraturan.bpk.go.id/Details/128929/permendag-no-06m-dagper12015-tahun-2015",
+   "title": "Permendag No. 06/M-DAG/PER/1/2015 Tahun 2015 tentang Perubahan Kedua atas Peraturan Menteri Perdagangan Nomor 20/M-DAG/PER/4/2014 tentang Pengendalian dan Pengawasan Terhadap Pengadaan, Peredaran, dan Penjualan Minuman Beralkohol",
+   "download": "/Download/264271/Permendag%20No.%206%20Tahun%202015.pdf",
+   "pages": 5,
+   "text_chars": 8078,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "128989": {
+   "details": "https://peraturan.bpk.go.id/Details/128989/permendag-no-70m-dagper92015-tahun-2015",
+   "title": "Permendag No. 70/M-DAG/PER/9/2015 Tahun 2015 tentang Angka Pengenal Importir",
+   "download": "/Download/264977/Permendag%20No.%2070%20Tahun%202015.pdf",
+   "pages": 53,
+   "text_chars": 70267,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "133178": {
+   "details": "https://peraturan.bpk.go.id/Details/133178/permenkumham-no-38-tahun-2018",
+   "title": "Permenkumham No. 38 Tahun 2018 tentang Permohonan Paten",
+   "download": "/Download/123966/Permenkumham%20Nomor%2038%20Tahun%202018.pdf",
+   "pages": 59,
+   "text_chars": 79345,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "135874": {
+   "details": "https://peraturan.bpk.go.id/Details/135874/peraturan-bi-no-206pbi2018-tahun-2018",
+   "title": "Peraturan BI No. 20/6/PBI/2018 Tahun 2018 tentang Uang Elektronik",
+   "download": "/Download/126737/Peraturan%20BI%20No.%2020-6-PBI%202018.pdf",
+   "pages": 47,
+   "text_chars": 59353,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "142450": {
+   "details": "https://peraturan.bpk.go.id/Details/142450/permen-esdm-no-1-tahun-2014",
+   "title": "Permen ESDM No. 1 Tahun 2014 tentang Peningkatan Nilai Tambah Mineral Melalui Kegiatan Pengolahan dan Pemurnian Mineral di Dalam Negeri",
+   "download": "/Download/133871/Permen%20ESDM%20Nomor%201%20Tahun%202014.pdf",
+   "pages": 15,
+   "text_chars": 27548,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "144664": {
+   "details": "https://peraturan.bpk.go.id/Details/144664/pmk-no-115pmk062020",
+   "title": "PMK No. 115/PMK.06/2020 tentang Pemanfaatan Barang Milik Negara",
+   "download": "/Download/136379/115_PMK.06_2020.pdf",
+   "pages": 80,
+   "text_chars": 105442,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "147696": {
+   "details": "https://peraturan.bpk.go.id/Details/147696/pmk-no-6pmk0112014",
+   "title": "PMK No. 6/PMK.011/2014 tentang Perubahan Kedua atas Peraturan Menteri Keuangan Nomor 75/PMK.011/2012 tentang Penetapan Barang Ekspor yang Dikenakan Bea Keluar dan Tarif Bea Keluar",
+   "download": "/Download/139596/PMK%20Nomor%206%20Tahun%202014.pdf",
+   "pages": 3,
+   "text_chars": 4134,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "149735": {
+   "details": "https://peraturan.bpk.go.id/Details/149735/permenkominfo-no-15-tahun-2018",
+   "title": "Permenkominfo No. 15 Tahun 2018 tentang Badan Regulasi Telekomunikasi Indonesia",
+   "download": "/Download/141814/Permen%20Kominfo%20Nomor%2015%20Tahun%202018.pdf"
+  },
+  "149737": {
+   "details": "https://peraturan.bpk.go.id/Details/149737/permenkominfo-no-16-tahun-2018",
+   "title": "Permenkominfo No. 16 Tahun 2018 tentang Ketentuan Operasional Sertifikasi Alat dan/atau Perangkat Telekomunikasi",
+   "download": "/Download/141816/Permen%20Kominfo%20Nomor%2016%20Tahun%202018.pdf",
+   "pages": 41,
+   "text_chars": 48441,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "149750": {
+   "details": "https://peraturan.bpk.go.id/Details/149750/uu-no-11-tahun-2020",
+   "title": "UU No. 11 Tahun 2020 tentang Cipta Kerja",
+   "download": "/Download/153567/UU_Nomor_11_Tahun_2020-compressed.pdf",
+   "pages": 1187,
+   "text_chars": 1380739,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "150102": {
+   "details": "https://peraturan.bpk.go.id/Details/150102/permenkominfo-no-6-tahun-2017",
+   "title": "Permenkominfo No. 6 Tahun 2017 tentang Penyelenggaraan Layanan Televisi Protokol Internet (Internet Protocol Television)",
+   "download": "/Download/142269/Permen%20Kominfo%20Nomor%206%20Tahun%202017.pdf",
+   "pages": 24,
+   "text_chars": 31952,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "150526": {
+   "details": "https://peraturan.bpk.go.id/Details/150526/permenkominfo-no-5-tahun-2016",
+   "title": "Permenkominfo No. 5 Tahun 2016 tentang Uji Coba Teknologi Telekomunikasi, Informatika, Dan Penyiaran",
+   "download": "/Download/142726/Permen%20Kominfo%20Nomor%205%20Tahun%202016.pdf",
+   "pages": 5,
+   "text_chars": 6051,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "150543": {
+   "details": "https://peraturan.bpk.go.id/Details/150543/permenkominfo-no-20-tahun-2016",
+   "title": "Permenkominfo No. 20 Tahun 2016 tentang Perlindungan Data Pribadi Dalam Sistem Elektronik",
+   "download": "/Download/142743/Permen%20Kominfo%20Nomor%2020%20Tahun%202016.pdf",
+   "pages": 24,
+   "text_chars": 30920,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "152721": {
+   "details": "https://peraturan.bpk.go.id/Details/152721/perpres-no-112-tahun-2020",
+   "title": "PERPRES No. 112 Tahun 2020 tentang Pembubaran Dewan Riset Nasional, Dewan Ketahanan Pangan, Badan Pengembangan Wilayah Surabaya-Madura, Badan Standardisasi dan Akreditasi Nasional Keolahragaan, Komisi Pengawas Haji Indonesia, Komite Ekonomi dan Industri Nasional, Badan Pertimbangan Telekomunikasi, Komisi Nasional Lanjut Usia, Badan Olahraga Profesional Indonesia, dan Badan Regulasi Telekomunikasi Indonesia",
+   "download": "/Download/144982/Perpres%20Nomor%20112%20Tahun%202020.pdf",
+   "pages": 9,
+   "text_chars": 11014,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "159035": {
+   "details": "https://peraturan.bpk.go.id/Details/159035/permenkominfo-no-41permkominfo102009-tahun-20",
+   "title": "Permenkominfo No. 41/PER/M.KOMINFO/10/2009 Tahun 2009 tentang Tata Cara Penilaian Pencapaian Tingkat Komponen Dalam Negeri pada Penyelenggaraan Telekomunikasi",
+   "download": "/Download/151518/Permen%20Kominfo%20Nomor%2041%20Tahun%202009.pdf",
+   "pages": 10,
+   "text_chars": 12820,
+   "low_text_pages": 3,
+   "read_by_ocr": false
+  },
+  "161806": {
+   "details": "https://peraturan.bpk.go.id/Details/161806/perpres-no-10-tahun-2021",
+   "title": "PERPRES No. 10 Tahun 2021 tentang Bidang Usaha Penanaman Modal",
+   "download": "/Download/154474/Perpres%20Nomor%2010%20Tahun%202021.pdf",
+   "pages": 13,
+   "text_chars": 16004,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "161835": {
+   "details": "https://peraturan.bpk.go.id/Details/161835/pp-no-5-tahun-2021",
+   "title": "PP No. 5 Tahun 2021 tentang Penyelenggaraan Perizinan Berusaha Berbasis Risiko",
+   "download": "/Download/197880/PP%20Nomor%205%20Tahun%202021.pdf",
+   "pages": 739,
+   "text_chars": 505587,
+   "low_text_pages": 390,
+   "read_by_ocr": true
+  },
+  "161862": {
+   "details": "https://peraturan.bpk.go.id/Details/161862/pp-no-28-tahun-2021",
+   "title": "PP No. 28 Tahun 2021 tentang Penyelenggaraan Bidang Perindustrian",
+   "download": "/Download/154538/PP%20Nomor%2028%20Tahun%202021.pdf",
+   "pages": 118,
+   "text_chars": 147772,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "161970": {
+   "details": "https://peraturan.bpk.go.id/Details/161970/pp-no-46-tahun-2021",
+   "title": "PP No. 46 Tahun 2021 tentang Pos, Telekomunikasi, dan Penyiaran",
+   "download": "/Download/154649/PP%20Nomor%2046%20Tahun%202021.pdf"
+  },
+  "165493": {
+   "details": "https://peraturan.bpk.go.id/Details/165493/perpres-no-28-tahun-2021",
+   "title": "PERPRES No. 28 Tahun 2021 tentang Badan Siber dan Sandi Negara",
+   "download": "/Download/158388/Perpres%20Nomor%2028%20Tahun%202021.pdf",
+   "pages": 19,
+   "text_chars": 21267,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "166549": {
+   "details": "https://peraturan.bpk.go.id/Details/166549/permendag-no-25-tahun-2021",
+   "title": "Permendag No. 25 Tahun 2021 tentang Penetapan Barang Yang Wajib Menggunakan Atau Melengkapi Label Berbahasa Indonesia",
+   "download": "/Download/269197/Permendag%20Nomor%2025%20Tahun%202021%20(1).pdf",
+   "pages": 157,
+   "text_chars": 168354,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "167005": {
+   "details": "https://peraturan.bpk.go.id/Details/167005/permenperin-no-15m-indper32016-tahun-2016",
+   "title": "Permenperin No. 15/M-IND/PER/3/2016 Tahun 2016 tentang Standar Spesifikasi Dan Standar Harga Tower Transmisi Dan Konduktor Produk Dalam Negeri Dalam Rangka Percepatan Pembangunan Infrastruktur Ketenagalistrikan",
+   "download": "/Download/269216/Permenperin_No_15_2016.pdf",
+   "pages": 10,
+   "text_chars": 15554,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "168534": {
+   "details": "https://peraturan.bpk.go.id/Details/168534/perpres-no-49-tahun-2021",
+   "title": "PERPRES No. 49 Tahun 2021 tentang Perubahan atas Peraturan Presiden Nomor 10 Tahun 2021 Tentang Bidang Usaha Penanaman Modal",
+   "download": "/Download/161562/Perpres%20Nomor%2049%20Tahun%202021.pdf",
+   "pages": 6,
+   "text_chars": 7792,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "198052": {
+   "details": "https://peraturan.bpk.go.id/Details/198052/peraturan-pemerintah-nomor-34-tahun-2021",
+   "title": "",
+   "redirect": "/Details/198052/perbup-kab-jepara-no-38-tahun-2020"
+  },
+  "203049": {
+   "details": "https://peraturan.bpk.go.id/Details/203049/permenkominfo-no-5-tahun-2020",
+   "title": "Permenkominfo No. 5 Tahun 2020 tentang Penyelenggara Sistem Elektronik Lingkup Privat",
+   "download": "/Download/197017/Nomor%205%20Tahun%202020.pdf",
+   "pages": 41,
+   "text_chars": 56494,
+   "low_text_pages": 1,
+   "read_by_ocr": false
+  },
+  "203070": {
+   "details": "https://peraturan.bpk.go.id/Details/203070/permenkominfo-no-5-tahun-2021",
+   "title": "Permenkominfo No. 5 Tahun 2021 tentang Penyelenggaraan Telekomunikasi",
+   "download": "/Download/197038/Nomor%205%20Tahun%202021_compressed.pdf",
+   "pages": 909,
+   "text_chars": 255946,
+   "low_text_pages": 755,
+   "read_by_ocr": true
+  },
+  "203121": {
+   "details": "https://peraturan.bpk.go.id/Details/203121/permenkominfo-no-10-tahun-2021",
+   "title": "Permenkominfo No. 10 Tahun 2021 tentang Perubahan atas Peraturan Menteri Komunikasi dan Informatika Nomor 5 Tahun 2020 tentang Penyelenggara Sistem Elektronik Lingkup Privat",
+   "download": "/Download/197090/Nomor%2010%20Tahun%202021.pdf",
+   "pages": 4,
+   "text_chars": 4278,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "203124": {
+   "details": "https://peraturan.bpk.go.id/Details/203124/permenkominfo-no-13-tahun-2021",
+   "title": "Permenkominfo No. 13 Tahun 2021 tentang Standar Teknis Alat Telekomunikasi dan/atau Perangkat Telekomunikasi Bergerak Seluler Berbasis Standar Teknologi Long Term Evolution dan Standar Teknologi International Mobile Telecommunication-2020",
+   "download": "/Download/197093/Nomor%2013%20Tahun%202021.pdf",
+   "pages": 155,
+   "text_chars": 14144,
+   "low_text_pages": 149,
+   "read_by_ocr": true
+  },
+  "204320": {
+   "details": "https://peraturan.bpk.go.id/Details/204320/inpres-no-2-tahun-2022",
+   "title": "INPRES No. 2 Tahun 2022 tentang Percepatan Peningkatan Penggunaan Produk Dalam Negeri dan Produk Usaha Mikro, Usaha Kecil, dan Koperasi Dalam Rangka Menyukseskan Gerakan Nasional Bangga Buatan Indonesia pada Pelaksanaan Pengadaan Barang/Jasa Pemerintah",
+   "download": "/Download/198318/Inpres%20Nomor%202%20Tahun%202022.pdf",
+   "pages": 15,
+   "text_chars": 22276,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "219277": {
+   "details": "https://peraturan.bpk.go.id/Details/219277/peraturan-bi-no-2223pbi2020",
+   "title": "Peraturan BI No. 22/23/PBI/2020 tentang Sistem Pembayaran",
+   "download": "/Download/213684/22.23.PBI.2020.pdf",
+   "pages": 96,
+   "text_chars": 113208,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "223844": {
+   "details": "https://peraturan.bpk.go.id/Details/223844/permendag-no-40-tahun-2022",
+   "title": "Permendag No. 40 Tahun 2022 tentang Perubahan atas Peraturan Menteri Perdagangan Nomor 18 Tahun 2021 tentang Barang Dilarang Ekspor dan Barang Dilarang Impor",
+   "download": "/Download/269406/Permendag%20Nomor%2040%20Tahun%202022.pdf",
+   "pages": 23,
+   "text_chars": 29780,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "227209": {
+   "details": "https://peraturan.bpk.go.id/Details/227209/peraturan-ojk-no-12pojk032021-tahun-2021",
+   "title": "Peraturan OJK No. 12/POJK.03/2021 Tahun 2021 tentang Bank Umum",
+   "download": "/Download/221984/Peraturan%20OJK%20No.%2012%20Tahun%202021.pdf",
+   "pages": 119,
+   "text_chars": 146765,
+   "low_text_pages": 14,
+   "read_by_ocr": false
+  },
+  "227376": {
+   "details": "https://peraturan.bpk.go.id/Details/227376/peraturan-ojk-no-11pojk032022-tahun-2022",
+   "title": "Peraturan OJK No. 11/POJK.03/2022 Tahun 2022 tentang Penyelenggaraan Teknologi Informasi Oleh Bank Umum",
+   "download": "/Download/222180/Peraturan%20OJK%20No.%2011%20Tahun%202022.pdf",
+   "pages": 76,
+   "text_chars": 92415,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "229798": {
+   "details": "https://peraturan.bpk.go.id/Details/229798/uu-no-27-tahun-2022",
+   "title": "UU No. 27 Tahun 2022 tentang Pelindungan Data Pribadi",
+   "download": "/Download/224884/UU%20Nomor%2027%20Tahun%202022.pdf",
+   "pages": 50,
+   "text_chars": 61257,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "234015": {
+   "details": "https://peraturan.bpk.go.id/Details/234015/pmk-no-190pmk042022",
+   "title": "PMK No. 190/PMK.04/2022 tentang Pengeluaran Barang Impor untuk Dipakai",
+   "download": "/Download/286005/190_PMK.04_2022.pdf",
+   "pages": 27,
+   "text_chars": 55472,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "234926": {
+   "details": "https://peraturan.bpk.go.id/Details/234926/perpu-no-2-tahun-2022",
+   "title": "PERPU No. 2 Tahun 2022 tentang Cipta Kerja",
+   "download": "/Download/287447/Perpu%20Nomor%202%20Tahun%202022.pdf"
+  },
+  "255542": {
+   "details": "https://peraturan.bpk.go.id/Details/255542/perpres-no-47-tahun-2023",
+   "title": "PERPRES No. 47 Tahun 2023 tentang Strategi Keamanan Siber Nasional dan Manajemen Krisis Siber",
+   "download": "/Download/312229/Perpres%20Nomor%2047%20Tahun%202023.pdf",
+   "pages": 14,
+   "text_chars": 18678,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "265189": {
+   "details": "https://peraturan.bpk.go.id/Details/265189/pp-no-46-tahun-2023",
+   "title": "PP No. 46 Tahun 2023 tentang Perubahan atas Peraturan Pemerintah Nomor 28 Tahun 2021 tentang Penyelenggaraan Bidang Perindustrian",
+   "download": "/Download/322358/PP%20Nomor%2046%20Tahun%202023.pdf",
+   "pages": 355,
+   "text_chars": 546837,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "265202": {
+   "details": "https://peraturan.bpk.go.id/Details/265202/permendag-no-31-tahun-2023",
+   "title": "Permendag No. 31 Tahun 2023 tentang Perizinan Berusaha, Periklanan, Pembinaan, dan Pengawasan Pelaku Usaha dalam Perdagangan melalui Sistem Elektronik",
+   "download": "/Download/322371/Permendag%2031%20Tahun%202023.pdf",
+   "pages": 29,
+   "text_chars": 61476,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "272022": {
+   "details": "https://peraturan.bpk.go.id/Details/272022/peraturan-ojk-no-8-tahun-2023",
+   "title": "Peraturan OJK No. 8 Tahun 2023 tentang Penerapan Program Anti Pencucian Uang, Pencegahan Pendanaan Terorisme dan Pencegahan Pendanaan Proliferasi Senjata Pemusnah Massal Di Sektor Jasa Keuangan",
+   "download": "/Download/330125/POJK%208-2023.pdf",
+   "pages": 117,
+   "text_chars": 191066,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "274494": {
+   "details": "https://peraturan.bpk.go.id/Details/274494/uu-no-1-tahun-2024",
+   "title": "UU No. 1 Tahun 2024 tentang Perubahan Kedua atas Undang-Undang Nomor 11 Tahun 2008 tentang Informasi dan Transaksi Elektronik",
+   "download": "/Download/332870/UU%20Nomor%201%20Tahun%202024.pdf",
+   "pages": 39,
+   "text_chars": 48469,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "294077": {
+   "details": "https://peraturan.bpk.go.id/Details/294077/pp-no-28-tahun-2024",
+   "title": "PP No. 28 Tahun 2024 tentang Peraturan Pelaksanaan Undang-Undang Nomor 17 Tahun 2023 tentang Kesehatan",
+   "download": "/Download/353434/PP%20Nomor%2028%20Tahun%202024.pdf"
+  },
+  "302699": {
+   "details": "https://peraturan.bpk.go.id/Details/302699/peraturan-ojk-no-22-tahun-2023",
+   "title": "Peraturan OJK No. 22 Tahun 2023 tentang Pelindungan Konsumen dan Masyarakat di Sektor Jasa Keuangan",
+   "download": "/Download/362621/POJK%2022%20Tahun%202023%20Pelindungan%20Konsumen%20dan%20Masyarakat%20di%20Sektor%20Jasa%20Keuangan.pdf",
+   "pages": 131,
+   "text_chars": 280956,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  },
+  "306515": {
+   "details": "https://peraturan.bpk.go.id/Details/306515/uu-no-65-tahun-2024",
+   "title": "UU No. 65 Tahun 2024 tentang Perubahan Ketiga atas Undang-Undang Nomor 13 Tahun 2016 tentang Paten",
+   "download": "/Download/366767/UU%20Nomor%2065%20Tahun%202024.pdf",
+   "pages": 62,
+   "text_chars": 73184,
+   "low_text_pages": 0,
+   "read_by_ocr": false
+  }
+ }
+}

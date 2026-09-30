@@ -406,6 +406,7 @@ class TestApi:
         assert detail["highlight_available"] is True
         assert detail["highlights"]
         assert detail["record"]["verbatim_quote"]
+        assert "impact_display" in detail
 
     def test_pdf_served(self, client):
         r = client.get(f"/api/documents/doc_{SLUG_SG}/pdf")

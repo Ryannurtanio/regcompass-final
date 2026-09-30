@@ -300,6 +300,180 @@ class TestRetryEscalation:
 
 
 # ---------------------------------------------------------------------------
+# subsection markers in other scripts and styles
+# ---------------------------------------------------------------------------
+
+ZH_TEXT = (
+    "第十一条 关键信息基础设施的运营者应当履行下列安全保护义务：\n"
+    "（一）设置专门安全管理机构和安全管理负责人；\n"
+    "（十二）法律、行政法规规定的其他义务。\n"
+)
+TH_TEXT = (
+    "มาตรา ๒๖ ผู้ควบคุมข้อมูลส่วนบุคคลต้องดำเนินการดังต่อไปนี้\n"
+    "(๑) จัดให้มีมาตรการรักษาความมั่นคงปลอดภัยที่เหมาะสม\n"
+)
+RU_TEXT = (
+    "Статья 18. Обязанности оператора при сборе персональных данных\n"
+    "а) обеспечить запись, систематизацию и хранение данных\n"
+)
+ID_TEXT = (
+    "Pasal 20\n"
+    "Pemrosesan Data Pribadi dilakukan berdasarkan:\n"
+    "a. persetujuan yang sah secara eksplisit dari Subjek Data Pribadi;\n"
+    "1) pemenuhan kewajiban perjanjian dengan Subjek Data Pribadi.\n"
+)
+
+
+def text_chunk(text: str) -> Chunk:
+    return Chunk(
+        chunk_id="doc_test:c0001",
+        document_id="doc_test",
+        char_start=0,
+        char_end=len(text),
+        text=text,
+        section_label="s. 1",
+        chunk_kind="section",
+    )
+
+
+def text_record(quote: str, subsection: str) -> MappingRecord:
+    return make_record(quote=quote, subsection=subsection)
+
+
+ZH_QUOTE = "设置专门安全管理机构和安全管理负责人"
+TH_QUOTE = "จัดให้มีมาตรการรักษาความมั่นคงปลอดภัยที่เหมาะสม"
+RU_QUOTE = "обеспечить запись, систематизацию и хранение данных"
+ID_QUOTE = "persetujuan yang sah secara eksplisit dari Subjek Data Pribadi"
+
+
+class TestUnicodeSubsections:
+    """A quote that really is in the text keeps its Mapping when the cited
+    subsection is written the way the law writes it: full-width brackets,
+    Chinese numerals, Thai digits, Cyrillic letters, or the "a)" and "a."
+    styles. The quote check itself stays byte-exact."""
+
+    @pytest.mark.parametrize(
+        "text, quote, subsection",
+        [
+            (ZH_TEXT, ZH_QUOTE, "第十一条（一）"),
+            (ZH_TEXT, ZH_QUOTE, "（一）"),
+            (ZH_TEXT, ZH_QUOTE, "(1)"),
+            (ZH_TEXT, ZH_QUOTE, "(12)"),
+            (TH_TEXT, TH_QUOTE, "(๑)"),
+            (TH_TEXT, TH_QUOTE, "(1)"),
+            (RU_TEXT, RU_QUOTE, "(а)"),
+            (RU_TEXT, RU_QUOTE, "а)"),
+            (ID_TEXT, ID_QUOTE, "a)"),
+            (ID_TEXT, ID_QUOTE, "a."),
+            (ID_TEXT, ID_QUOTE, "(a)"),
+            (ID_TEXT, ID_QUOTE, "1)"),
+            (ID_TEXT, ID_QUOTE, "Ayat (1)"),
+        ],
+        ids=[
+            "zh-article-and-item", "zh-item", "zh-as-digit", "zh-twelve", "th-digit",
+            "th-as-digit", "ru-bracketed", "ru-paren", "id-a-paren", "id-a-dot",
+            "id-a-bracketed", "id-1-paren", "id-ayat",
+        ],
+    )
+    def test_marker_written_in_the_law_s_own_style_is_accepted(self, text, quote, subsection):
+        assert verify_record(text_record(quote, subsection), text_chunk(text)) == []
+
+    @pytest.mark.parametrize(
+        "text, quote, subsection, missing",
+        [
+            (ZH_TEXT, ZH_QUOTE, "第十一条（二）", "（二）"),
+            (ZH_TEXT, ZH_QUOTE, "(2)", "(2)"),
+            (TH_TEXT, TH_QUOTE, "(๒)", "(๒)"),
+            (RU_TEXT, RU_QUOTE, "(б)", "(б)"),
+            (ID_TEXT, ID_QUOTE, "b.", "b."),
+            (ID_TEXT, ID_QUOTE, "2)", "2)"),
+        ],
+        ids=["zh-item", "zh-as-digit", "th-digit", "ru-letter", "id-b-dot", "id-2-paren"],
+    )
+    def test_marker_truly_absent_from_the_chunk_is_rejected(self, text, quote, subsection, missing):
+        fails = verify_record(text_record(quote, subsection), text_chunk(text))
+        assert fails == [f"subsection component(s) {missing} not present in the chunk"]
+
+    def test_letters_keep_their_case(self):
+        fails = verify_record(text_record(ID_QUOTE, "A."), text_chunk(ID_TEXT))
+        assert any("subsection" in f for f in fails)
+
+    def test_a_letter_ending_a_word_is_not_a_marker(self):
+        # "Pribadi." ends in "i." but no line carries an "i." marker
+        fails = verify_record(text_record(ID_QUOTE, "i."), text_chunk(ID_TEXT))
+        assert any("subsection" in f for f in fails)
+
+    def test_digit_like_non_decimal_marker_does_not_crash(self):
+        text = ZH_TEXT + "(፩) 附则。\n"
+        assert verify_record(text_record(ZH_QUOTE, "(1)"), text_chunk(text)) == []
+        assert verify_record(text_record(ZH_QUOTE, "(፩)"), text_chunk(text)) == []
+
+    @pytest.mark.parametrize("subsection", ["", "   "])
+    def test_empty_subsection_means_none_cited(self, subsection):
+        assert verify_record(text_record(ZH_QUOTE, subsection), text_chunk(ZH_TEXT)) == []
+
+    def test_decimal_numbers_stay_unparseable(self):
+        fails = verify_record(text_record(ZH_QUOTE, "133.1"), text_chunk(ZH_TEXT))
+        assert fails == ["unparseable subsection reference '133.1'"]
+
+    def test_quote_check_stays_exact_with_a_good_marker(self):
+        # full-width punctuation is NOT normalised for the quote
+        fails = verify_record(
+            text_record("设置专门安全管理机构和安全管理负责人;", "（一）"), text_chunk(ZH_TEXT)
+        )
+        assert fails == ["quote is not a byte-for-byte substring of the chunk text"]
+
+
+class TestReverifyScript:
+    """scripts/reverify_mappings.py re-checks the stored Mappings of a database
+    copy with today's rules and reports, per Economy and Engine, how many
+    previously dropped Mappings now pass. It only reads: the file is unchanged."""
+
+    def _db(self, tmp_path) -> Path:
+        path = tmp_path / "copy.db"
+        s = Storage(path)
+        s.apply_schema()
+        s.upsert_document("doc_cn", "CN", "sha", full_text=ZH_TEXT)
+        s.upsert_chunks([text_chunk(ZH_TEXT).model_copy(update={"document_id": "doc_cn",
+                                                                "chunk_id": "doc_cn:c0001"})])
+        s.run_start(run_id="run_b", kind="run", economy="CN", pillars=[6], indicators=None,
+                    engine="engine-b", started_at="2026-09-23T00:00:00+00:00")
+
+        def rec(mid: str, subsection: str, status: str) -> MappingRecord:
+            return make_record(quote=ZH_QUOTE, subsection=subsection).model_copy(update={
+                "mapping_id": mid, "document_id": "doc_cn", "chunk_id": "doc_cn:c0001",
+                "economy": "CN", "verification_status": status,
+            })
+
+        s.upsert_mappings([
+            rec("m1", "(1)", "dropped"),       # now passes: （一） is in the chunk
+            rec("m2", "（一）", "dropped"),     # now passes
+            rec("m3", "(7)", "dropped"),       # truly absent: still dropped
+            rec("m4", "（十二）", "passed"),     # already passed, still passes
+        ], run_id="run_b")
+        s.close()
+        return path
+
+    def test_reports_recovered_drops_per_economy_and_engine(self, tmp_path):
+        import subprocess
+        import sys
+
+        db = self._db(tmp_path)
+        before = db.read_bytes()
+        out = subprocess.run(
+            [sys.executable, str(ROOT / "scripts/reverify_mappings.py"), str(db), "--json"],
+            capture_output=True, text=True, check=True,
+        )
+        rows = json.loads(out.stdout)
+        assert rows == [{
+            "economy": "CN", "engine": "engine-b", "runs": 1,
+            "dropped": 3, "now_pass": 2, "still_dropped": 1,
+            "passed": 1, "passed_now_fail": 0,
+        }]
+        assert db.read_bytes() == before
+
+
+# ---------------------------------------------------------------------------
 # audit observability
 # ---------------------------------------------------------------------------
 

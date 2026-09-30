@@ -134,6 +134,8 @@ _ANATOMY_RULES = """How to read a statute:
 # 10 with it), because the decision now has to be stated, not just taken. The
 # 200-character bound is the export's: M9 truncates the rationale column at 300
 # characters, and unbounded "state the rung" answers ran to 387.
+# The sentence is asked for in English: without it a few rationales on Chinese
+# sources mixed the two scripts mid-sentence, which a reviewer reads as broken.
 _TASK_RULES = """Task: decide whether THIS provision contains concrete textual evidence for the
 indicator above (evidence that the measure exists, or that transfers/processing
 are expressly conditioned or restricted as the indicator describes).
@@ -145,7 +147,9 @@ are expressly conditioned or restricted as the indicator describes).
   as written in the provision, e.g. "(1)" or "(2)(a)"; null if none.
 - impact: ONE short sentence, at most 200 characters, stating what the
   provision requires or permits, for whom, and which rung of the scoring ladder
-  above it matches. State the rung; do not argue for it.
+  above it matches. State the rung; do not argue for it. Write it in English:
+  a source-language term may appear only in quotation marks after its English
+  rendering.
 
 Answer with ONLY a JSON object, no prose, no markdown fences:
 {"maps_to_indicator": true, "verbatim_quote": "...", "subsection": "(1)", "impact": "..."}

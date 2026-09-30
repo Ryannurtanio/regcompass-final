@@ -309,8 +309,8 @@ def ocr_document(
         on any other script it would read 0.0 and be taken for catastrophic OCR.
         It is recorded as None with its reason instead.
       * the RapidOCR escalation stays on for any script RapidOCR can read (Latin
-        and Chinese). A Chinese scan read without Chinese traineddata SHOULD
-        escalate; a Lao or Thai one cannot benefit and is left alone.
+        and Chinese). A Chinese scan tesseract reads with low confidence
+        SHOULD escalate; a Lao or Thai one cannot benefit and is left alone.
       * a Language with no vendored traineddata is flagged manual_review with
         the reason, because it was read as English whatever it says."""
     import pytesseract

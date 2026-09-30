@@ -105,6 +105,26 @@ portals:
     hosts:
       - peraturan.bpk.go.id
       - peraturan.go.id
+      # Official hosts the 2025 baseline cites for Indonesia (government
+      # .go.id hosts of ministries, agencies and regulators, and the
+      # Constitutional Court), so Discovery by Pillar can fetch those laws.
+      # Law firms, aggregators, companies and news are never listed.
+      - jdih.kominfo.go.id
+      - jdih.komdigi.go.id
+      - jdih.kemendag.go.id
+      - jdih.kemenkeu.go.id
+      - jdih.kkp.go.id
+      - kadi.kemendag.go.id
+      - peraturan.beacukai.go.id
+      - farmalkes.kemkes.go.id
+      - bpbj.batam.go.id
+      - bsn.go.id
+      - www.bi.go.id
+      - ojk.go.id
+      - www.ojk.go.id
+      - iru.ojk.go.id
+      - www.postel.go.id
+      - www.mkri.id
     strategy: curl_cffi_ladder
     min_interval_seconds: 5  # our own floor; the Portal publishes no crawl-delay
     prepared: true  # supervised live Discovery of 23 Sep 2026: 7 Documents, first rung, no block
@@ -116,8 +136,9 @@ portals:
       connect timeout on three attempts, 16 Sep 2026); it stays on the whitelist
       because it is an official Indonesian Portal and a Document a reviewer
       adds from it must pass the host check, but Discovery never points at it.
-      BPK's robots.txt permits every route Discovery takes (/Search, /Details/,
-      /Download/) and publishes no crawl-delay, while its Cloudflare edge
+      BPK's robots.txt permits the one route Discovery takes (/Download/;
+      /Search and /Details/ are allowed too, but Discovery never requests
+      them) and publishes no crawl-delay, while its Cloudflare edge
       answers the identified user agent with 403, so this Economy takes the
       SAME escalation ladder Singapore takes: ask as ourselves, climb to the
       browser-impersonating rung only after the refusal, and record on the
@@ -133,6 +154,51 @@ portals:
     languages: [Thai, English]
     hosts:
       - searchlaw.ocs.go.th
+      # Official hosts the 2025 baseline cites for Thailand: .go.th
+      # government hosts (ministries, regulators, Parliament) and the
+      # statutory agencies on .or.th that enforce the digital laws (Bank of
+      # Thailand, ETDA, NCSA, PDPC, DEPA). The Royal Gazette
+      # (ratchakitcha.soc.go.th) and www.law.go.th are never listed.
+      - www.mdes.go.th
+      # MDES under its bare name: www.mdes.go.th redirects some law pages
+      # here, and its /law/detail/{id} pages answer with the law's PDF.
+      - mdes.go.th
+      - www.ipthailand.go.th
+      - broadcast.nbtc.go.th
+      - www.nbtc.go.th
+      - ic.nbtc.go.th
+      - infocenter.nbtc.go.th
+      - numbering.nbtc.go.th
+      - www.dbd.go.th
+      - dbdregcom.dbd.go.th
+      - www.gprocurement.go.th
+      - www.boi.go.th
+      - www.customs.go.th
+      - ccc.customs.go.th
+      - www.tisi.go.th
+      - ddc.moph.go.th
+      - www.dft.go.th
+      - www.bb.go.th
+      - www.ocpb.go.th
+      - infocenter.oic.go.th
+      - laws.md.go.th
+      - law.industry.go.th
+      - www.diw.go.th
+      - www.sepo.go.th
+      - www.dsi.go.th
+      - onestopservice.ditp.go.th
+      - alro.go.th
+      - jla.coj.go.th
+      - lawforasean.krisdika.go.th
+      - dl.parliament.go.th
+      - cdc.parliament.go.th
+      - library.parliament.go.th
+      - www.bot.or.th
+      - www.etda.or.th
+      - www.ncsa.or.th
+      - drive.ncsa.or.th
+      - www.pdpc.or.th
+      - www.depa.or.th
     strategy: manual
     prepared: false
     live_test_pool: true
@@ -168,12 +234,39 @@ portals:
       (22 Sep 2026): Thailand is KEPT as an upload-only Economy in the
       live-test pool; the Russian Federation
       fallback was examined and not taken (see the RU notes below).
+      Added 29 Sep 2026: the Ministry of Digital Economy and Society
+      (mdes.go.th) answers /law/detail/{id} with the law's PDF, robots.txt
+      allows everything, and its certificate verifies. It carries only the
+      laws in its own remit (digital economy, electronic transactions,
+      cybersecurity, personal data, computer crime), not trade or customs
+      laws. Seeded in crawl_seeds.yaml: 3577 Personal Data Protection Act,
+      3616 Electronic Transactions Act and 3618 Computer-related Crime Act,
+      each the government's unofficial English translation, so their
+      Language is English. The Thai PDPA PDF (3541) has a broken text layer
+      (sara aa read as sara am, no section word, a watermark repeated about
+      2,000 times): it is not seeded, and a Thai file like it is read by OCR.
   LA:
     official_name: Lao PDR
     un_name: Lao People's Democratic Republic
     languages: [Lao, English]
     hosts:
       - laoofficialgazette.gov.la
+      # Official .gov.la hosts the 2025 baseline cites for Lao PDR
+      # (the Gazette under its www name, the Trade Portal, ministries, the
+      # Bank of the Lao PDR). Companies, NGOs and file mirrors are never listed.
+      - www.laoofficialgazette.gov.la
+      - www.laotradeportal.gov.la
+      - laotradeportal.gov.la
+      - laoservicesportal.gov.la
+      - lsp.moic.gov.la
+      - www.bned.moic.gov.la
+      - amlio.gov.la
+      - ppmd.mof.gov.la
+      - www.erm.gov.la
+      - db.investlaos.gov.la
+      - laocert.gov.la
+      - www.laocert.gov.la
+      - www.bol.gov.la
     strategy: httpx
     min_interval_seconds: 2  # our own floor: the host publishes no robots.txt
     prepared: true  # supervised live Discovery of 23 Sep 2026: 37 Documents, 2 s floor, no block
@@ -197,25 +290,78 @@ portals:
     languages: [Vietnamese, English]
     hosts:
       - vbpl.vn
+      # The Official Gazette (Cong bao, Government Office): the document
+      # page, and the file host its PDF links point to.
+      - congbao.chinhphu.vn
+      - congbaocdn.chinhphu.vn
     strategy: manual
     prepared: false
     live_test_pool: true
     min_interval_seconds: 2
     notes: >-
-      Host verified 16 Sep 2026, Discovery deliberately NOT wired. vbpl.vn
+      Host verified 16 Sep 2026; Viet Nam has no Portal crawler. vbpl.vn
       publishes real rules (Allow: /, Disallow: /api/, Disallow: /Pages/) and a
       sitemap, but the sitemap is four static navigation pages: the document
       list exists only behind /api/, which those rules forbid, and the pages
       themselves are a JavaScript shell behind a bot-defence script. The one
       remaining route is a headless browser, which would make the forbidden
-      /api/ calls itself. So Documents arrive through "Add document"; the host
-      is whitelisted so an operator-supplied vbpl.vn URL needs no override.
+      /api/ calls itself. So vbpl.vn Documents arrive through "Add document";
+      the host is whitelisted so an operator-supplied vbpl.vn URL needs no
+      override.
       Evidence: tests/fixtures/portals/vn/, docs/PORTALS.md.
+      Added 29 Sep 2026: the Official Gazette. congbao.chinhphu.vn serves
+      each document page (/van-ban/{slug}-{id}.htm) as server HTML with
+      metadata only; the law itself is the congbaocdn.chinhphu.vn PDF that
+      page links, with a real Vietnamese text layer. robots.txt allows all
+      (congbaocdn has none). Gazette copies are as promulgated, not
+      consolidated, except the consolidated texts (VBHN) the National
+      Assembly Office publishes there. Seeded by their PDF addresses in
+      crawl_seeds.yaml, at least one law for each of the 12 Pillars, among
+      them the Law on Personal Data Protection 91/2025/QH15 with Decree
+      356/2025/ND-CP and the Law on Cybersecurity 116/2025/QH15; a long
+      instrument the Gazette split over several issues is seeded per issue.
+      Decree 13/2023/ND-CP (ended 1 Jan 2026 by Decree 356/2025/ND-CP,
+      Article 42(2)) and the Law on Cybersecurity 24/2018/QH14 (ended by Law
+      116/2025/QH15, Article 44(2)) are no longer in force and are not
+      seeded. vanban.chinhphu.vn is not used: its files are scanned images
+      with no text layer.
   CN:
     official_name: China
     languages: [Chinese]
     hosts:
       - www.cac.gov.cn
+      # Official gov.cn hosts the 2025 baseline cites for China (the State
+      # Council, ministries, regulators, standards bodies, local
+      # governments). flk.npc.gov.cn is never listed (its robots.txt forbids
+      # every crawler), nor www.npc.gov.cn (it stalls past the fetch timeout,
+      # see below); law firms, companies and NGOs are never listed.
+      - www.gov.cn
+      - app.www.gov.cn
+      - english.www.gov.cn
+      - www.mofcom.gov.cn
+      - images.mofcom.gov.cn
+      - trb.mofcom.gov.cn
+      - fms.mofcom.gov.cn
+      - cws.mofcom.gov.cn
+      - www.samr.gov.cn
+      - openstd.samr.gov.cn
+      - std.samr.gov.cn
+      - www.sac.gov.cn
+      - www.moj.gov.cn
+      - xzfg.moj.gov.cn
+      - www.ndrc.gov.cn
+      - en.ndrc.gov.cn
+      - www.mohrss.gov.cn
+      - www.pbc.gov.cn
+      - www.oscca.gov.cn
+      - www.most.gov.cn
+      - www.cnca.gov.cn
+      - www.chinafilm.gov.cn
+      - chongqing.customs.gov.cn
+      - tianjin.customs.gov.cn
+      - www.beijing.gov.cn
+      - jxj.beijing.gov.cn
+      - fgw.sh.gov.cn
     strategy: manual
     manual_only: false
     prepared: true
@@ -251,6 +397,53 @@ portals:
       # same Portal. Discovery never emits these; they exist for the add lane.
       - www.indiacode.nic.in
       - indiacode.nic.in
+      # Official hosts the 2025 baseline cites for India: .gov.in and
+      # .nic.in government hosts (ministries, regulators, the e-Gazette) and
+      # the statutory regulators on .org.in (Reserve Bank, PFRDA). Law
+      # databases run by others (Indian Kanoon), NGOs, companies and news
+      # are never listed.
+      - upload.indiacode.nic.in
+      - egazette.gov.in
+      - www.meity.gov.in
+      - meity.gov.in
+      - dot.gov.in
+      - www.trai.gov.in
+      - www.tec.gov.in
+      - tec.gov.in
+      - dpiit.gov.in
+      - pib.gov.in
+      - eprocure.gov.in
+      - ipindia.gov.in
+      - www.ipindia.gov.in
+      - copyright.gov.in
+      - content.dgft.gov.in
+      - www.dgft.gov.in
+      - www.dgtr.gov.in
+      - taxinformation.cbic.gov.in
+      - courier.cbic.gov.in
+      - gstcouncil.gov.in
+      - ifsca.gov.in
+      - irdai.gov.in
+      - www.sebi.gov.in
+      - www.cci.gov.in
+      - www.bis.gov.in
+      - www.mca.gov.in
+      - msme.gov.in
+      - doe.gov.in
+      - dpe.gov.in
+      - dst.gov.in
+      - egovstandards.gov.in
+      - www.saras.gov.in
+      - www.mofpi.gov.in
+      - www.mea.gov.in
+      - ntcp.mohfw.gov.in
+      - consumeraffairs.nic.in
+      - thc.nic.in
+      - www.rbi.org.in
+      - rbi.org.in
+      - m.rbi.org.in
+      - rbidocs.rbi.org.in
+      - www.pfrda.org.in
     strategy: dspace_rest
     min_interval_seconds: 2  # nothing published, so our own floor stands
     robots_unreachable_since: 2026-09-16  # HTTP 500, then HTTP 502 on a retry
@@ -281,15 +474,23 @@ portals:
       Portal can serve them again.
   KZ:
     official_name: Kazakhstan
-    languages: [Russian, Kazakh]
+    # English last, so Add document offers it for a NATLEX translation added
+    # by hand; Russian stays the default.
+    languages: [Russian, Kazakh, English]
     hosts:
       - adilet.zan.kz
+      # ILO NATLEX, intergovernmental repository of official texts.
+      - natlex.ilo.org
+      # The Eurasian Economic Commission, the Eurasian Economic Union's
+      # executive body: its own PDFs of the Union's Treaty, Customs Code and
+      # Commission decisions, which bind Kazakhstan as a member State.
+      - eec.eaeunion.org
     strategy: manual
     prepared: false
     live_test_pool: true
     min_interval_seconds: 2
     notes: >-
-      Host verified 16 Sep 2026, Discovery deliberately NOT wired. Legislation
+      Host verified 16 Sep 2026; Kazakhstan has no Portal crawler. Legislation
       is published in both Kazakh and Russian; Russian is the default because
       the consolidated texts appear there first. The Portal's robots.txt is
       explicit (act pages open, /api/, /search and /advanced-search closed) and
@@ -297,32 +498,78 @@ portals:
       not named, so the `*` group binds it. The act route answers a 2.7 KB
       shell whose own comment says the full text is withheld from non-browser
       clients on purpose, so that the system is cited rather than drained. A
-      headless browser would render around that ask, so we do not: Documents
-      arrive through "Add document". Evidence: tests/fixtures/portals/kz/.
+      headless browser would render around that ask, so we do not: adilet
+      Documents arrive through "Add document". Evidence:
+      tests/fixtures/portals/kz/.
+      Added 29 Sep 2026: ILO NATLEX, intergovernmental repository of official
+      texts. Its download address
+      /dyn/natlex2/natlex2/files/download/{isn}/KAZ-{isn}.pdf answers with
+      the PDF, and robots.txt allows it; its detail pages sit behind a
+      browser check, so they are never browsed and only seeded download
+      addresses are fetched. Seeded: 96710, Law No. 94-V On Personal Data and
+      their Protection, in the Ministry of Justice's unofficial English
+      translation (amended to 30 Dec 2021), and 108188, the Entrepreneurial
+      Code No. 375-V, in the unofficial English translation NATLEX holds, so
+      their Language is English and their titles say they are translations.
+      Also added 29 Sep 2026: the Eurasian Economic Commission
+      (eec.eaeunion.org, over https), whose robots.txt allows /upload/. Its
+      own PDFs carry a Russian text layer; seeded are the Treaty's Annex 8
+      (trade remedies), Section XXII with Annex 25 (procurement), Section X
+      and Annex 9 (technical regulation), Board Decision No. 30 on
+      non-tariff measures with its Annex 9 (encryption means), and the
+      Customs Code. docs.eaeunion.org, the Union's legal portal, is not
+      listed: its robots.txt answered HTTP 500, which Discovery reads as a
+      refusal. Any other Kazakh law is uploaded by hand.
   MN:
     official_name: Mongolia
     languages: [Mongolian, English]
     hosts:
       - legalinfo.mn
+      # Official hosts the 2025 baseline cites for Mongolia: the
+      # Communications Regulatory Commission, the state registry and the
+      # Financial Regulatory Commission. Companies and law firms are never
+      # listed.
+      - www.crc.gov.mn
+      - crc.gov.mn
+      - burtgel.gov.mn
+      - www.frc.mn
     strategy: manual
     prepared: false
     live_test_pool: true
     min_interval_seconds: 2
     notes: >-
-      Host verified 16 Sep 2026, Discovery deliberately NOT wired.
+      Host verified 16 Sep 2026; Mongolia has no Portal crawler.
       legalinfo.mn publishes no robots.txt (its /robots.txt is the 404 page)
       and serves real HTML, but every act list, including search results,
       arrives through an undocumented POST endpoint (/mn/ajaxList/) that
       returns pre-rendered markup; the server HTML carries only the category
       tree. The page advertised as an API reference is an article about the
-      Constitution, not a published API, so there is nothing here we may build
-      on. Documents arrive through "Add document". Note for the operator: no
-      Mongolian traineddata is vendored, so a scanned Mongolian upload is not
-      usable evidence; prefer a text-layer PDF or the English tree at /en.
+      Constitution, not a published API, so there is no act list here we may
+      build on. A law page, /mn/detail?lawId={id}, is whole server HTML in
+      UTF-8, so a Discovery by Pillar fetches laws at their own addresses:
+      the 2025 baseline's laws on these hosts and, since 29 Sep 2026, the
+      laws seeded by lawId in crawl_seeds.yaml (Personal Data Protection
+      16390288615991, Cybersecurity 16390365491061). Any other law arrives
+      through "Add document". Mongolian traineddata is vendored
+      (vendor/tessdata/mon.traineddata, read as mon+eng), so a scanned
+      Mongolian upload is read by OCR like any other scan; a law page or a
+      text-layer PDF is still the better source where one exists.
   RU:
     official_name: Russian Federation
     languages: [Russian]
-    hosts: []
+    hosts:
+      - pravo.gov.ru
+      - kremlin.ru
+      # The Eurasian Economic Commission (see KZ). It answers over https, so
+      # it is not one of the http hosts below.
+      - eec.eaeunion.org
+    # Port 443 to pravo.gov.ru and kremlin.ru is closed on our network path;
+    # port 80 answers. These two hosts, and only these, may be asked over
+    # plain http.
+    http_hosts:
+      - pravo.gov.ru
+      - kremlin.ru
+    fetch_timeout_seconds: 60  # pravo.gov.ru takes 5 to 8 s for a whole act
     strategy: manual
     prepared: false
     live_test_pool: true
@@ -338,6 +585,22 @@ portals:
       while port 80 answers. Over HTTP the Portal has an open API
       (/api/Documents, /api/DocumentTypes), but its acts are image-only
       scanned PDFs and it publishes amendments, not consolidated law, so the
-      fallback was examined and NOT taken. No host is whitelisted; Documents
-      arrive through "Add document" with their own Source URL, which needs the
-      "official source outside the configured Portal" tick.
+      fallback was examined and NOT taken.
+      Added 29 Sep 2026: two official hosts over plain http. kremlin.ru
+      (the President's acts bank): /acts/bank/{id}/print is the whole current
+      text, UTF-8, robots allows /acts/bank/. pravo.gov.ru (the Official
+      Internet Portal of Legal Information):
+      /proxy/ips/?doc_itself=&nd={nd}&page=1 is the consolidated text in
+      windows-1251, robots allows everything. Seeded in crawl_seeds.yaml:
+      Federal Law 152-FZ On Personal Data (kremlin 24154, pravo nd
+      102108261) and 149-FZ On Information (pravo nd 102108264). Plain http
+      means no TLS protected the text in transit, and the Discovery record
+      says so. If port 443 answers where RegCompass runs, https addresses on
+      these hosts work too. Later the same day: kremlin.ru print pages for
+      the federal laws the 2025 baseline cites on commercial mirrors (160-FZ,
+      57-FZ, 236-FZ, the Civil Code Part Four, 98-FZ, 126-FZ, 99-FZ, 162-FZ,
+      63-FZ), each tried ahead of the baseline's own address for that law;
+      and the Eurasian Economic Commission (eec.eaeunion.org, see KZ) for
+      the Union acts that bind the Russian Federation: Board Decision No. 30
+      with its Annex 9, the Treaty's Annexes 8 and 9 and Section X, and the
+      Customs Code. That host answers over https, so it is not an http host.

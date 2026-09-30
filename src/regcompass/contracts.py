@@ -14,6 +14,7 @@ holds enough context to prove them alone.
 from __future__ import annotations
 
 import re
+import unicodedata
 from datetime import date, datetime
 from typing import Annotated, Literal
 
@@ -157,6 +158,34 @@ class CanonicalText(_Contract):
     low_yield_pages: list[int] = Field(default_factory=list)  # < 50 chars -> OCR flag
     ocr_applied: bool = False
     ocr_quality: OcrQuality | None = None
+
+    @model_validator(mode="after")
+    def _composed(self) -> "CanonicalText":
+        """The stream in one Unicode form (NFC), made here so that every
+        producer (text layer, HTML, OCR, a stored stream read back) yields it.
+        Already-composed text, which is nearly all of it, passes untouched."""
+        from .textnorm import ComposedText, is_nfc
+
+        if is_nfc(self.full_text) and all(is_nfc(w.text) for w in self.words):
+            return self
+        composed = ComposedText(self.full_text)
+        self.full_text = composed.text
+        self.pages = [
+            p.model_copy(update={
+                "char_start": composed.start(p.char_start),
+                "char_end": composed.end(p.char_end),
+            })
+            for p in self.pages
+        ]
+        self.words = [
+            w.model_copy(update={
+                "text": unicodedata.normalize("NFC", w.text),
+                "char_start": composed.start(w.char_start),
+                "char_end": composed.end(w.char_end),
+            })
+            for w in self.words
+        ]
+        return self
 
     @model_validator(mode="after")
     def _spans_in_bounds(self) -> "CanonicalText":
@@ -620,6 +649,16 @@ class PortalConfig(_Contract):
     # record of any request made under 'proceed' carries the status the Portal
     # gave and this policy, so nobody has to infer why we went ahead.
     robots_unavailable_policy: str = "refuse"
+    # Hosts of this Portal that answer only over plain http from where we
+    # run (port 443 closed on the path). A Source URL on one of them may be
+    # http://, and its robots.txt is then read over http too; every other
+    # host keeps reading robots.txt over https. It is a per-host allowance,
+    # never a downgrade for the Economy.
+    http_hosts: list[str] = Field(default_factory=list)
+    # How long one request of a Discovery by Pillar may take on this
+    # Portal's hosts, for a Portal whose answers are slow but whole. Left
+    # out, the Discovery's own short timeout applies.
+    fetch_timeout_seconds: float | None = Field(default=None, gt=0)
     notes: str | None = None
 
     @model_validator(mode="after")
@@ -653,21 +692,82 @@ class PortalConfig(_Contract):
                 f" here, so its strategy must be '{MANUAL_STRATEGY}',"
                 f" not '{self.strategy}'"
             )
+        stray = [h for h in self.http_hosts if h not in self.hosts]
+        if stray:
+            raise ValueError(
+                f"{self.economy}: http_hosts must be hosts of this Portal;"
+                f" {stray} are not in its hosts list"
+            )
         return self
+
+
+# Hosts no lane of ours ever requests, on any path and any rung, whatever a
+# baseline row, a Portal answer, an operator or a redirect names: the Thai law
+# portal and the Royal Gazette (out of scope by decision), and China's national
+# law database, whose robots.txt forbids every crawler. Here, not in crawl.py,
+# so the add lane can refuse them without importing the network stack.
+NEVER_REQUESTED_HOSTS = frozenset(
+    {"law.go.th", "ratchakitcha.soc.go.th", "flk.npc.gov.cn"}
+)
+
+
+def is_never_requested(host: str) -> bool:
+    """Is this host, or a domain it sits under, on the never-requested list?
+    Any subdomain counts, and a trailing dot or a port changes nothing."""
+    h = (host or "").split("@")[-1].split(":")[0].rstrip(".").lower()
+    return any(h == d or h.endswith("." + d) for d in NEVER_REQUESTED_HOSTS)
+
+
+# What an untagged crawl-seed family covers: the Pillars every seed was chosen
+# for before seeds carried Pillar tags.
+UNTAGGED_SEED_PILLARS = (6, 7)
 
 
 class CrawlFamily(_Contract):
     """One source family inside an economy's crawl seeds. SG resolves `acts`
     (SSO short codes) to direct act URLs; AU and MY resolve `queries` through
-    the portal's own search API. A family must carry at least one seed."""
+    the portal's own search API. A family must carry at least one seed.
+
+    A family with `urls` is ONE law at fixed official addresses instead: a
+    Discovery by Pillar fetches the first address that answers with the law's
+    text, for any Economy, with or without a Portal crawler. It serves the
+    Indicators it lists (and so their Pillars), and where `baseline_law` names
+    a law of the 2025 baseline its addresses are tried first for that law."""
 
     acts: list[str] = Field(default_factory=list)
     queries: list[str] = Field(default_factory=list)
+    # The Pillars this family is likely to carry evidence for. Left out, the
+    # family means what every seed meant before Pillars were tagged: 6 and 7.
+    pillars: list[int] | None = None
+    # Official Source URLs of one law, in the order to try.
+    urls: list[str] = Field(default_factory=list)
+    # That law's name, which becomes the Document title.
+    law: str | None = None
+    # The Indicators the law serves.
+    indicators: list[str] = Field(default_factory=list)
+    # The start of the baseline law name these addresses belong to, if any.
+    baseline_law: str | None = None
+    # The organizer Language of the text at these addresses, where it is not
+    # the Economy's default (an official English translation, say).
+    language: str | None = None
+
+    def covers(self, pillar: int) -> bool:
+        """Does a Discovery for this Pillar run this family?"""
+        if self.urls:
+            return any(i.split(".")[0] == str(pillar) for i in self.indicators)
+        return pillar in (self.pillars if self.pillars else UNTAGGED_SEED_PILLARS)
 
     @model_validator(mode="after")
     def _non_empty(self) -> "CrawlFamily":
-        if not self.acts and not self.queries:
-            raise ValueError("a crawl family needs at least one act code or query")
+        if not self.acts and not self.queries and not self.urls:
+            raise ValueError("a crawl family needs at least one act code, query or URL")
+        if self.urls and (not self.law or not self.indicators):
+            raise ValueError("a family of URLs names its law and the Indicators it serves")
+        if self.language is not None and self.language not in ORGANIZER_LANGUAGES:
+            raise ValueError(
+                f"language '{self.language}' is not on the organizer's list"
+                f" {list(ORGANIZER_LANGUAGES)}"
+            )
         return self
 
 
@@ -940,6 +1040,13 @@ class PipelineConfig(_Contract):
     """Mechanical knobs. Defaults encode the hard rules; tests assert them."""
 
     extraction_attempts: int = Field(default=3, ge=1, le=3)  # 1 initial + 2 stricter retries
+    # How long a Discovery by Pillar spends fetching baseline laws before it
+    # stops and lists the rest, so the crawler and both Engine passes still fit
+    # inside the live hour.
+    discovery_baseline_budget_seconds: float = Field(default=600.0, gt=0)
+    # The whole of a Discovery by Pillar, both stages together: checked before
+    # every request it makes, so a silent Portal cannot eat the hour.
+    discovery_drawn_budget_seconds: float = Field(default=900.0, gt=0)
     ocr_trigger_chars_per_page: int = 50
     ocr_cer_max: float = 0.05  # CER gate
     ocr_dpi: int = 300  # pinned rasterization DPI (M2)

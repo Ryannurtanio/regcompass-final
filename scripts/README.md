@@ -35,6 +35,18 @@ regeneration, refresh `tests/golden/EVIDENCE.sha256` (command in
   no Review Decisions) plus the source bytes its Documents reference, with a `.sha256` and a
   manifest. Reads the database and data folder only. `regcompass load-data` unpacks it; see
   `docs/RELEASE_DATA.md`.
+- `rehearse_discovery.py` - rehearses Discovery for every Economy in the live-test pool (ID,
+  IN, LA, CN, TH, MN, VN, RU, KZ) and every Pillar with no Engine call. Each cell (one Economy,
+  one Pillar) runs Discovery by Pillar in a fresh data folder, reads each Document, splits it
+  into sections and runs the Gate, then stops where the Engine would first be called; a guard
+  removes every Engine key from the process and refuses any completion. One Economy at a time
+  by default, OCR held to one thread. Asks the live Portals politely, and needs a local ollama
+  for the Gate. Resumable: each finished cell is one line in `<out>/results/<Economy>.jsonl`.
+  Flags: `--out` (working folder, required), `--table` (write the markdown table there),
+  `--economies` and `--pillars` (comma lists, default all), `--cap` (Document cap per cell,
+  default 12), `--parallel` (Economies at once, default 1), `--redo-failed`, `--render-only`
+  (rewrite the table without running), `--previous` (an earlier `--out`, summarised beside
+  this pass), `--notes` (a markdown file placed above the tables).
 - `make_audit_bundle.py` - builds an audit-UI bundle: `fixtures` mode writes the committed
   demo manifest at `audit_bundle/`, `repro` mode writes to `data/repro/audit_bundle/`.
 - `u0_e2e.py` - Playwright end-to-end test of the audit UI; source of `tests/golden/u0/`. Also
@@ -50,10 +62,13 @@ regeneration, refresh `tests/golden/EVIDENCE.sha256` (command in
   (fixture entries preserved verbatim; Last Amended derived mechanically, never guessed).
 - `make_corpus_map.py` - regenerates `config/round1_corpus_map.json` (the reviewed
   Database-law to document mapping).
-- `extract_known_matrix.py` - regenerates `config/known_matrix.json` from the UN
-  ground-truth database (operator-supplied local input, not included in this repository; judges never need to run this).
+- `extract_known_matrix.py` - regenerates `config/known_matrix.json` and
+  `config/baseline_laws.json` from the RDTII Round 1 and Round 2 Databases and the Legal Inventory (operator-supplied local input, not included in this repository; judges never need to run this).
 - `make_wordlist.py` - regenerates `vendor/wordlist_legal_en.txt` from the m1 golden
   streams.
+- `reverify_mappings.py` - re-checks the stored Mappings of a COPY of a database with the
+  current word-for-word rules, read-only, and prints per Economy and Engine which earlier drops
+  pass now and whether anything that passed now fails. No Engine call.
 - `fetch_m3_weights.py` - fetches the M3 translation-gloss model
   (Helsinki-NLP/opus-mt-mul-en at a pinned HF revision, per-file SHA-256s verified) and
   converts it to CTranslate2 int8 at `models/opus_mt_mul_en_ct2/` (gitignored, never

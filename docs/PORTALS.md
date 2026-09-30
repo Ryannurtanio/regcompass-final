@@ -268,6 +268,15 @@ Documents therefore arrive through "Add document". The host IS whitelisted, so
 an operator-supplied `searchlaw.ocs.go.th` Document needs no override. Thai
 traineddata is vendored, so a Thai scan reads normally.
 
+Added 29 Sep 2026: the Ministry of Digital Economy and Society (`mdes.go.th`)
+answers `/law/detail/{id}` with the law's PDF, its robots.txt allows everything
+and its certificate verifies. It carries only the laws in its own remit. Seeded
+in `config/crawl_seeds.yaml` for a Discovery by Pillar: 3577 Personal Data
+Protection Act, 3616 Electronic Transactions Act and 3618 Computer-related Crime
+Act, each the government's unofficial English translation (Language English).
+The Thai PDPA PDF (3541) has a broken text layer and is not seeded.
+`www.law.go.th` and the Royal Gazette are never requested.
+
 ## Viet Nam - vbpl.vn (strategy: manual, operator-supplied)
 
 Verified 16 Sep 2026. Evidence: `tests/fixtures/portals/vn/README.md`.
@@ -279,6 +288,17 @@ behind `/api/`, which those rules forbid, and the pages are a Next.js shell
 behind a JavaScript bot-defence script. A headless browser would make the
 forbidden `/api/` calls itself, so Discovery is not wired here. The host IS
 whitelisted, so an operator-supplied `vbpl.vn` Document needs no override.
+
+Added 29 Sep 2026: the Official Gazette. `congbao.chinhphu.vn` serves each
+document page (`/van-ban/{slug}-{id}.htm`) as server HTML with metadata only;
+the law is the `congbaocdn.chinhphu.vn` PDF that page links, with a real
+Vietnamese text layer, as promulgated, or the consolidated text (VBHN) where
+the National Assembly Office published one. Seeded by PDF address, at least one
+law for each of the twelve Pillars, among them the Law on Personal Data
+Protection 91/2025/QH15 with Decree 356/2025/ND-CP and the Law on Cybersecurity
+116/2025/QH15. Decree 13/2023/ND-CP and the Law on Cybersecurity 24/2018/QH14 are
+no longer in force and are not seeded. `vanban.chinhphu.vn` is not used: its
+files are scanned images.
 
 ## Kazakhstan - adilet.zan.kz (strategy: manual, operator-supplied)
 
@@ -294,6 +314,22 @@ command. A headless browser could render around that; honouring it is the reason
 Kazakhstan is operator-supplied. The sitemap its robots.txt advertises answered
 HTTP 504 on both attempts. Host whitelisted; Russian is the default Language.
 
+Added 29 Sep 2026: ILO NATLEX (`natlex.ilo.org`), an intergovernmental repository
+of official texts. Its download address
+`/dyn/natlex2/natlex2/files/download/{isn}/KAZ-{isn}.pdf` answers with the PDF
+and robots.txt allows it; its detail pages sit behind a browser check, so they
+are never browsed and only seeded addresses are fetched. Seeded: 96710, Law No.
+94-V On Personal Data and their Protection, the Ministry of Justice's unofficial
+English translation, and 108188, the Entrepreneurial Code No. 375-V, in the
+unofficial English translation NATLEX holds (Language English for both).
+
+Also added 29 Sep 2026: the Eurasian Economic Commission (`eec.eaeunion.org`,
+over https), whose robots.txt allows `/upload/`. Its own PDFs of the Union acts
+that bind Kazakhstan are seeded: the Treaty's Annex 8, Section XXII with Annex
+25, Section X and Annex 9, Board Decision No. 30 with its Annex 9, and the
+Customs Code. English is Kazakhstan's third Language, so a NATLEX translation
+added by hand can carry it.
+
 ## Mongolia - legalinfo.mn (strategy: manual, operator-supplied)
 
 Verified 16 Sep 2026. Evidence: `tests/fixtures/portals/mn/README.md`.
@@ -306,16 +342,30 @@ Google widget, and the lists arrive through an undocumented POST endpoint
 reference (`/api/front/index.html`) is an article about the Constitution. Nothing
 here is a published interface to build an adapter on. Host whitelisted.
 
-## Russian Federation - publication.pravo.gov.ru (strategy: manual, no host)
+Added 29 Sep 2026: a law page, `/mn/detail?lawId={id}`, is whole server HTML in
+UTF-8, so laws are seeded by that address: Personal Data Protection
+(16390288615991) and Cybersecurity (16390365491061).
+
+## Russian Federation - pravo.gov.ru, kremlin.ru over http (strategy: manual)
 
 `tests/fixtures/portals/ru/README.md`. Three attempts on 16 Sep 2026, up to a 90 s
 timeout, all ending at the TCP connect with no HTTP exchange. Corrected 22 Sep
 2026: port 443 is blocked on our network path to Russian government hosts, and
 port 80 answers. Over HTTP the Portal has an open API, but its acts are
 image-only scanned PDFs and it publishes amendments rather than consolidated
-law, so the former Thailand fallback was examined and not taken. NO host is
-whitelisted and an operator-supplied Document needs the "official source
-outside the configured Portal" tick.
+law, so the former Thailand fallback was examined and not taken.
+
+Added 29 Sep 2026: two official hosts, whitelisted and asked over plain http
+only (`http_hosts` in `config/portals.yaml`), robots.txt read over the same
+scheme, 60 s timeout. `kremlin.ru` (the President's acts bank):
+`/acts/bank/{id}/print` is the whole current text, and robots.txt allows
+`/acts/bank/`. `pravo.gov.ru` (the Official Internet Portal of Legal
+Information): `/proxy/ips/?doc_itself=&nd={nd}&page=1`. Seeded: Federal Law No.
+152-FZ On Personal Data (kremlin.ru 24154 and pravo.gov.ru nd 102108261) and
+Federal Law No. 149-FZ On Information (nd 102108264). Later the same day:
+kremlin.ru print pages for nine more federal laws the 2025 baseline cites, and
+the Eurasian Economic Commission (`eec.eaeunion.org`, see Kazakhstan, asked over
+https) for the Union acts that bind the Russian Federation.
 
 ## China - www.cac.gov.cn (strategy: manual, add by URL)
 
@@ -453,7 +503,10 @@ each page, replaced with a placeholder so no per-session secret is committed.
   is disclosed the same way.
 - **Document = `/Download/{file id}/{file name}.pdf`**, the statute's own PDF.
   The `/Details/{id}/{slug}` page carries the law's metadata, its abstract and
-  its download link, but NOT the articles, so it is not the Document.
+  its download link, but NOT the articles, so it is not the Document. Since
+  29 Sep 2026 Discovery drops a `/Details/` address (and a `jdih.komdigi.go.id`
+  or `jdih.kominfo.go.id` `/produk_hukum/view/` page) before any request; a law
+  left with no other address is reported as not fetched, reason `summary_page`.
 - **QUIRK - the download id is not the detail id.** Law 27/2022 is
   `/Details/229798/uu-no-27-tahun-2022` and `/Download/224884/UU Nomor 27 Tahun
   2022.pdf`. A Document URL therefore cannot be computed from a detail id; it

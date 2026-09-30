@@ -71,7 +71,9 @@ are expressly conditioned or restricted as the indicator describes).
   as written in the provision, e.g. "(1)" or "(2)(a)"; null if none.
 - impact: ONE short sentence, at most 200 characters, stating what the
   provision requires or permits, for whom, and which rung of the scoring ladder
-  above it matches. State the rung; do not argue for it.
+  above it matches. State the rung; do not argue for it. Write it in English:
+  a source-language term may appear only in quotation marks after its English
+  rendering.
 
 Answer with ONLY a JSON object, no prose, no markdown fences:
 {"maps_to_indicator": true, "verbatim_quote": "...", "subsection": "(1)", "impact": "..."}

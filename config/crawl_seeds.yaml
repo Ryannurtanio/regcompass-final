@@ -33,6 +33,12 @@
 # Known portal gaps (recorded in config/round1_corpus_map.json, not seeded):
 # MY Income Tax Act 1967 (Act 53) has no entry with a PDF in the lom search
 # index (only amendment acts surface, verified 5 Jul 2026).
+#
+# `pillars:` on a family names the Pillars a Discovery by Pillar runs it for.
+# A family without the tag covers Pillars 6 and 7, what every seed was chosen
+# for. Tags only ever ADD Pillars a family's law plainly serves (telecom law
+# for Pillar 5, electronic transactions and consumer law for Pillar 12,
+# intermediary and blocking provisions for 8 and 9); 6 and 7 stay on each.
 seeds:
   SG:
     rate_limit_seconds: 6  # matches the published crawl-delay (belt to the runtime robots check)
@@ -41,10 +47,12 @@ seeds:
         acts: [PDPA2012]
       telecommunications:
         acts: [TA1999]
+        pillars: [5, 6, 7]
       cybersecurity:
         acts: [CA2018, CMA1993]
       electronic_transactions:
         acts: [ETA2010]
+        pillars: [6, 7, 12]
       corporate_law:
         acts: [CoA1967]
       banking:
@@ -63,6 +71,7 @@ seeds:
       criminal_law:
         queries: ["Criminal Code Act 1995"]
       telecommunications:
+        pillars: [5, 6, 7]
         queries:
           - "Telecommunications Act 1997"
           - "Telecommunications (Interception and Access) Act 1979"
@@ -71,6 +80,7 @@ seeds:
           - "Telecommunications Legislation Amendment (International Production Orders) Act 2021"
       online_safety:
         queries: ["Online Safety Act 2021"]
+        pillars: [6, 7, 8, 9]
       health_records:
         queries: ["My Health Records Act 2012"]
       critical_infrastructure:
@@ -98,14 +108,19 @@ seeds:
         queries: ["The Digital Personal Data Protection Act, 2023"]
       electronic_transactions:
         queries: ["The Information Technology Act, 2000"]
+        pillars: [6, 7, 8, 9, 12]
       cybersecurity:
         queries: ["The Information Technology (Amendment) Act, 2008"]
+        pillars: [6, 7, 8, 9]
       telecommunications:
         queries: ["The Telecommunications Act, 2023"]
+        pillars: [5, 6, 7]
       consumer_protection:
         queries: ["The Consumer Protection Act, 2019"]
+        pillars: [6, 7, 12]
       electronic_commerce:
         queries: ["The Consumer Protection (E-Commerce) Rules, 2020"]
+        pillars: [6, 7, 12]
   ID:
     # Indonesian `acts` are the tail of the Portal's own download path,
     # "{file id}/{file name}.pdf" ->
@@ -122,20 +137,359 @@ seeds:
       data_protection:
         acts: ["224884/UU Nomor 27 Tahun 2022.pdf"]  # UU 27/2022 Pelindungan Data Pribadi
       electronic_transactions:
+        pillars: [6, 7, 8, 9, 12]
         acts:
           - "26683/UU Nomor 11 Tahun 2008.pdf"   # UU 11/2008 ITE
           - "26676/UU Nomor  19 Tahun 2016.pdf"  # UU 19/2016, first amendment
           - "332870/UU Nomor 1 Tahun 2024.pdf"   # UU 1/2024, second amendment
       consumer_protection:
         acts: ["33784/UU Nomor 8 Tahun 1999.pdf"]  # UU 8/1999 Perlindungan Konsumen
+        pillars: [6, 7, 12]
       telecommunications:
         acts: ["33857/UU Nomor 36 Tahun 1999.pdf"]  # UU 36/1999 Telekomunikasi
+        pillars: [5, 6, 7]
       electronic_systems:
+        pillars: [6, 7, 8, 12]
         acts: ["112816/PP Nomor 71 Tahun 2019.pdf"]  # PP 71/2019 Penyelenggaraan
         # Sistem dan Transaksi Elektronik (jenis=10, a Government Regulation)
-    # NOT yet seeded, for want of request budget rather than by choice:
-    # Law 7/2014 on Trade, and Law 6/2023, which amends the Telecommunications
-    # Law. Each needs one recorded listing to read its download reference off.
+    # NOT yet seeded for the Portal crawler, for want of request budget rather
+    # than by choice: Law 6/2023, which amends the Telecommunications Law. It
+    # needs one recorded listing to read its download reference off. (Law
+    # 7/2014 on Trade is seeded below, by its address.)
+    #
+    # The 2025 baseline gives most Indonesian laws a /Details/ page, which
+    # holds metadata and an abstract, not the articles. Each family below is
+    # one baseline law at its statute PDF instead: the /Download/ link on the
+    # /Details/ page the baseline cites, read off that page with one request
+    # on 29 Sep 2026 and recorded in
+    # tests/fixtures/portals/id/details_downloads_2026-09-29.json. Every PDF
+    # answered 200 application/pdf, has a text layer, and names the law's
+    # number and year on its first page. Where the baseline lists one
+    # instrument twice, each entry has its own family on the same address
+    # ("_second_citation"); a Discovery fetches it once and reports the
+    # second as already held.
+    # Not seeded. Discovery never fetches a summary page, so where the
+    # baseline gives nothing else the law is reported as a gap
+    # ("summary_page") for the operator to add by hand:
+    # - PP 5/2021, Permenkominfo 5/2021 and Permenkominfo 13/2021: their PDFs
+    #   are mostly page images, so each would be read by OCR end to end (739,
+    #   909 and 155 pages).
+    # - PP 34/2021 and "Ministerial Regulation No.14 on Electronic Systems and
+    #   Transactions 2018": the /Details/ pages the baseline gives are
+    #   regency regulations of Jepara and Lumajang, not these laws.
+    # - PP 17/2025: its file on jdih.komdigi.go.id is under
+    #   /produk_hukum/unduh/, which that host's robots.txt disallows.
+    # - PP 46/2014: its first baseline address is already the statute PDF.
+      perpres_16_2018:
+        law: "Presidential Regulation No.16 on Government Procurement of Goods and Services 2018"
+        baseline_law: "Presidential Regulation No.16 on Government"
+        indicators: ["2.1", "2.3"]
+        urls: ["https://peraturan.bpk.go.id/Download/64076/Perpres%20Nomor%2016%20Tahun%202018.pdf"]
+      inpres_2_2022:
+        law: "Presidential Instruction No. 2 of 2022 on Accelerating the Increase in the Use of Domestic Products and Products of Micro and Small Enterprises and Cooperatives in Government Procurement"
+        baseline_law: "President Instruction No. 22/2022 on Accelerating"
+        indicators: ["2.1", "2.3"]
+        urls: ["https://peraturan.bpk.go.id/Download/198318/Inpres%20Nomor%202%20Tahun%202022.pdf"]
+      pp_29_2018:
+        law: "Regulation of the Government of the Republic of Indonesia No.29 on Industrial Empowerment 2018"
+        baseline_law: "Regulation of the Government of the Republic of Indonesia No.29 on Industrial"
+        indicators: ["2.1", "2.3"]
+        urls: ["https://peraturan.bpk.go.id/Download/80065/PP%20Nomor%2029%20Tahun%202018.pdf"]
+      pp_28_2021:
+        law: "Regulation of the Government of the Republic of Indonesia No.28 on the Implementation of the Industrial Sector 2021"
+        baseline_law: "Regulation of the Government of the Republic of Indonesia No.28 on the Implementation of the Industrial"
+        indicators: ["2.1"]
+        urls: ["https://peraturan.bpk.go.id/Download/154538/PP%20Nomor%2028%20Tahun%202021.pdf"]
+      pp_46_2023:
+        law: "Regulation of the Government of the Republic of Indonesia No.46 on Amendments to Regulation of the Government of the Republic of Indonesia No.28 on the Implementation of the Industrial Sector 2023"
+        baseline_law: "Regulation of the Government of the Republic of Indonesia No.46 on Amendments to Regulation"
+        indicators: ["2.1"]
+        urls: ["https://peraturan.bpk.go.id/Download/322358/PP%20Nomor%2046%20Tahun%202023.pdf"]
+      permenkominfo_41_2009:
+        law: "Regulation of the Minister of Communication and Informatics of the Republic of Indonesia No.41/PER/M.KOMINFO/10/2009 on Procedures for Assessing the Achievement of Domestic Component Levels in the Implementation of Telecommunications 2009"
+        baseline_law: "Regulation of the Minister of Communication and Informatics of the Republic of Indonesia No.41/PER/M.KOMINFO/10/2009 on Procedures"
+        indicators: ["2.1", "2.3"]
+        urls: ["https://peraturan.bpk.go.id/Download/151518/Permen%20Kominfo%20Nomor%2041%20Tahun%202009.pdf"]
+      permenperin_15_2016:
+        law: "Regulation of the Minister of Industry No. 15/M-IND/PER/3/2016 on Specification Standards and Price Standards for Domestic Transmission Towers and Conductors to Accelerate the Development of Electricity Infrastructure 2016"
+        baseline_law: "Regulation of the Minister of Industry No. 15/M-IND/PER/3/2016 on Specification"
+        indicators: ["2.1", "2.3"]
+        urls: ["https://peraturan.bpk.go.id/Download/269216/Permenperin_No_15_2016.pdf"]
+      pp_71_2019:
+        law: "Regulation of the Government of the Republic of Indonesia No.71 on the Provision of Electronic System and Transaction 2019"
+        baseline_law: "Regulation of the Government of the Republic of Indonesia No.71 on the Provision"
+        indicators: ["2.2", "2.3", "4.2", "4.9", "6.1", "6.2", "6.3", "6.4", "7.2", "7.4", "7.5", "9.1", "9.3", "9.4", "12.8", "12.9"]
+        urls: ["https://peraturan.bpk.go.id/Download/112816/PP%20Nomor%2071%20Tahun%202019.pdf"]
+      pp_28_2021_second_citation:
+        law: "Regulation of the Government of the Republic of Indonesia No.28 on Maintenance of Industrial Fields 2021"
+        baseline_law: "Regulation of the Government of the Republic of Indonesia No.28 on Maintenance of Industrial"
+        indicators: ["2.3"]
+        urls: ["https://peraturan.bpk.go.id/Download/154538/PP%20Nomor%2028%20Tahun%202021.pdf"]
+      pmk_115_2020:
+        law: "Regulation of the Minister of Finance Regulation No.115/PMK.06/2020 on the Utilization of State-Owned Assets 2020"
+        baseline_law: "Regulation of the Minister of Finance Regulation No.115/PMK.06/2020 on the Utilization"
+        indicators: ["2.3"]
+        urls: ["https://peraturan.bpk.go.id/Download/136379/115_PMK.06_2020.pdf"]
+      perpres_10_2021:
+        law: "Presidential Regulation No.10 on Investment Business Sectors 2021"
+        baseline_law: "Presidential Regulation No.10 on Investment"
+        indicators: ["3.1", "5.2", "12.01"]
+        urls: ["https://peraturan.bpk.go.id/Download/154474/Perpres%20Nomor%2010%20Tahun%202021.pdf"]
+      perpres_49_2021:
+        law: "Presidential Regulation No.49 on Amendments to Presidential Regulation No.10 on Investment Business Sectors 2021"
+        baseline_law: "Presidential Regulation No.49 on Amendments"
+        indicators: ["3.1", "5.2", "12.01"]
+        urls: ["https://peraturan.bpk.go.id/Download/161562/Perpres%20Nomor%2049%20Tahun%202021.pdf"]
+      pbi_20_2018:
+        law: "Bank Indonesia Regulation No.20/6/PBI/2018 on Electronic Money 2018"
+        baseline_law: "Bank Indonesia Regulation No.20/6/PBI/2018 on Electronic"
+        indicators: ["3.1"]
+        urls: ["https://peraturan.bpk.go.id/Download/126737/Peraturan%20BI%20No.%2020-6-PBI%202018.pdf"]
+      uu_32_2002:
+        law: "Law No.32 on Broadcasting 2002"
+        baseline_law: "Law No.32 on Broadcasting"
+        indicators: ["3.1"]
+        urls: ["https://peraturan.bpk.go.id/Download/32772/UU%20Nomor%2032%20Tahun%202002.pdf"]
+      permenkominfo_6_2017:
+        law: "Regulation of the Minister of Communication and Informatics of the Republic of Indonesia No.6 on the Provision of Internet Protocol Television (IPTV) Services 2017"
+        baseline_law: "Regulation of the Minister of Communication and Informatics of the Republic of Indonesia No.6 on the Provision"
+        indicators: ["3.2", "10.3"]
+        urls: ["https://peraturan.bpk.go.id/Download/142269/Permen%20Kominfo%20Nomor%206%20Tahun%202017.pdf"]
+      pojk_12_2021:
+        law: "Regulation of Financial Services Authority No.12/POJK.03/2021 of 2021 on Commercial Banks 2021"
+        baseline_law: "Regulation of Financial Services Authority No.12/POJK.03/2021 of 2021"
+        indicators: ["3.2"]
+        urls: ["https://peraturan.bpk.go.id/Download/221984/Peraturan%20OJK%20No.%2012%20Tahun%202021.pdf"]
+      uu_11_2020:
+        law: "Law No.11 on Job Creation 2020"
+        baseline_law: "Law No.11 on Job Creation 2020"
+        indicators: ["3.4", "5.1"]
+        urls: ["https://peraturan.bpk.go.id/Download/153567/UU_Nomor_11_Tahun_2020-compressed.pdf"]
+      permenkumham_38_2018:
+        law: "Regulation of the Minister of Law and Human Rights No.38 on Patent Applications 2018"
+        baseline_law: "Regulation of the Minister of Law and Human Rights No.38 on Patent"
+        indicators: ["4.1"]
+        urls: ["https://peraturan.bpk.go.id/Download/123966/Permenkumham%20Nomor%2038%20Tahun%202018.pdf"]
+      uu_13_2016:
+        law: "Law No.13 on Patent 2016"
+        baseline_law: "Law No.13 on Patent"
+        indicators: ["4.01", "4.2", "4.3"]
+        urls: ["https://peraturan.bpk.go.id/Download/26629/UU%20Nomor%2013%20Tahun%202016.pdf"]
+      uu_65_2024:
+        law: "Patent Law No.65 on the Third Amendment to the Patent Law No.13 2024"
+        baseline_law: "Patent Law No.65 on the Third"
+        indicators: ["4.01", "4.2", "4.3"]
+        urls: ["https://peraturan.bpk.go.id/Download/366767/UU%20Nomor%2065%20Tahun%202024.pdf"]
+      uu_28_2014:
+        law: "Law No.28 on Copyright 2014"
+        baseline_law: "Law No.28 on Copyright"
+        indicators: ["4.5", "4.6"]
+        urls: ["https://peraturan.bpk.go.id/Download/28018/UU%20Nomor%2028%20Tahun%202014.pdf"]
+      uu_36_1999:
+        law: "Law No.36 on Telecommunications 1999"
+        baseline_law: "Law No.36 on Telecommunications 1999"
+        indicators: ["5.5", "9.4"]
+        urls: ["https://peraturan.bpk.go.id/Download/33857/UU%20Nomor%2036%20Tahun%201999.pdf"]
+      perpres_112_2020:
+        law: "Presidential Regulation No.112 on the Dissolution of the National Research Council, the Food Security Council, the Surabaya-Madura Regional Development Agency, the National Sports Standardization and Accreditation Agency, the Hajj Supervisory Commission of Indonesia, the National Economic and Industry Committee, the Telecommunications Advisory Board, the National Commission for the Elderly, the Indonesian Professional Sports Agency, and the Indonesian Telecommunications Regulatory Body 2020"
+        baseline_law: "Presidential Regulation No.112 on the Dissolution"
+        indicators: ["5.7"]
+        urls: ["https://peraturan.bpk.go.id/Download/144982/Perpres%20Nomor%20112%20Tahun%202020.pdf"]
+      pojk_11_2022:
+        law: "Regulation of Financial Services Authority No.11/POJK.03/2022 on the Implementation of Information Technology by Commercial Banks 2022"
+        baseline_law: "Regulation of Financial Services Authority No.11/POJK.03/2022 on the Implementation"
+        indicators: ["6.1", "6.4", "7.3"]
+        urls: ["https://peraturan.bpk.go.id/Download/222180/Peraturan%20OJK%20No.%2011%20Tahun%202022.pdf"]
+      pbi_22_2020:
+        law: "Bank Indonesia Regulation No. 22/23/PBI/2020 on Payment Systems 2020"
+        baseline_law: "Bank Indonesia Regulation No. 22/23/PBI/2020 on Payment"
+        indicators: ["6.1", "6.4", "7.3"]
+        urls: ["https://peraturan.bpk.go.id/Download/213684/22.23.PBI.2020.pdf"]
+      uu_27_2022:
+        law: "Law No.27 on Personal Data Protection 2022"
+        baseline_law: "Law No.27 on Personal"
+        indicators: ["6.1", "6.3", "6.4", "7.1", "7.3", "7.4", "7.5"]
+        urls: ["https://peraturan.bpk.go.id/Download/224884/UU%20Nomor%2027%20Tahun%202022.pdf"]
+      permenkominfo_20_2016:
+        law: "Regulation of the Minister of Communication and Informatics of the Republic of Indonesia No.20 on Protection of Personal Data in Electronic Systems 2016"
+        baseline_law: "Regulation of the Minister of Communication and Informatics of the Republic of Indonesia No.20 on Protection"
+        indicators: ["6.4", "7.1", "7.3", "7.4", "7.5", "9.1"]
+        urls: ["https://peraturan.bpk.go.id/Download/142743/Permen%20Kominfo%20Nomor%2020%20Tahun%202016.pdf"]
+      permenkominfo_5_2020:
+        law: "Regulation of the Minister of Communication and Informatics of the Republic of Indonesia No.5 on Private Electronic System Operators 2020"
+        baseline_law: "Regulation of the Minister of Communication and Informatics of the Republic of Indonesia No.5 on Private"
+        indicators: ["6.4", "8.2", "8.4", "9.1", "9.3", "9.4", "12.3", "12.7", "12.8"]
+        urls: ["https://peraturan.bpk.go.id/Download/197017/Nomor%205%20Tahun%202020.pdf"]
+      permenkominfo_10_2021:
+        law: "Minister of Communication and Informatics Regulation No. 10 on the Amendment to Minister of Communication and Informatics Regulation No. 5 of 2020 on Private Electronic System Operators 2021"
+        baseline_law: "Minister of Communication and Informatics Regulation No. 10 on the Amendment"
+        indicators: ["6.4", "8.2", "8.4", "9.1", "9.3", "9.4", "12.3", "12.7", "12.8"]
+        urls: ["https://peraturan.bpk.go.id/Download/197090/Nomor%2010%20Tahun%202021.pdf"]
+      pp_80_2019:
+        law: "Regulation of the Government of the Republic of Indonesia No.80 on Trading Through the Electronic System (E-commerce Law) 2019"
+        baseline_law: "Regulation of the Government of the Republic of Indonesia No.80 on Trading"
+        indicators: ["6.4", "7.2", "7.3", "8.1", "8.2", "12.3", "12.7", "12.9"]
+        urls: ["https://peraturan.bpk.go.id/Download/117172/PP%20Nomor%2080%20Tahun%202019.pdf"]
+      uu_11_2008:
+        law: "Law No.11 on Information and Electronic Transactions 2008"
+        baseline_law: "Law No.11 on Information and Electronic"
+        indicators: ["7.2", "7.3", "7.5", "8.1", "8.2", "9.1", "9.3", "11.4", "12.9"]
+        urls: ["https://peraturan.bpk.go.id/Download/26683/UU%20Nomor%2011%20Tahun%202008.pdf"]
+      uu_19_2016:
+        law: "Law No.19 on Amendments to Law Number 11 of 2008 on Electronic Information and Transactions 2016"
+        baseline_law: "Law No.19 on Amendments to Law Number 11 of 2008"
+        indicators: ["7.2"]
+        urls: ["https://peraturan.bpk.go.id/Download/26676/UU%20Nomor%20%2019%20Tahun%202016.pdf"]
+      uu_1_2024:
+        law: "Law No.1 on the Second Amendment to Law Number 11 of 2008 on Electronic Information and Transactions 2024"
+        baseline_law: "Law No.1 on the Second Amendment to Law Number 11 of 2008"
+        indicators: ["7.2"]
+        urls: ["https://peraturan.bpk.go.id/Download/332870/UU%20Nomor%201%20Tahun%202024.pdf"]
+      perpres_28_2021:
+        law: "Presidential Regulation No. 28 of 2021 on the National Cyber and Encryption Agency"
+        baseline_law: "Presidential Regulation No.53 on the National"
+        indicators: ["7.2"]
+        urls: ["https://peraturan.bpk.go.id/Download/158388/Perpres%20Nomor%2028%20Tahun%202021.pdf"]
+      uu_19_2016_second_citation:
+        law: "Law No.19 on Amendments to Law No.11 of 2008 on Electronic Information and Transactions 2016"
+        baseline_law: "Law No.19 on Amendments to Law No.11 of 2008"
+        indicators: ["7.3", "8.1", "8.2", "9.1", "9.3", "11.4", "12.9"]
+        urls: ["https://peraturan.bpk.go.id/Download/26676/UU%20Nomor%20%2019%20Tahun%202016.pdf"]
+      uu_1_2024_second_citation:
+        law: "Law No.1 on the Second Amendment to Law No.11 of 2008 on Electronic Information and Transactions 2024"
+        baseline_law: "Law No.1 on the Second Amendment to Law No.11 of 2008"
+        indicators: ["7.3", "8.1", "8.2", "9.1", "9.3", "11.4", "12.9"]
+        urls: ["https://peraturan.bpk.go.id/Download/332870/UU%20Nomor%201%20Tahun%202024.pdf"]
+      uu_10_1998:
+        law: "Law No.10 on Banking 1998"
+        baseline_law: "Law No.10 on Banking"
+        indicators: ["7.3"]
+        urls: ["https://peraturan.bpk.go.id/Download/34003/UU%20Nomor%2010%20Tahun%201998.pdf"]
+      pojk_8_2023:
+        law: "Financial Services Authority Regulation No. 8 of 2023 on Anti-Money Laundering, Counter-Terrorism Financing and Counter-Proliferation Financing Programs in the Financial Services Sector"
+        baseline_law: "Regulation of Financial Services Authority No. LN.2023 (11)/117 on on the Implementation"
+        indicators: ["7.3"]
+        urls: ["https://peraturan.bpk.go.id/Download/330125/POJK%208-2023.pdf"]
+      uu_8_1997:
+        law: "Law No. 8 on Company Documents 1997"
+        baseline_law: "Law No. 8 on Company"
+        indicators: ["7.3"]
+        urls: ["https://peraturan.bpk.go.id/Download/34482/UU%20Nomor%208%20Tahun%201997.pdf"]
+      uu_28_2014_second_citation:
+        law: "Copyright Law No.28 2014"
+        baseline_law: "Copyright Law No.28 2014"
+        indicators: ["8.1"]
+        urls: ["https://peraturan.bpk.go.id/Download/28018/UU%20Nomor%2028%20Tahun%202014.pdf"]
+      permenkominfo_5_2016:
+        law: "Regulation of the Minister of Communication and Informatics No.5 on Trial of Telecommunication, Informatics, and Broadcasting Technology 2016"
+        baseline_law: "Regulation of the Minister of Communication and Informatics No.5 on Trial"
+        indicators: ["8.2"]
+        urls: ["https://peraturan.bpk.go.id/Download/142726/Permen%20Kominfo%20Nomor%205%20Tahun%202016.pdf"]
+      uu_44_2008:
+        law: "Law No.44 on Pornography 2008"
+        baseline_law: "Law No.44 on Pornography"
+        indicators: ["9.1", "9.3"]
+        urls: ["https://peraturan.bpk.go.id/Download/29322/UU%20Nomor%2044%20Tahun%202008.pdf"]
+      permendag_6_2015:
+        law: "Regulation of the Minister of Trade No.06/M-DAG/PER/1/2015 of 2015 on the Second Amendment to Minister of Trade Regulation No.20/M-DAG/PER/4/2014 on the Control and Supervision of the Procurement, Distribution, and Sale of Alcoholic Beverages 2015"
+        baseline_law: "Regulation of the Minister of Trade No.06/M-DAG/PER/1/2015 of 2015"
+        indicators: ["9.3"]
+        urls: ["https://peraturan.bpk.go.id/Download/264271/Permendag%20No.%206%20Tahun%202015.pdf"]
+      uu_36_2009:
+        law: "Law No.36 on Health 2009"
+        baseline_law: "Law No.36 on Health 2009"
+        indicators: ["9.3"]
+        urls: ["https://peraturan.bpk.go.id/Download/28107/UU%20Nomor%2036%20Tahun%202009.pdf"]
+      pojk_22_2023:
+        law: "Regulation of Financial Services Authority No.22 on Consumer and Public Protection in the Financial Services Sector 2023"
+        baseline_law: "Regulation of Financial Services Authority No.22 on Consumer"
+        indicators: ["9.3"]
+        urls: ["https://peraturan.bpk.go.id/Download/362621/POJK%2022%20Tahun%202023%20Pelindungan%20Konsumen%20dan%20Masyarakat%20di%20Sektor%20Jasa%20Keuangan.pdf"]
+      uu_7_2017:
+        law: "Law No.7 on General Elections 2017"
+        baseline_law: "Law No.7 on General Elections 2017"
+        indicators: ["9.3"]
+        urls: ["https://peraturan.bpk.go.id/Download/26738/UU_Nomor_7_Tahun_2017_-_Batang_Tubuh_-_Hal._1-150.pdf"]
+      permendag_70_2015:
+        law: "Regulation of the Minister of Trade No. 70/M-DAG/PER/9/2015 of 2015 on Importer Identification Number 2018"
+        baseline_law: "Regulation of the Minister of Trade No. 70/M-DAG/PER/9/2015 of 2015"
+        indicators: ["10.2"]
+        urls: ["https://peraturan.bpk.go.id/Download/264977/Permendag%20No.%2070%20Tahun%202015.pdf"]
+      permendag_40_2022:
+        law: "Regulation of the Minister of Trade No. 40 of 2022 amending Regulation No. 18 of 2021 on Goods Prohibited from Export and Import"
+        baseline_law: "Regulation of the Minister of Trade No.18 of 2021"
+        indicators: ["10.2"]
+        urls: ["https://peraturan.bpk.go.id/Download/269406/Permendag%20Nomor%2040%20Tahun%202022.pdf"]
+      pmk_190_2022:
+        law: "Regulation of the Minister of Finance Regulation No.190/PMK.04/2022 of 2022 on the Release of Imported Goods for Use 2022"
+        baseline_law: "Regulation of the Minister of Finance Regulation No.190/PMK.04/2022 of 2022"
+        indicators: ["10.2"]
+        urls: ["https://peraturan.bpk.go.id/Download/286005/190_PMK.04_2022.pdf"]
+      permenkominfo_41_2009_second_citation:
+        law: "Regulation of the Minister of Communication and Informatics of the Republic of Indonesia No. 41/PER/M.KOMINFO/10/2009 2009"
+        baseline_law: "Regulation of the Minister of Communication and Informatics of the Republic of Indonesia No. 41/PER/M.KOMINFO/10/2009 2009"
+        indicators: ["10.3"]
+        urls: ["https://peraturan.bpk.go.id/Download/151518/Permen%20Kominfo%20Nomor%2041%20Tahun%202009.pdf"]
+      permenesdm_1_2014:
+        law: "Regulation of the Minister of Energy and Mineral Resources No.1 on the Increase of Mineral Added Value Through Mineral Processing and Refining Activities in the Country 2014"
+        baseline_law: "Regulation of the Minister of Energy and Mineral Resources No.1 on the Increase"
+        indicators: ["10.4"]
+        urls: ["https://peraturan.bpk.go.id/Download/133871/Permen%20ESDM%20Nomor%201%20Tahun%202014.pdf"]
+      pp_85_2015:
+        law: "Regulation of the Government of the Republic of Indonesia No.85 pn Amendments to Regulation of the Government of the Republic of Indonesia No.32 of 2009 on Bonded Storage Areas 2015"
+        baseline_law: "Regulation of the Government of the Republic of Indonesia No.85 pn Amendments"
+        indicators: ["10.4"]
+        urls: ["https://peraturan.bpk.go.id/Download/29683/PP%20Nomor%2085%20Tahun%202015.pdf"]
+      pmk_131_2018:
+        law: "Regulation of the Minister of Finance No.131/PMK.04/2018 on Bonded Zones 2018"
+        baseline_law: "Regulation of the Minister of Finance No.131/PMK.04/2018 on Bonded"
+        indicators: ["10.4"]
+        urls: ["https://peraturan.bpk.go.id/Download/104194/PMK%20Nomor%20131%20Tahun%202018.pdf"]
+      pmk_6_2014:
+        law: "Ministry of Finance Regulation No.6/PMK.011/2014 on Second Amendment to Regulation of the Minister of Finance Number 75/PMK.011/2012 on the Determination of Export Goods Subject to Export Duty and Export Duty Tariffs 2014"
+        baseline_law: "Ministry of Finance Regulation No.6/PMK.011/2014 on Second"
+        indicators: ["10.4"]
+        urls: ["https://peraturan.bpk.go.id/Download/139596/PMK%20Nomor%206%20Tahun%202014.pdf"]
+      uu_20_2014:
+        law: "Law No.20 on Standardization and Conformity Assessment 2014"
+        baseline_law: "Law No.20 on Standardization"
+        indicators: ["11.1"]
+        urls: ["https://peraturan.bpk.go.id/Download/27975/UU%20Nomor%2020%20Tahun%202014.pdf"]
+      permenkominfo_16_2018:
+        law: "Minister of Communication and Informatics Regulation No.16 on Operational Provisions for the Certification of Telecommunication Equipment and/or Devices 2018"
+        baseline_law: "Minister of Communication and Informatics Regulation No.16 on Operational"
+        indicators: ["11.2"]
+        urls: ["https://peraturan.bpk.go.id/Download/141816/Permen%20Kominfo%20Nomor%2016%20Tahun%202018.pdf"]
+      permendag_25_2021:
+        law: "Regulation of the Minister of Trade No.25 on the Designation of Goods Required to Use or Be Accompanied by Labels in the Indonesian Language 2021"
+        baseline_law: "Regulation of the Minister of Trade No.25 on the Designation"
+        indicators: ["11.2"]
+        urls: ["https://peraturan.bpk.go.id/Download/269197/Permendag%20Nomor%2025%20Tahun%202021%20(1).pdf"]
+      permenkominfo_16_2018_second_citation:
+        law: "Regulation of the Minister of Communication and Informatics of the Republic of Indonesia No.16 on Operational Provisions for the Certification of Telecommunication Equipment and/or Devices 2018"
+        baseline_law: "Regulation of the Minister of Communication and Informatics of the Republic of Indonesia No.16 on Operational"
+        indicators: ["11.3"]
+        urls: ["https://peraturan.bpk.go.id/Download/141816/Permen%20Kominfo%20Nomor%2016%20Tahun%202018.pdf"]
+      perpres_47_2023:
+        law: "Presidential Regulation No.47 on the National Cybersecurity Strategy and Cyber Crisis Management 2023"
+        baseline_law: "Presidential Regulation No.47 on the National"
+        indicators: ["11.4"]
+        urls: ["https://peraturan.bpk.go.id/Download/312229/Perpres%20Nomor%2047%20Tahun%202023.pdf"]
+      uu_7_2014:
+        law: "Law No.7 on Trade 2014"
+        baseline_law: "Law No.7 on Trade 2014"
+        indicators: ["12.3"]
+        urls: ["https://peraturan.bpk.go.id/Download/27842/UU%20Nomor%2007%20Tahun%202014.pdf"]
+      permendag_31_2023:
+        law: "Regulation of the Minister of Trade No.31 on Business Licensing, Advertising, Guidance and Supervision of Business Actors in Trading Through Electronic Systems 2023"
+        baseline_law: "Regulation of the Minister of Trade No.31 on Business"
+        indicators: ["12.3", "12.8", "12.9"]
+        urls: ["https://peraturan.bpk.go.id/Download/322371/Permendag%2031%20Tahun%202023.pdf"]
+      pmk_17_2018:
+        law: "Regulation of the Minister of Finance Regulation No.17/PMK.010/2018 on the Second Amendment to Minister of Finance Regulation Number 6/PMK.010/2017 on the Establishment of the Goods Classification System and Imposition of Import Duty Tariffs on Imported Goods 2018"
+        baseline_law: "Regulation of the Minister of Finance Regulation No.17/PMK.010/2018 on the Second"
+        indicators: ["12.6"]
+        urls: ["https://peraturan.bpk.go.id/Download/102937/PMK%20Nomor%2017%20Tahun%202018.pdf"]
   MY:
     rate_limit_seconds: 5
     families:
@@ -143,10 +497,12 @@ seeds:
         queries: ["personal data protection"]
       communications:
         queries: ["communications and multimedia"]
+        pillars: [5, 6, 7, 9]
       cybersecurity:
         queries: ["computer crimes", "cyber security"]
       electronic_commerce:
         queries: ["electronic commerce"]
+        pillars: [6, 7, 12]
       tax:
         queries: ["services tax act 2018"]
       criminal_procedure:
@@ -169,6 +525,7 @@ seeds:
     families:
       electronic_transactions:
         queries: ["ເອເລັກ"]
+        pillars: [6, 7, 12]
       cybersecurity:
         # Two words, because the Portal's own titles use two vocabularies: the
         # 2025 Law on Cyber Security is ໄຊເບີ (cyber), while the cyber crime law
@@ -176,5 +533,266 @@ seeds:
         queries: ["ໄຊເບີ", "ຄອມພິວເຕີ"]
       consumer_protection:
         queries: ["ຜູ້ຊົມໃຊ້"]
+        pillars: [6, 7, 12]
       telecommunications:
         queries: ["ໂທລະຄົມ"]
+        pillars: [5, 6, 7]
+  # Fixed official addresses, one law per family (`urls`), for the Economies
+  # whose Portal has no crawler: a Discovery by Pillar fetches the first
+  # address that answers with the law's text. A family serves the Indicators
+  # it lists, and so their Pillars. `baseline_law` is the start of the 2025
+  # baseline's name for the same law, whose own addresses are then tried
+  # after these; `language` is set where the text is not in the Economy's
+  # default Language. Every address below answered with the named law on
+  # 29 Sep 2026 (one request each, robots.txt read first).
+  TH:
+    rate_limit_seconds: 2
+    families:
+      data_protection:
+        law: "Personal Data Protection Act B.E. 2562 (2019), unofficial English translation"
+        baseline_law: "Personal Data Protection Act B.E.2562"
+        indicators: ["6.2", "6.3", "6.4", "7.1", "7.4"]
+        language: English
+        urls: ["https://mdes.go.th/law/detail/3577-Personal-Data-Protection-Act-B-E--2562--2019-"]
+      electronic_transactions:
+        law: "Electronic Transactions Act B.E. 2544 (2001), unofficial English translation"
+        baseline_law: "Electronic Transactions Act B.E.2544"
+        indicators: ["12.2", "12.3"]
+        language: English
+        urls: ["https://mdes.go.th/law/detail/3616-ELECTRONIC-TRANSACTIONS-ACT--B-E--2544--2001-"]
+      computer_crime:
+        law: "Computer-related Crime Act B.E. 2550 (2007), unofficial English translation"
+        baseline_law: "Computer-Related Crime Act B.E.2550"
+        indicators: ["7.2", "7.3", "7.5", "8.2", "8.3", "9.1"]
+        language: English
+        urls: ["https://mdes.go.th/law/detail/3618-"]
+  VN:
+    # Official Gazette (Cong bao) PDFs with a Vietnamese text layer; each
+    # answered 200 application/pdf to one request. Where the Gazette split
+    # one instrument over two issues, each issue is its own family, named by
+    # the Articles it holds. Instruments no longer in force are not seeded:
+    # the Law on Cybersecurity No. 24/2018/QH14 ended when Law No.
+    # 116/2025/QH15 took effect (its Article 44(2)), and Decree No.
+    # 13/2023/ND-CP on 1 January 2026 (Decree No. 356/2025/ND-CP, Article
+    # 42(2)).
+    rate_limit_seconds: 2
+    families:
+      data_protection:
+        law: "Law on Personal Data Protection No. 91/2025/QH15 (in force 1 January 2026)"
+        indicators: ["6.1", "6.4", "7.1", "7.4", "7.5"]
+        urls: ["https://congbaocdn.chinhphu.vn/CongBaoCP/VanBan/2025/6/45578/57730-1-2025971-97291-2025-qh15.pdf"]
+      data_protection_decree:
+        law: "Decree No. 356/2025/ND-CP detailing the Law on Personal Data Protection (in force 1 January 2026)"
+        indicators: ["6.1", "6.4", "7.1", "7.4", "7.5"]
+        urls: ["https://congbaocdn.chinhphu.vn/180507251028987904/2026/1/17/356signed-1768638052103952849513.pdf"]
+      cybersecurity_2025:
+        law: "Law on Cybersecurity No. 116/2025/QH15 (in force 1 July 2026)"
+        indicators: ["2.2", "6.2", "6.3", "7.2", "7.3", "7.5", "8.3", "8.4", "9.1", "11.4"]
+        urls: ["https://congbaocdn.chinhphu.vn/180507251028987904/2026/1/23/116signed-1769163678477753319408.pdf"]
+      foreign_trade:
+        law: "Law on Foreign Trade Management No. 05/2017/QH14"
+        indicators: ["1.4", "10.1", "10.2", "10.4"]
+        urls: ["https://congbaocdn.chinhphu.vn/CongBaoCP/VanBan/2017/6/24234/18435-1-2017513-51405-2017-qh14.pdf"]
+      foreign_trade_decree:
+        law: "Decree No. 69/2018/ND-CP detailing the Law on Foreign Trade Management"
+        indicators: ["10.1", "10.2", "10.4"]
+        urls: ["https://congbaocdn.chinhphu.vn/CongBaoCP/VanBan/2018/5/26559/22588-1-2018675-67669-2018-nd-cp.pdf"]
+      bidding:
+        law: "Law on Bidding No. 22/2023/QH15"
+        indicators: ["2.1", "2.2", "2.3"]
+        urls: ["https://congbaocdn.chinhphu.vn/CongBaoCP/VanBan/2023/6/39855/45951-1-2023869-87022-2023-qh15.pdf"]
+      investment:
+        law: "Law on Investment No. 61/2020/QH14"
+        indicators: ["3.1", "3.2", "3.4", "3.5", "12.01"]
+        urls: ["https://congbaocdn.chinhphu.vn/CongBaoCP/VanBan/2020/6/31682/31846-1-2020717-71861-2020-qh14.pdf"]
+      investment_decree_articles:
+        law: "Decree No. 31/2021/ND-CP detailing the Law on Investment, Official Gazette part 1 (Articles 1 to 67)"
+        indicators: ["3.1", "3.2", "3.4", "3.5"]
+        urls: ["https://congbaocdn.chinhphu.vn/CongBaoCP/VanBan/2021/3/33579/35499-1-2021535-53631-2021-nd-cp.pdf"]
+      investment_market_access_list:
+        law: "Decree No. 31/2021/ND-CP detailing the Law on Investment, Official Gazette part 2 (Articles 68 to 132 and Annex I, the market access list for foreign investors)"
+        indicators: ["3.1", "3.2", "3.5", "5.2", "12.01"]
+        urls: ["https://congbaocdn.chinhphu.vn/CongBaoCP/VanBan/2021/3/33579/35515-1-2021537-53831-2021-nd-cp.pdf"]
+      intellectual_property_rights:
+        law: "Law on Intellectual Property, consolidated text No. 155/VBHN-VPQH of 2025, Official Gazette part 1 (Articles 1 to 99)"
+        indicators: ["4.01", "4.5", "4.1"]
+        urls: ["https://congbaocdn.chinhphu.vn/CongBaoCP/VanBan/2025/9/46214/58977-1-20251383-1384155-vbhn-vpqh.pdf"]
+      intellectual_property_enforcement:
+        law: "Law on Intellectual Property, consolidated text No. 155/VBHN-VPQH of 2025, Official Gazette part 2 (Articles 100 to 222)"
+        indicators: ["4.01", "4.2", "4.3", "4.6", "4.1", "8.1"]
+        urls: ["https://congbaocdn.chinhphu.vn/CongBaoCP/VanBan/2025/9/46214/58980-1-20251385-1386155-vbhn-vpqh.pdf"]
+      telecommunications:
+        law: "Law on Telecommunications No. 24/2023/QH15"
+        indicators: ["5.1", "5.2", "5.3", "5.4", "5.5", "5.7"]
+        urls: ["https://congbaocdn.chinhphu.vn/CongBaoCP/VanBan/2023/11/40834/47896-1-202429-3024-2023-qh15.pdf"]
+      internet_services:
+        law: "Decree No. 147/2024/ND-CP on the management, provision and use of Internet services and online information, Official Gazette part 1 (Articles 1 to 53)"
+        indicators: ["8.2", "8.3", "8.4", "9.1", "9.4", "12.8"]
+        urls: ["https://congbaocdn.chinhphu.vn/CongBaoCP/VanBan/2024/11/43155/52693-1-20241261-1262147-2024-nd-cp.pdf"]
+      advertising:
+        law: "Law on Advertising, consolidated text No. 88/VBHN-VPQH of 2025"
+        indicators: ["9.3"]
+        urls: ["https://congbaocdn.chinhphu.vn/CongBaoCP/VanBan/2025/8/45976/58538-1-20251243-124488-vbhn-vpqh.pdf"]
+      standards:
+        law: "Law on Standards and Technical Regulations, consolidated text No. 56/VBHN-VPQH of 2025"
+        indicators: ["11.1", "11.2", "11.3"]
+        urls: ["https://congbaocdn.chinhphu.vn/CongBaoCP/VanBan/2025/8/45845/58228-1-20251091-109256-vbhn-vpqh.pdf"]
+      electronic_commerce:
+        law: "Law on E-commerce No. 122/2025/QH15 (in force 1 July 2026)"
+        indicators: ["12.2", "12.3", "12.8", "12.9"]
+        urls: ["https://congbaocdn.chinhphu.vn/180507251028987904/2026/1/27/122signed-17694826033991158478619.pdf"]
+      electronic_transactions:
+        law: "Law on Electronic Transactions No. 20/2023/QH15"
+        indicators: ["12.2", "12.9"]
+        urls: ["https://congbaocdn.chinhphu.vn/CongBaoCP/VanBan/2023/6/39848/45939-1-2023867-86820-2023-qh15.pdf"]
+      consumer_protection:
+        law: "Law on Protection of Consumer Rights No. 19/2023/QH15"
+        indicators: ["12.2", "12.9"]
+        urls: ["https://congbaocdn.chinhphu.vn/CongBaoCP/VanBan/2023/6/39843/45917-1-2023865-86619-2023-qh15.pdf"]
+  RU:
+    # kremlin.ru print pages are the whole current text with its amendment
+    # list (UTF-8 HTML, plain http); the eec.eaeunion.org files are the
+    # Eurasian Economic Commission's own PDFs, over https.
+    rate_limit_seconds: 2
+    families:
+      data_protection:
+        law: "Federal Law No. 152-FZ On Personal Data"
+        baseline_law: "Federal Law No. 152-FZ"
+        indicators: ["6.1", "6.3", "6.4", "7.1", "7.2", "7.4"]
+        urls:
+          - "http://kremlin.ru/acts/bank/24154/print"
+          - "http://pravo.gov.ru/proxy/ips/?doc_itself=&nd=102108261&page=1"
+      information:
+        law: "Federal Law No. 149-FZ On Information, Information Technologies and the Protection of Information"
+        baseline_law: "Federal Law No.149-FZ"
+        indicators: ["2.1", "6.2", "7.2", "7.3", "7.5", "8.2", "8.3", "8.4", "9.1"]
+        urls: ["http://pravo.gov.ru/proxy/ips/?doc_itself=&nd=102108264&page=1"]
+      foreign_investment:
+        law: "Federal Law No. 160-FZ On Foreign Investments in the Russian Federation"
+        baseline_law: "Federal Law No. 160-FZ"
+        indicators: ["3.2", "3.4", "5.2", "12.01"]
+        urls: ["http://kremlin.ru/acts/bank/14131/print"]
+      strategic_investment:
+        law: "Federal Law No. 57-FZ On the Procedure for Foreign Investments in Business Entities of Strategic Importance for National Defence and State Security"
+        baseline_law: "Federal Law No.57-FZ"
+        indicators: ["3.1", "3.4"]
+        urls: ["http://kremlin.ru/acts/bank/27332/print"]
+      foreign_internet_companies:
+        law: "Federal Law No. 236-FZ On the Activities of Foreign Persons in the Information and Telecommunication Network Internet in the Russian Federation"
+        baseline_law: "Federal Law No. 236-FZ"
+        indicators: ["3.5", "9.1", "12.8"]
+        urls: ["http://kremlin.ru/acts/bank/46991/print"]
+      civil_code_part_four:
+        law: "Civil Code of the Russian Federation, Part Four (Federal Law No. 230-FZ)"
+        baseline_law: "Part IV of the Civil Code of the Russian Federation"
+        indicators: ["4.01", "4.2", "4.3", "4.5", "4.6", "4.1", "8.1", "8.4"]
+        urls: ["http://kremlin.ru/acts/bank/24743/print"]
+      trade_secret:
+        law: "Federal Law No. 98-FZ On Trade Secret"
+        baseline_law: "Federal Law No. 98-FZ"
+        indicators: ["4.1"]
+        urls: ["http://kremlin.ru/acts/bank/21227/print"]
+      communications:
+        law: "Federal Law No. 126-FZ On Communications"
+        baseline_law: "Federal Law No. 126-FZ"
+        indicators: ["5.1", "5.3", "5.4", "5.5", "5.7", "8.3", "9.1", "11.2"]
+        urls: ["http://kremlin.ru/acts/bank/19708/print"]
+      licensing:
+        law: "Federal Law No. 99-FZ On Licensing of Certain Types of Activities"
+        baseline_law: "Federal Law No. 99-FZ"
+        indicators: ["5.5", "9.4", "11.4", "12.3"]
+        urls: ["http://kremlin.ru/acts/bank/33139/print"]
+      standardization:
+        law: "Federal Law No. 162-FZ On Standardization in the Russian Federation"
+        baseline_law: "Federal Law No. 162-FZ"
+        indicators: ["11.1"]
+        urls: ["http://kremlin.ru/acts/bank/39815/print"]
+      electronic_signature:
+        law: "Federal Law No. 63-FZ On Electronic Signature"
+        baseline_law: "Federal Law No. 63-FZ"
+        indicators: ["12.9"]
+        urls: ["http://kremlin.ru/acts/bank/32938/print"]
+      eaeu_trade_remedies:
+        law: "Treaty on the Eurasian Economic Union, Annex 8: Protocol on the application of special safeguard, anti-dumping and countervailing measures to third countries"
+        indicators: ["1.4"]
+        urls: ["https://eec.eaeunion.org/upload/medialibrary/44c/2_EAEU_Treaty_Annex8_Protocol.pdf"]
+      eaeu_non_tariff:
+        law: "Decision of the Board of the Eurasian Economic Commission No. 30 of 21 April 2015 On non-tariff regulation measures (consolidated)"
+        baseline_law: "Decision of the Board of the Eurasian Economic Commission No. 30"
+        indicators: ["10.1", "10.2", "10.4", "11.3"]
+        urls: ["https://eec.eaeunion.org/upload/medialibrary/b42/r6jhwr328ktqldof82k6mb730grtr4fb/30_1.pdf"]
+      eaeu_encryption:
+        law: "Decision of the Board of the Eurasian Economic Commission No. 30, Annex 9: Regulation on the import and export of encryption (cryptographic) means"
+        indicators: ["10.2", "11.4"]
+        urls: ["https://eec.eaeunion.org/upload/files/catr/EP.pdf/%D0%9F%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5%209_%D1%80%D0%B5%D0%B4%20131%20(6).pdf"]
+      eaeu_technical_regulation:
+        law: "Treaty on the Eurasian Economic Union, Section X Technical regulation (Articles 51 to 55)"
+        indicators: ["11.1", "11.2", "11.3"]
+        urls: ["https://eec.eaeunion.org/upload/files/deptexreg/acts_general/%D0%94%D0%BE%D0%B3%D0%BE%D0%B2%D0%BE%D1%80%20%D0%A0%D0%B0%D0%B7%D0%B4%D0%B5%D0%BB%20X.pdf"]
+      eaeu_technical_regulation_protocol:
+        law: "Treaty on the Eurasian Economic Union, Annex 9: Protocol on technical regulation within the Eurasian Economic Union"
+        baseline_law: "Eurasian Economic Union Treaty"
+        indicators: ["11.2", "11.3"]
+        urls: ["https://eec.eaeunion.org/upload/files/deptexreg/acts_general/%D0%94%D0%BE%D0%B3%D0%BE%D0%B2%D0%BE%D1%80_%D0%9F%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5%20N%209.pdf"]
+      eaeu_customs_code:
+        law: "Customs Code of the Eurasian Economic Union (Annex 1 to the Treaty of 11 April 2017)"
+        baseline_law: "Customs Code of the Eurasian Economic Union"
+        indicators: ["12.5", "12.6"]
+        urls: ["https://eec.eaeunion.org/upload/iblock/93c/TK-EAES.pdf"]
+  MN:
+    rate_limit_seconds: 2
+    families:
+      data_protection:
+        law: "Law on Personal Data Protection"
+        baseline_law: "Law on Personal Data Protection"
+        indicators: ["6.1", "6.2", "6.3", "6.4", "7.1", "7.3", "7.4"]
+        urls: ["https://legalinfo.mn/mn/detail?lawId=16390288615991"]
+      cybersecurity:
+        law: "Law on Cybersecurity"
+        baseline_law: "Law on Cybersecurity"
+        indicators: ["7.2"]
+        urls: ["https://legalinfo.mn/mn/detail?lawId=16390365491061"]
+  KZ:
+    # ILO NATLEX download addresses only; its detail pages are never browsed.
+    # Eurasian Economic Union acts bind Kazakhstan as a member State; they are
+    # the Eurasian Economic Commission's own PDFs.
+    rate_limit_seconds: 2
+    families:
+      data_protection:
+        law: "Law of the Republic of Kazakhstan No. 94-V On Personal Data and their Protection, unofficial English translation"
+        indicators: ["6.1", "6.2", "6.4", "7.1", "7.4"]
+        language: English
+        urls: ["https://natlex.ilo.org/dyn/natlex2/natlex2/files/download/96710/KAZ-96710.pdf"]
+      entrepreneurial_code:
+        law: "Entrepreneurial Code of the Republic of Kazakhstan No. 375-V of 29 October 2015, unofficial English translation"
+        indicators: ["3.1", "3.2", "3.3", "3.4", "3.5"]
+        language: English
+        urls: ["https://natlex.ilo.org/dyn/natlex2/natlex2/files/download/108188/KAZ-108188.pdf"]
+      eaeu_trade_remedies:
+        law: "Treaty on the Eurasian Economic Union, Annex 8: Protocol on the application of special safeguard, anti-dumping and countervailing measures to third countries"
+        indicators: ["1.4"]
+        urls: ["https://eec.eaeunion.org/upload/medialibrary/44c/2_EAEU_Treaty_Annex8_Protocol.pdf"]
+      eaeu_procurement:
+        law: "Treaty on the Eurasian Economic Union, Section XXII and Annex 25: government (municipal) procurement"
+        indicators: ["2.1", "2.3"]
+        urls: ["https://eec.eaeunion.org/upload/iblock/5b1/5b1a2ca0e21b4eb961e0fa658cc8dec9.pdf"]
+      eaeu_non_tariff:
+        law: "Decision of the Board of the Eurasian Economic Commission No. 30 of 21 April 2015 On non-tariff regulation measures (consolidated)"
+        indicators: ["10.1", "10.2", "10.4", "11.3"]
+        urls: ["https://eec.eaeunion.org/upload/medialibrary/b42/r6jhwr328ktqldof82k6mb730grtr4fb/30_1.pdf"]
+      eaeu_encryption:
+        law: "Decision of the Board of the Eurasian Economic Commission No. 30, Annex 9: Regulation on the import and export of encryption (cryptographic) means"
+        indicators: ["10.2", "11.4"]
+        urls: ["https://eec.eaeunion.org/upload/files/catr/EP.pdf/%D0%9F%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5%209_%D1%80%D0%B5%D0%B4%20131%20(6).pdf"]
+      eaeu_technical_regulation:
+        law: "Treaty on the Eurasian Economic Union, Section X Technical regulation (Articles 51 to 55)"
+        indicators: ["11.1", "11.2", "11.3"]
+        urls: ["https://eec.eaeunion.org/upload/files/deptexreg/acts_general/%D0%94%D0%BE%D0%B3%D0%BE%D0%B2%D0%BE%D1%80%20%D0%A0%D0%B0%D0%B7%D0%B4%D0%B5%D0%BB%20X.pdf"]
+      eaeu_technical_regulation_protocol:
+        law: "Treaty on the Eurasian Economic Union, Annex 9: Protocol on technical regulation within the Eurasian Economic Union"
+        indicators: ["11.1", "11.2", "11.3"]
+        urls: ["https://eec.eaeunion.org/upload/files/deptexreg/acts_general/%D0%94%D0%BE%D0%B3%D0%BE%D0%B2%D0%BE%D1%80_%D0%9F%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5%20N%209.pdf"]
+      eaeu_customs_code:
+        law: "Customs Code of the Eurasian Economic Union (Annex 1 to the Treaty of 11 April 2017)"
+        indicators: ["12.5", "12.6"]
+        urls: ["https://eec.eaeunion.org/upload/iblock/93c/TK-EAES.pdf"]

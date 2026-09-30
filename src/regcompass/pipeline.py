@@ -30,6 +30,7 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from contextvars import copy_context
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Callable, Iterator, Sequence
 from urllib.parse import urlparse
@@ -38,6 +39,7 @@ from .config import (
     load_corpus,
     load_indicators,
     load_law_metadata,
+    load_models,
     load_pipeline,
     load_portals,
 )
@@ -64,8 +66,10 @@ from .extract import (
     store_extraction,
 )
 from .export import ExportResult, SyntheticDoc, export_all, pillar_of, pointer_gate
+from .workbook import RunRecordSheet
 from .gate import gate_document
 from .languages import (
+    garbage_ocr_languages,
     is_english_language,
     keyword_tier_applies,
     ocr_policy,
@@ -81,7 +85,7 @@ from .run_progress import (
     MEANING_ONLY, NOT_APPLICABLE, PROVE, READ, RECONCILE, SCAN_CHECK, SKIPPED,
     RunProgress, StepTracker,
 )
-from .shortlist import should_ocr
+from .shortlist import garbage_text_layer, should_ocr
 from .storage import Storage, new_run_id, utc_now_iso, utc_now_z
 from .verify import verify_with_retry
 
@@ -206,8 +210,9 @@ def no_section_chunks_warning(doc_id: str) -> str:
     Engine. One string, so an operator who reads it twice reads the same
     diagnosis and not two competing ones."""
     return (
-        f"{doc_id}: no section structure was found, so the whole Document became"
-        " one unstructured chunk. The Gate only ever reads section chunks, so"
+        f"{doc_id}: no section structure was found and no text to split into"
+        " passages, so the Document yielded no section chunk. The Gate only"
+        " ever reads section chunks, so"
         " nothing was sent to the Engine and this Document can produce no"
         " Mappings. This is about the Document, not the Engine: check that the"
         " file is the statute text rather than a cover page, a form or a scan"
@@ -874,6 +879,13 @@ def run_document(
         config=config,
     )
     stored = load_extraction(storage, key, doc_id)
+    # A text layer stored before garbage layers were recognised is read again,
+    # so its OCR replaces it under the same key.
+    if (
+        stored is not None and fmt == "pdf" and not stored.ocr_applied
+        and garbage_text_layer(stored, language) is not None
+    ):
+        stored = None
 
     if stored is not None:
         # M1 (and M2 where it fired) reused. The audit trail keeps one row per
@@ -923,11 +935,29 @@ def run_document(
             )
             hook.step_started(doc_id, SCAN_CHECK)
             ocr_applied = False
-            if fmt == "pdf" and should_ocr(canonical):
+            scanned = fmt == "pdf" and should_ocr(canonical)
+            garbage = (
+                garbage_text_layer(canonical, language)
+                if fmt == "pdf" and not scanned else None
+            )
+            if scanned or garbage is not None:
                 from .ocr import ocr_document
 
                 n_low = len(canonical.low_yield_pages)
                 n_pg = len(canonical.pages)
+                why = (
+                    f"text layer unusable ({garbage})" if garbage is not None
+                    else f"{n_low}/{n_pg} pages low-yield"
+                )
+                if garbage is not None:
+                    # The layer's words are gone and its Language may be wrong:
+                    # read every script the Document could be in.
+                    portal = load_portals(config_dir).get(economy)
+                    ocr_languages, reading = garbage_ocr_languages(
+                        language, economy, canonical.full_text,
+                        portal.languages if portal is not None else (),
+                    )
+                    policy = ocr_policy(reading, economy)
                 note = tesseract_language_note(language, economy)
                 if note is not None:
                     progress(f"M2 ocr | {doc_id}: {note}")
@@ -939,7 +969,7 @@ def run_document(
                 if not policy.dictionary_proxy:
                     ladder += ", English dictionary proxy not applicable"
                 progress(
-                    f"M2 ocr | {doc_id}: {n_low}/{n_pg} pages low-yield -> OCR escalation"
+                    f"M2 ocr | {doc_id}: {why} -> OCR escalation"
                     f" (tesseract {ocr_languages}, {ladder})"
                 )
                 with log_stage(
@@ -1037,7 +1067,7 @@ def run_document(
     storage.store_words(doc_id, canonical.words)
 
     # M4 chunk (deterministic; no LLM fallback on the judge path - a document
-    # with no credible structure degrades to one chunk, which is honest)
+    # with no credible structure is split into numbered passages, marked so)
     hook.step_started(doc_id, CUT)
     with log_stage(storage, stage="m4_chunk", method="deterministic", input_data=canonical.full_text) as sr:
         chunks, chunk_report = split_document(canonical, config)
@@ -1050,9 +1080,15 @@ def run_document(
         f" fallback={chunk_report.fallback_used} ({sr.duration_ms / 1000:.1f}s)"
     )
     hook.step_finished(doc_id, CUT, {"pieces": len(chunks)})
-    # A Document no style profile matched degrades to one chunk of kind
-    # `other`, and the Gate reads section chunks only. So the Run is already
-    # over for this Document, and saying so HERE is the difference between an
+    if chunk_report.unstructured:
+        progress(
+            f"M4 chunk | {doc_id}: no article or section headings were found, so the"
+            f" text was split into {len(chunks)} numbered passages; a Mapping cites"
+            " its passage (\"Passage N\") as the provision"
+        )
+    # A Document that yields no section chunk at all (an empty text) gives the
+    # Gate nothing to read, since it reads section chunks only. So the Run is
+    # already over for this Document, and saying so HERE is the difference between an
     # operator who knows to look at the Document and one who spends the live
     # hour switching Engines. The wording is the same in three places on
     # purpose: this log line, the Run Record's warning, and the export refusal.
@@ -1087,6 +1123,9 @@ def run_document(
             f"passed={len(passed)} of {len(gated)} pairs ({scope},"
             f" mode={gate_report.gate_mode})"
         )
+    for note in gate_report.notes:
+        if "could not be embedded" in note:
+            progress(f"M5 gate | {doc_id}: {note}")
     storage.upsert_gate_scores(
         {(g.chunk.chunk_id, g.indicator_id): g.cosine_pillar for g in passed}
     )
@@ -1486,8 +1525,31 @@ def _no_mappings_reason(storage: Storage, run_id: str) -> str:
     )
 
 
+# How long before a Run a discovered Document must have been fetched to count
+# as prepared rather than caught in the Run's own pass (a live Discovery runs
+# minutes before its Run; a prepared Corpus is days old).
+PREPARED_BEFORE_RUN = timedelta(hours=12)
+
+
+def _fetched_well_before(fetched_at: str | None, run_started_at: str | None) -> bool:
+    if not fetched_at or not run_started_at:
+        return False
+    try:
+        fetched = datetime.fromisoformat(fetched_at.replace("Z", "+00:00"))
+        started = datetime.fromisoformat(run_started_at.replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    if fetched.tzinfo is None:
+        fetched = fetched.replace(tzinfo=timezone.utc)
+    if started.tzinfo is None:
+        started = started.replace(tzinfo=timezone.utc)
+    return started - fetched > PREPARED_BEFORE_RUN
+
+
 def synthesize_offcorpus_docs(
-    document_meta: dict[str, dict], config_dir=CONFIG_DIR
+    document_meta: dict[str, dict],
+    config_dir=CONFIG_DIR,
+    run_started_at: str | None = None,
 ) -> dict[str, SyntheticDoc]:
     """A SyntheticDoc for every document in the DB that is NOT in corpus.yaml
     (a live crawl catch, a map-pdf input), built from the documents row alone so
@@ -1511,7 +1573,11 @@ def synthesize_offcorpus_docs(
     config/law_metadata.yaml when it has an entry for the document id; a law
     name recorded there is a person's reading of the official text, so the row
     no longer says it was derived from the title. Without an entry the name is
-    the derived title and the other two stay blank."""
+    the derived title and the other two stay blank.
+
+    run_started_at: the exported Run's start. A discovered Document fetched
+    well before it was prepared in advance, and its Notes say so instead of
+    calling it a live crawl catch."""
     corpus = load_corpus(config_dir)
     law_metadata = load_law_metadata(config_dir)
     portals = load_portals(config_dir)
@@ -1537,10 +1603,17 @@ def synthesize_offcorpus_docs(
                 economy=econ, law_name=law_name, source_url=src, url_is_direct=True,
                 law_number_ref=known.law_number_ref if known else None,
                 last_amended=known.last_amended if known else None,
+                known_matrix_law_name=(
+                    None if known and known.law_name else meta.get("derived_title")
+                ),
             ),
-            law_name_mechanical=not (known and known.law_name),
+            # A title a reviewer corrected is a person's reading too.
+            law_name_mechanical=not (known and known.law_name)
+            and "title" not in (meta.get("edited_fields") or ()),
             allow_any_host=manual and not whitelisted,
             manual_added=manual,
+            prepared=not manual
+            and _fetched_well_before(meta.get("fetched_at"), run_started_at),
         )
     return out
 
@@ -1663,6 +1736,202 @@ def repair_page_numbers(
     return report
 
 
+def _file_type(content_type: str | None, local_path: str | None) -> str:
+    """The Run Record's File type column: PDF, HTML, or the file's extension."""
+    suffix = Path(local_path or "").suffix.lstrip(".").upper()
+    suffix = {"HTM": "HTML"}.get(suffix, suffix)
+    if suffix in ("PDF", "HTML"):
+        # the file's own suffix wins: a Portal can label an HTML page
+        # application/pdf
+        return suffix
+    ct = (content_type or "").lower()
+    if "pdf" in ct:
+        return "PDF"
+    if "html" in ct:
+        return "HTML"
+    return suffix
+
+
+def run_record_sheet(
+    storage: Storage, run_id: str | None, config_dir=CONFIG_DIR
+) -> RunRecordSheet | None:
+    """The organizers' Run Record sheet for the hour this Run belongs to, from
+    the Run Records alone.
+
+    The exported Run is one pass; the other pass is the newest completed Run
+    of the other declared Engine on the same Economy and Pillars. The first
+    pass (Engine A) is its Run plus every Discovery and add of the hour
+    (compare.hour_discoveries), so its start, elapsed time and cost cover the
+    fetching too; the second pass is its Run alone. The document log lists
+    what those Discoveries downloaded, once per Document, as "Engine A pass"
+    (crawl manifest rows fetched inside a Discovery's window, duplicates of
+    bytes already held left out); an Add document from a file downloads
+    nothing and is only named in the note row. None when there is no Run
+    Record to read."""
+    from .compare import (
+        _parse_utc, clock_time, engine_model_names, engine_summary, hour_discoveries,
+    )
+    from .contracts import RunRecord, manifest_address
+    from .workbook import FETCHED_DURING, FetchedDocument, RunRecordPass
+
+    if run_id is None:
+        return None
+    row = storage.run_get(run_id)
+    if row is None or row.get("kind") != "run":
+        return None
+    run = RunRecord(**row)
+    economy_records = [
+        RunRecord(**r) for r in storage.runs_list(economy=run.economy, limit=10_000)
+    ]
+    models = load_models(config_dir)
+    declared = [k for k, e in models.engines.items() if e.provider != "fake"]
+    engine_b = declared[1] if len(declared) > 1 else None
+    engine_a = declared[0] if declared else None
+    role = "B" if run.engine is not None and run.engine == engine_b else "A"
+    other_engine = engine_a if role == "B" else engine_b
+    pillars = sorted(set(run.pillars))
+    other = next(
+        (
+            r for r in economy_records  # newest first
+            if r.kind == "run" and r.status == "completed"
+            and r.engine == other_engine and r.run_id != run.run_id
+            and sorted(set(r.pillars)) == pillars
+        ),
+        None,
+    )
+    passes = {role: run}
+    if other is not None:
+        passes["B" if role == "A" else "A"] = other
+
+    names = engine_model_names(models)
+    sheet = RunRecordSheet()
+    fetched = [
+        m for m in storage.manifest_rows(economy=run.economy, status="fetched")
+        if (m["kind"] or "document") == "document" and not m["is_duplicate_of"]
+    ]
+    documents = storage.document_meta()
+    by_path = {
+        meta.get("local_path"): (doc_id, meta)
+        for doc_id, meta in documents.items() if meta.get("local_path")
+    }
+    # Every Document added from a file, by the add's own record. Deciding by
+    # that record, not by the manifest's fetch method, keeps an address fetched
+    # through the add-by-URL lane (by hand or by a Discovery) a download, and
+    # an upload never one, even when it lands inside a Discovery's window.
+    uploaded = {
+        (r.details or {}).get("document_id")
+        for r in economy_records
+        if r.kind == "discovery" and (r.details or {}).get("manual")
+        and (r.details or {}).get("source") == "upload"
+    }
+    # Runs never fetch. Everything fetched in the hour, from the first pass's
+    # Discovery to an add made between the two Runs, is the first pass's; the
+    # second pass (Engine B) re-reads it and logs nothing of its own.
+    run_a, run_b = passes.get("A"), passes.get("B")
+    hour = hour_discoveries(run_a, run_b, economy_records) if run_a is not None else []
+    for pass_role, record in (("A", run_a), ("B", run_b)):
+        if record is None:
+            continue
+        summary = engine_summary(
+            record, economy_records, provider_model=names.get(record.engine or "", ""),
+            discoveries=hour if pass_role == "A" else None,
+            second_pass=pass_role == "B",
+        )
+        entry = RunRecordPass(
+            provider_model=summary.provider_model,
+            start_hhmm=summary.start_hhmm,
+            end_hhmm=summary.end_hhmm,
+            elapsed_minutes=summary.elapsed_minutes,
+            cost_usd=summary.cost_usd,
+        )
+        if pass_role == "A":
+            sheet.pass_a = entry
+        else:
+            sheet.pass_b = entry
+    seen: set[str] = set()
+    for discovery in hour:
+        details = discovery.details or {}
+        if details.get("manual") and details.get("source") == "upload":
+            meta = documents.get(details.get("document_id") or "") or {}
+            label = (
+                meta.get("title") or details.get("source_url")
+                or details.get("document_id") or "a file"
+            )
+            if label not in sheet.uploads:
+                sheet.uploads.append(label)
+            continue
+        begin = _parse_utc(discovery.started_at)
+        end = _parse_utc(discovery.ended_at)
+        for m in fetched:
+            at = _parse_utc(m["fetched_at"])
+            if at is None or begin is None or end is None or not begin <= at <= end:
+                continue
+            doc_id, meta = by_path.get(m["local_path"]) or (None, {})
+            if doc_id is not None and doc_id in uploaded:
+                continue
+            key = doc_id or m["local_path"] or m["url"]
+            if key in seen:
+                continue
+            seen.add(key)
+            sheet.documents.append(
+                FetchedDocument(
+                    source_url=meta.get("source_url") or manifest_address(m["url"]) or "",
+                    fetched_during=FETCHED_DURING["A"],
+                    time_hhmm=clock_time(m["fetched_at"]),
+                    size_kb=(
+                        None if m["size_bytes"] is None
+                        else max(1, round(m["size_bytes"] / 1024))
+                    ),
+                    file_type=_file_type(m["content_type"], m["local_path"]),
+                    title=meta.get("title") or "",
+                )
+            )
+    sheet.documents.sort(key=lambda d: (d.fetched_during, d.time_hhmm, d.source_url))
+    return sheet
+
+
+def document_heads(storage: Storage, document_ids) -> dict[str, str]:
+    """The title block at the head of each Document's stored text: a Document
+    a Discovery titled "UU Nomor 27 Tahun 2022" names its subject there
+    ("TENTANG PELINDUNGAN DATA PRIBADI"), which is what the 7.1/7.2 rule reads."""
+    from .export import TITLE_BLOCK_CHARS
+
+    wanted = set(document_ids)
+    rows = storage.conn.execute(
+        "SELECT document_id, substr(full_text, 1, ?) AS head FROM documents",
+        (TITLE_BLOCK_CHARS,),
+    ).fetchall()
+    return {r["document_id"]: r["head"] or "" for r in rows if r["document_id"] in wanted}
+
+
+def framework_checker(storage: Storage, config_dir=CONFIG_DIR):
+    """A predicate saying whether a Mapping's law can carry its Economy's 7.1
+    or 7.2 row, asked exactly as the database export asks it: the same export
+    law names (curated corpus, derived stand-ins, reviewer edits), the same
+    title block and the same 2025 baseline."""
+    from .config import load_corpus, load_known_matrix
+    from .export import framework_laws, framework_tier, with_document_edits
+
+    meta = storage.document_meta()
+    corpus = load_corpus(config_dir)
+    synthetic = synthesize_offcorpus_docs(meta, config_dir)
+    corpus = {**{k: sd.corpus_doc for k, sd in synthetic.items()}, **corpus}
+    corpus = with_document_edits(corpus, meta)
+    laws = framework_laws(corpus, document_heads(storage, set(corpus) & set(meta)), corpus)
+    try:
+        matrix = load_known_matrix(config_dir)
+    except (FileNotFoundError, ValueError):
+        # No baseline on this install: the family rule still answers.
+        matrix = None
+
+    def check(record: MappingRecord) -> bool:
+        return framework_tier(
+            record.economy, record.indicator_id, laws.get(record.document_id), matrix
+        ) is not None
+
+    return check
+
+
 def export_from_db(
     storage: Storage,
     outdir: Path,
@@ -1730,6 +1999,13 @@ def export_from_db(
     run_pillars = (
         tuple(sorted(set(run_record["pillars"])))
         if run_record and run_record.get("pillars")
+        else None
+    )
+    # A narrowed Run searched only its chosen Indicators; None is a
+    # whole-Pillar Run.
+    run_indicators = (
+        tuple(run_record["indicators"])
+        if run_record and run_record.get("indicators")
         else None
     )
 
@@ -1800,6 +2076,7 @@ def export_from_db(
             1 for (chunk_id, indicator_id) in cosines
             if chunk_id.rsplit(":", 1)[0] in in_scope
             and (run_pillars is None or pillar_of(indicator_id) in run_pillars)
+            and (run_indicators is None or indicator_id in run_indicators)
         )
         coverage[eco] = {
             "law": f"{n_docs} legislative documents in this Economy's Corpus",
@@ -1823,7 +2100,10 @@ def export_from_db(
 
     # Off-corpus documents get a synthetic CorpusDoc so the export never
     # KeyErrors on their document_id; caller-supplied overrides (map-pdf) win.
-    merged_synthetic = synthesize_offcorpus_docs(document_meta, config_dir)
+    merged_synthetic = synthesize_offcorpus_docs(
+        document_meta, config_dir,
+        run_started_at=run_record.get("started_at") if run_record else None,
+    )
     if synthetic_docs:
         merged_synthetic.update(synthetic_docs)
     if merged_synthetic:
@@ -1852,6 +2132,14 @@ def export_from_db(
             # Run must never be read onto this Run's identically-named Mapping.
             glosses=storage.glosses_for_run(run_id),
             run_pillars=run_pillars,
+            run_indicators=run_indicators,
+            # The live-test file: 7.1 and 7.2 once per Economy, and the
+            # organizers' Run Record sheet filled from the Run Records.
+            framework_rows=True,
+            run_record=run_record_sheet(storage, run_id, config_dir),
+            document_heads=document_heads(storage, {r.document_id for r in records}),
+            # The Indicator Reference's scoring traps, flagged in Notes.
+            trap_check=True,
         )
         sr.output_data = result.csv_path.read_bytes()
         sr.decision = (
@@ -1915,6 +2203,8 @@ def run_e2e(
     concurrency: int | None = None,
     report_watch: Callable[[RunReport], None] | None = None,
     hook: RunProgress | None = None,
+    discover_by_pillar: bool = False,
+    discovery_hook=None,
 ) -> E2EReport:
     """Discovery then a Run, in that order, with the export at the end: the
     convenience wrapper over the two separated lanes, kept so the
@@ -1927,8 +2217,20 @@ def run_e2e(
     fetcher / limiter / get_json are injectable so tests drive Discovery over
     recorded Portal answers and make NO live call; the CLI leaves them None to
     use the Economy's configured strategy and the robots-aware politeness floor.
+
+    `discover_by_pillar` makes the Discovery one by the Run's single Pillar and
+    its Indicators (the live hour's): baseline laws first, then the Portal
+    crawler's seeds for that Pillar.
     """
     from .discovery import discover_economy
+
+    drawn: dict = {}
+    if discover_by_pillar:
+        if len(pillars) != 1:
+            raise ValueError(
+                f"a Discovery by Pillar takes exactly one Pillar; got {list(pillars)}"
+            )
+        drawn = {"pillar": pillars[0], "indicators": indicators}
 
     report = E2EReport(economy=economy)
 
@@ -1940,7 +2242,8 @@ def run_e2e(
     discovery = discover_economy(
         economy, storage, refresh=refresh, config_dir=config_dir, data_dir=data_dir,
         seeds=seeds, fetch=fetcher, get_json=get_json, limiter=limiter,
-        max_documents=max_documents, progress=progress,
+        max_documents=max_documents, progress=progress, hook=discovery_hook,
+        **drawn,
     )
     report.discovery_run_id = discovery.run_id
     report.crawl_discovered = discovery.discovered

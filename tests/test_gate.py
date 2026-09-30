@@ -470,3 +470,84 @@ class TestVocabAndPillarLoaders:
         texts = load_pillar_texts(PILLARS_67)
         assert set(texts) == {6, 7}
         assert all(len(t) > 40 for t in texts.values())
+
+
+# ---------------------------------------------------------------------------
+# a piece longer than the embedder's context window
+# ---------------------------------------------------------------------------
+
+TOO_LONG = "input length exceeds the context length"
+
+
+def overlong_embed(limit: int, poison: str | None = None):
+    """The fake embedder answering Ollama's context-length error for any batch
+    holding a text longer than `limit` (or containing `poison`); every call's
+    texts are logged in `calls`."""
+    from regcompass.gate import EmbedInputTooLongError
+
+    base = fake_embed_factory({"transfer of personal data", "tribunal"})
+    calls: list[list[str]] = []
+
+    def embed(texts: list[str]) -> np.ndarray:
+        calls.append(list(texts))
+        if any(len(t) > limit or (poison and poison in t) for t in texts):
+            raise EmbedInputTooLongError(
+                f'ollama embed failed (HTTP 400) at http://x: {{"error":"{TOO_LONG}"}}'
+            )
+        return base(texts)
+
+    embed.calls = calls
+    return embed
+
+
+class TestAnOverlongPiece:
+    def test_the_batch_is_retried_piece_by_piece_with_a_shorter_cut(self):
+        chunks = tiny_chunks()
+        long_text = chunks[0].text
+        embed = overlong_embed(limit=10_000, poison="requires adequacy")
+        gated, report = gate_document(chunks, pillars=PILLARS_67, embed_fn=embed)
+        assert len(gated) == 2 * 9, "every pair is still logged"
+        assert find(gated, "6.1", "s. 1").gate_decision == "passed"
+        assert [long_text[: len(long_text) // 2]] in embed.calls
+        assert not any("could not be embedded" in n for n in report.notes)
+
+    def test_a_piece_that_never_fits_is_skipped_not_the_document(self):
+        chunks = tiny_chunks()
+        embed = overlong_embed(limit=10_000, poison="transfer of personal")
+        gated, report = gate_document(chunks, pillars=PILLARS_67, embed_fn=embed)
+        assert len(gated) == 2 * 9
+        s1 = [g for g in gated if g.chunk.section_label == "s. 1"]
+        assert s1 and all(g.gate_decision == "excluded" for g in s1)
+        assert all(g.cosine_pillar == 0.0 for g in s1)
+        # s. 2 still reaches the gate on its own merits.
+        assert all(g.cosine_pillar > 0.5 for g in gated if g.chunk.section_label == "s. 2")
+        # One try alone, then at most two shorter cuts.
+        alone = [c for c in embed.calls if len(c) == 1 and "transfer of personal" in c[0]]
+        assert len(alone) == 3
+        assert any("s. 1" in n and "could not be embedded" in n for n in report.notes)
+        assert report.unembedded == [chunks[0].chunk_id]
+
+    def test_any_other_embedding_failure_still_stops_the_document(self):
+        def down(texts):
+            raise RuntimeError("cannot reach the ollama server at http://x: is it running?")
+
+        with pytest.raises(RuntimeError, match="cannot reach"):
+            gate_document(tiny_chunks(), pillars=PILLARS_67, embed_fn=down)
+
+    def test_the_ollama_client_names_the_context_length_error(self, monkeypatch):
+        import httpx
+
+        from regcompass import gate as gate_mod
+
+        def handler(request):
+            return httpx.Response(400, json={"error": TOO_LONG})
+
+        real = httpx.Client
+
+        def mocked(*args, **kwargs):
+            kwargs["transport"] = httpx.MockTransport(handler)
+            return real(*args, **kwargs)
+
+        monkeypatch.setattr(httpx, "Client", mocked)
+        with pytest.raises(gate_mod.EmbedInputTooLongError):
+            embed_ollama(["x" * 10], model="bge-m3")

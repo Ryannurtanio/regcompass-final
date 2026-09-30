@@ -107,7 +107,7 @@ export default function RunPanel({
   const [morePillars, setMorePillars] = useState(false)
   // Start Run and Discover ask first. Nothing is sent until the reader says yes.
   const [confirm, setConfirm] = useState<
-    null | { kind: 'run'; estimate: Estimate } | { kind: 'discover' }
+    null | { kind: 'run' | 'e2e'; estimate: Estimate } | { kind: 'discover' }
   >(null)
   // Bumped by the summary's Add document link: opens that control and brings it into view.
   const [addSignal, setAddSignal] = useState(0)
@@ -310,29 +310,36 @@ export default function RunPanel({
       .catch(() => undefined)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const start = useCallback(() => {
-    setError(null)
-    setCorpusEmpty(null)
-    postRun({
-      economy,
-      pillars,
-      indicators: chosen.length ? chosen : null,
-      engine,
-    })
-      .then(() => follow(economy))
-      .catch((e) => {
-        if (e instanceof CorpusEmptyError) setCorpusEmpty(e.detail.message)
-        else setError(plainError(e))
+  // One Pillar chosen: Discovery is by that Pillar and the ticked Indicators.
+  const draw = pillars.length === 1 ? { pillar: pillars[0], indicators: chosen.length ? chosen : null } : null
+
+  const start = useCallback(
+    (e2e = false) => {
+      setError(null)
+      setCorpusEmpty(null)
+      postRun({
+        economy,
+        pillars,
+        indicators: chosen.length ? chosen : null,
+        engine,
+        ...(e2e ? { mode: 'e2e' as const, discover_by_pillar: true } : {}),
       })
-  }, [economy, pillars, chosen, engine, follow])
+        .then(() => follow(economy))
+        .catch((e) => {
+          if (e instanceof CorpusEmptyError) setCorpusEmpty(e.detail.message)
+          else setError(plainError(e))
+        })
+    },
+    [economy, pillars, chosen, engine, follow],
+  )
 
   const discover = useCallback(() => {
     setError(null)
     setCorpusEmpty(null)
-    postDiscover(economy)
+    postDiscover(economy, false, draw)
       .then(() => follow(economy))
       .catch((e) => setError(plainError(e, 'discovery')))
-  }, [economy, follow])
+  }, [economy, follow, draw?.pillar, draw?.indicators?.join(',')]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const offered = (engines ?? []).filter((e) => OFFERED_ENGINES.includes(e.name))
   const selected = offered.find((e) => e.name === engine) ?? null
@@ -350,6 +357,10 @@ export default function RunPanel({
     economy !== '' &&
     !(status?.manual_only ?? []).includes(economy) &&
     !(status?.no_discovery ?? []).includes(economy)
+  // By Pillar, Discovery reaches the laws the baseline cites through official
+  // addresses, so an Economy with no Portal crawler can run it too.
+  const canDiscoverByPillar =
+    economy !== '' && draw !== null && !(status?.manual_only ?? []).includes(economy)
 
   // Economies that already have a finished Run come first; on a database with
   // none, those with Documents; the rest fold behind "More Economies".
@@ -415,11 +426,11 @@ export default function RunPanel({
           ? `No Run of exactly this setup yet. Estimate: about ${usd(sideEstimate.usd)}, ${sideEstimate.basis}`
           : `No earlier Run on this setup. ${sideEstimate.basis}`
 
-  const askStart = () => {
+  const askStart = (kind: 'run' | 'e2e' = 'run') => {
     setError(null)
     setCorpusEmpty(null)
     setConfirm({
-      kind: 'run',
+      kind,
       estimate: estimateCost(runs, setup, corpusCounts[economy], economyName),
     })
   }
@@ -428,8 +439,12 @@ export default function RunPanel({
     const kind = confirm?.kind
     setConfirm(null)
     if (kind === 'run') start()
+    else if (kind === 'e2e') start(true)
     else if (kind === 'discover') discover()
   }
+  const drawWords = draw
+    ? `Pillar ${draw.pillar}${draw.indicators ? `, Indicators ${draw.indicators.join(', ')}` : ', every Indicator'}`
+    : ''
   const pillarLabel = (p: number) => {
     const name = pillarName(p)
     return name ? `${p}, ${name}` : String(p)
@@ -449,8 +464,8 @@ export default function RunPanel({
           nothing, so there is nothing for it to read.{' '}
           {canDiscover ? (
             <>
-              Press <strong>Discover</strong> below to collect from the Portal,
-              open{' '}
+              Press <strong>Discover</strong> below to find the laws for this
+              Economy, or open{' '}
             </>
           ) : (
             <>
@@ -458,9 +473,7 @@ export default function RunPanel({
             </>
           )}
           <strong>Add document</strong> to upload a file or name an official
-          URL, or seed the bundled legislation from a terminal with{' '}
-          <code>regcompass seed --economy {economy}</code>, the keyless demo
-          that needs no API key.
+          URL.
         </div>
       )}
 
@@ -745,9 +758,19 @@ export default function RunPanel({
                 }
               }}
             >
-              {confirm.kind === 'run' ? (
+              {confirm.kind === 'run' || confirm.kind === 'e2e' ? (
                 <>
-                  <b id="confirm-title">Start this Run?</b>
+                  <b id="confirm-title">
+                    {confirm.kind === 'e2e' ? `Discover, then run, for ${economyName}?` : 'Start this Run?'}
+                  </b>
+                  {confirm.kind === 'e2e' && (
+                    <p>
+                      Discovery first searches the official legal portals for{' '}
+                      {economyName}
+                      {draw ? ` (${drawWords})` : ''} and adds the laws it finds
+                      to the Corpus. The Run then reads the whole Corpus.
+                    </p>
+                  )}
                   <p id="confirm-text">
                     {confirm.estimate.usd !== null
                       ? `About ${usd(confirm.estimate.usd)}, ${confirm.estimate.basis}`
@@ -761,8 +784,9 @@ export default function RunPanel({
                 <>
                   <b id="confirm-title">Start Discovery for {economyName}?</b>
                   <p id="confirm-text">
-                    It fetches Documents from the Portal into the Corpus. It
-                    costs nothing on the Engine.
+                    Discovery searches the official legal portals for {economyName}
+                    {draw ? ` (${drawWords})` : ''} and adds the laws it finds to
+                    the Corpus.
                   </p>
                 </>
               )}
@@ -772,10 +796,14 @@ export default function RunPanel({
                   className="primary"
                   data-testid="confirm-start"
                   // a Run on an Engine with no key can only fail
-                  disabled={confirm.kind === 'run' && selected !== null && !selected.key_set}
+                  disabled={confirm.kind !== 'discover' && selected !== null && !selected.key_set}
                   onClick={confirmYes}
                 >
-                  {confirm.kind === 'run' ? 'Yes, start the Run' : 'Yes, start Discovery'}
+                  {confirm.kind === 'run'
+                    ? 'Yes, start the Run'
+                    : confirm.kind === 'e2e'
+                      ? 'Yes, discover and run'
+                      : 'Yes, start Discovery'}
                 </button>
                 <button className="btn" data-testid="confirm-cancel" onClick={cancelConfirm}>
                   Cancel
@@ -788,19 +816,30 @@ export default function RunPanel({
                 ref={startButtonRef}
                 className="primary start-btn"
                 disabled={running || !economy || pillars.length === 0 || !engine}
-                onClick={askStart}
+                onClick={() => askStart()}
               >
                 {running ? 'Running…' : 'Start Run'}
               </button>
               {/* Offered as soon as the Corpus is known to be empty, not only after
-                  a Run has been refused: the empty state above names this button. */}
-              {(corpusEmpty !== null || corpusIsEmpty) && canDiscover && (
+                  a Run has been refused: the empty state above names this button.
+                  With one Pillar chosen it is always offered: Discovery by Pillar
+                  is how the live hour starts. */}
+              {(((corpusEmpty !== null || corpusIsEmpty) && canDiscover) || canDiscoverByPillar) && (
                 <button
                   className="btn"
                   disabled={running}
                   onClick={() => setConfirm({ kind: 'discover' })}
                 >
-                  Discover
+                  {canDiscoverByPillar ? `Discover Pillar ${draw?.pillar}` : 'Discover'}
+                </button>
+              )}
+              {canDiscoverByPillar && (
+                <button
+                  className="btn"
+                  disabled={running || !engine}
+                  onClick={() => askStart('e2e')}
+                >
+                  Discover, then run
                 </button>
               )}
               <span className="hint">
@@ -880,8 +919,10 @@ export default function RunPanel({
       />
 
       {/* A Run shows its raw log inside the Run view, behind a toggle. A
-          Discovery has no Run view, so its lines still show here. */}
-      {runView.status === 'idle' && lines.length > 0 && (
+          Discovery has no Run view, so its lines show here; while the Discovery
+          view is up they are closed away too, since they name the workings the
+          view leaves out. */}
+      {runView.status === 'idle' && lines.length > 0 && (discoveryView.status === 'idle' ? (
         <>
           {!running && (
             <span className="hint" data-testid="run-log-label">
@@ -894,7 +935,16 @@ export default function RunPanel({
             ))}
           </div>
         </>
-      )}
+      ) : (
+        <details className="run-log-toggle" data-testid="run-log-toggle">
+          <summary>Show the progress log</summary>
+          <div className="log" ref={logRef} data-testid="run-log">
+            {lines.map((line, i) => (
+              <div key={i}>{line}</div>
+            ))}
+          </div>
+        </details>
+      ))}
     </div>
   )
 }
