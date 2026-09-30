@@ -1079,7 +1079,7 @@ and token counts; the per-Economy ones are in **Pre-run Coverage**.
     uv sync --extra live
     uv run pytest
 
-**2,775 tests**, offline and keyless. Tests that would spend money skip unless
+**2,778 tests**, offline and keyless. Tests that would spend money skip unless
 `REGCOMPASS_PAID=1` is set alongside a key, so a plain run never bills an account. Live Portal
 tests skip unless `REGCOMPASS_LIVE=1` is set, so a plain run never touches a government server.
 Gate tests probe for a reachable Ollama and skip when there is none. Docker tests that need a
