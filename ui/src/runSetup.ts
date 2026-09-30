@@ -273,3 +273,19 @@ export function economyCardLine(summary: CorpusSummary | undefined): string {
   const named = languages.join(', ')
   return unrecorded > 0 ? `${docs}. ${named}; ${unrecorded} with no language recorded` : `${docs}. ${named}`
 }
+
+/** Which way in the empty-Corpus notice names. A Portal crawler Discovers
+ *  whatever is ticked; an Economy with no crawler still Discovers one Pillar
+ *  at a time from official addresses; a manual-only Economy has only Add
+ *  document, since its Portal's rules forbid any automated request. */
+export type EmptyCorpusWay = 'discover' | 'discover-pillar' | 'tick-one-pillar' | 'add-only'
+
+export function emptyCorpusWayIn(e: {
+  manualOnly: boolean
+  noDiscovery: boolean
+  pillarsTicked: number
+}): EmptyCorpusWay {
+  if (e.manualOnly) return 'add-only'
+  if (!e.noDiscovery) return 'discover'
+  return e.pillarsTicked === 1 ? 'discover-pillar' : 'tick-one-pillar'
+}

@@ -31,6 +31,7 @@ import {
   corpusSummaryOf,
   costOf,
   economyCardLine,
+  emptyCorpusWayIn,
   estimateCost,
   featuredEconomies,
   lastRunOnSetup,
@@ -361,6 +362,11 @@ export default function RunPanel({
   // addresses, so an Economy with no Portal crawler can run it too.
   const canDiscoverByPillar =
     economy !== '' && draw !== null && !(status?.manual_only ?? []).includes(economy)
+  const emptyCorpusWay = emptyCorpusWayIn({
+    manualOnly: (status?.manual_only ?? []).includes(economy),
+    noDiscovery: (status?.no_discovery ?? []).includes(economy),
+    pillarsTicked: pillars.length,
+  })
 
   // Economies that already have a finished Run come first; on a database with
   // none, those with Documents; the rest fold behind "More Economies".
@@ -462,12 +468,25 @@ export default function RunPanel({
         <div className="notice" data-testid="corpus-empty-state">
           No Documents yet for {economyName}. A Run reads the Corpus and fetches
           nothing, so there is nothing for it to read.{' '}
-          {canDiscover ? (
+          {emptyCorpusWay === 'discover' && (
             <>
               Press <strong>Discover</strong> below to find the laws for this
               Economy, or open{' '}
             </>
-          ) : (
+          )}
+          {emptyCorpusWay === 'discover-pillar' && (
+            <>
+              Press <strong>Discover Pillar {draw?.pillar}</strong> below to
+              fetch its laws from official sources, or open{' '}
+            </>
+          )}
+          {emptyCorpusWay === 'tick-one-pillar' && (
+            <>
+              Tick one Pillar to Discover its laws from official sources, or
+              open{' '}
+            </>
+          )}
+          {emptyCorpusWay === 'add-only' && (
             <>
               Discovery does not run for this Economy, so open{' '}
             </>

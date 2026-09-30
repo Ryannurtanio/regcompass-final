@@ -352,8 +352,8 @@ export default function AddDocument({
   openSignal?: number
 }) {
   const manualOnly = (status?.manual_only ?? []).includes(economy)
-  // Not the same thing: no Discovery plan is wired for this Economy yet, so
-  // both add lanes stay open and it may gain a strategy later.
+  // Not the same thing: this Economy has no Portal crawler, so Discovery
+  // reaches it only by Pillar and both add lanes stay open.
   const noDiscovery = (status?.no_discovery ?? []).includes(economy)
   const languages = useMemo(
     () => status?.economy_languages?.[economy] ?? [],
@@ -528,10 +528,9 @@ export default function AddDocument({
 
       {!manualOnly && noDiscovery && (
         <div className="notice">
-          {economyName} has no Discovery strategy configured yet, so nothing is
-          fetched for it automatically. Both ways below stay open: add a
-          Document by its official Source URL, where the Portal host is
-          whitelisted, or upload the file.
+          {economyName} has no Portal crawler. Discovery by Pillar fetches the
+          laws on its list of official addresses. Add any other law here by its
+          official Source URL, or upload the file.
         </div>
       )}
 

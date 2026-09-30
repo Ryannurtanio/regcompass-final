@@ -401,6 +401,108 @@ class TestAnEnglishDocumentIsNeverGlossed:
         storage.close()
 
 
+HINDI_QUOTE = "केंद्रीय सरकार द्वारा जारी अधिसूचना के अनुसार यह प्रावधान लागू होता है"
+
+
+def gloss_one_document(tmp_path, quotes: list[str], *, language: str):
+    """gloss_document over one seeded Document whose passed Mappings carry these
+    quotes, on the fake Engine with every model call recorded. Returns
+    (storage, mapping ids, calls, glossed count)."""
+    from regcompass.engines import fake_completion
+    from regcompass.pipeline import RunReport, gloss_document
+
+    calls: list[tuple[str, str]] = []
+
+    def spy(prompt: str, strict: bool) -> str:
+        answer = fake_completion(prompt, strict)
+        calls.append((prompt, answer))
+        return answer
+
+    storage = Storage(tmp_path / "gloss.db")
+    storage.apply_schema()
+    full_text = "\n\n".join(quotes)
+    storage.upsert_document(
+        "doc_in_x", "IN", "sha_in_x", full_text=full_text, title="Seeded Act 2023",
+        n_pages=1, language=language,
+    )
+    storage.upsert_chunks(
+        Chunk(
+            chunk_id=f"doc_in_x:c{i}",
+            document_id="doc_in_x",
+            char_start=full_text.index(quote),
+            char_end=full_text.index(quote) + len(quote),
+            text=quote,
+            section_label=f"s. {i + 1}",
+            page_start=1,
+            page_end=1,
+        )
+        for i, quote in enumerate(quotes)
+    )
+    storage.run_start(
+        run_id="run_a", kind="run", economy="IN", pillars=[6], indicators=None,
+        engine="fake", started_at=utc_now_iso(),
+    )
+    records = [
+        MappingRecord(
+            mapping_id=f"doc_in_x:c{i}::6.1",
+            document_id="doc_in_x",
+            chunk_id=f"doc_in_x:c{i}",
+            economy="IN",
+            indicator_id="6.1",
+            indicator_name="Indicator 6.1",
+            section=f"s. {i + 1}",
+            verbatim_quote=quote,
+            page_number=1,
+            verification_status="passed",
+        )
+        for i, quote in enumerate(quotes)
+    ]
+    storage.upsert_mappings(records, run_id="run_a")
+    engine = resolve_engine("fake")
+    n = gloss_document(
+        storage, records, run_id="run_a", doc_id="doc_in_x", engine=engine,
+        language=language, config=PipelineConfig(), completion_fn=spy,
+        report=RunReport(economy="IN", engine=engine.name),
+    )
+    return storage, [r.mapping_id for r in records], calls, n
+
+
+class TestAnEnglishRecordedDocumentStillGlossesItsNonEnglishQuotes:
+    """A Document recorded as English can still carry non-English text (an
+    India Act published in Hindi under the portal's English default). The
+    recorded Language does not excuse a quote the export would require a
+    translation for."""
+
+    def test_a_devanagari_quote_is_glossed(self, tmp_path):
+        storage, (hindi_id,), calls, n = gloss_one_document(
+            tmp_path, [HINDI_QUOTE], language="English"
+        )
+        assert n == 1
+        assert len(gloss_calls(calls)) == 1
+        stored = storage.glosses_for_run("run_a")
+        assert set(stored) == {hindi_id}
+        assert stored[hindi_id].english
+        storage.close()
+
+    def test_a_mixed_document_glosses_only_the_non_english_quote(self, tmp_path):
+        storage, (english_id, hindi_id), calls, n = gloss_one_document(
+            tmp_path, [QUOTES[0], HINDI_QUOTE], language="English"
+        )
+        assert n == 1
+        (prompt, _), = gloss_calls(calls)
+        assert f"<<<GLOSS {hindi_id}\n" in prompt
+        assert english_id not in prompt
+        assert set(storage.glosses_for_run("run_a")) == {hindi_id}
+        storage.close()
+
+    def test_an_all_english_quote_set_makes_no_gloss_call(self, tmp_path):
+        storage, _, calls, n = gloss_one_document(tmp_path, QUOTES, language="English")
+        assert n == 0
+        assert gloss_calls(calls) == []
+        assert storage.glosses_for_run("run_a") == {}
+        storage.close()
+
+
 # ---------------------------------------------------------------------------
 # the Evidence Export: labelled unless a named person approved the text
 # ---------------------------------------------------------------------------

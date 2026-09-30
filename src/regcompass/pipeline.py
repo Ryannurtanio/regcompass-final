@@ -1216,19 +1216,19 @@ def gloss_items(records: list[MappingRecord], language: str | None) -> list[tupl
     """The (mapping_id, quote) pairs of one Document that need an English
     Gloss, in record order.
 
-    The Document's Language decides: an English Document is never glossed, and
-    every verified Mapping of a non-English one is. A Document whose Language
-    was never recorded falls back to reading the quotes themselves, which is the
-    same detector the Evidence Export's battery uses (widened to non-Latin
-    scripts), so nothing that will need a translation column goes undrafted."""
+    Every verified Mapping of a Document recorded in another language is
+    glossed. A Document recorded as English, or never recorded, falls back to
+    reading the quotes themselves, which is the same detector the Evidence
+    Export's battery uses (widened to non-Latin scripts), so nothing that will
+    need a translation column goes undrafted: a portal's English default can
+    still hold an Act published in Hindi, and its English quotes are never
+    glossed."""
     from .translate import needs_gloss
 
     passed = [r for r in records if r.verification_status == "passed"]
     if not passed:
         return []
-    if is_english_language(language):
-        return []
-    if language:
+    if language and not is_english_language(language):
         return [(r.mapping_id, r.verbatim_quote) for r in passed]
     return [
         (r.mapping_id, r.verbatim_quote) for r in passed if needs_gloss(r.verbatim_quote)

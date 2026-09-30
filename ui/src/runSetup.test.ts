@@ -3,6 +3,7 @@ import {
   RUN_STATUS_WORD,
   corpusSummaryOf,
   economyCardLine,
+  emptyCorpusWayIn,
   estimateCost,
   lastRunOnSetup,
   type Setup,
@@ -90,5 +91,26 @@ describe('an Economy card tells the Corpus as it is now', () => {
   it('an empty Corpus, and one not counted yet, are told apart', () => {
     expect(economyCardLine({ n: 0, languages: [], unrecorded: 0 })).toBe('No Documents yet')
     expect(economyCardLine(undefined)).toBe('Not counted yet')
+  })
+})
+
+describe('emptyCorpusWayIn', () => {
+  it('names Discover for an Economy with a Portal crawler, whatever is ticked', () => {
+    expect(emptyCorpusWayIn({ manualOnly: false, noDiscovery: false, pillarsTicked: 1 })).toBe('discover')
+    expect(emptyCorpusWayIn({ manualOnly: false, noDiscovery: false, pillarsTicked: 3 })).toBe('discover')
+  })
+
+  it('names the Discover Pillar button when an Economy with no crawler has one Pillar ticked', () => {
+    expect(emptyCorpusWayIn({ manualOnly: false, noDiscovery: true, pillarsTicked: 1 })).toBe('discover-pillar')
+  })
+
+  it('asks for one Pillar when an Economy with no crawler has several or none ticked', () => {
+    expect(emptyCorpusWayIn({ manualOnly: false, noDiscovery: true, pillarsTicked: 2 })).toBe('tick-one-pillar')
+    expect(emptyCorpusWayIn({ manualOnly: false, noDiscovery: true, pillarsTicked: 0 })).toBe('tick-one-pillar')
+  })
+
+  it('says Discovery does not run only for a manual-only Economy', () => {
+    expect(emptyCorpusWayIn({ manualOnly: true, noDiscovery: false, pillarsTicked: 1 })).toBe('add-only')
+    expect(emptyCorpusWayIn({ manualOnly: true, noDiscovery: true, pillarsTicked: 1 })).toBe('add-only')
   })
 })
