@@ -1292,3 +1292,90 @@ class TestTheCorpusSeam:
         assert row["source_kind"] == "discovery", (
             "a seeded fixture Document stands in for a DISCOVERED one"
         )
+
+
+class TestTheFileNameOfADocumentAddedByUrl:
+    """The name a Document is filed under when its address carries no usable
+    name of its own: a dot in a typed law name is not a file extension, and a
+    file name in another script is not a name once it is spelled in ASCII."""
+
+    @pytest.fixture()
+    def storage(self, tmp_path):
+        s = Storage(tmp_path / "names.db")
+        s.apply_schema()
+        yield s
+        s.close()
+
+    def test_a_dot_in_a_typed_law_name_is_kept_as_a_word_break(self, storage):
+        from regcompass.corpus import url_filename_hint
+
+        hint = url_filename_hint(
+            storage, "RU", "http://kremlin.ru/acts/bank/27332/print",
+            'Federal Law No.57-FZ "On the Procedure for Foreign Investments"',
+        )
+        assert hint.startswith("Federal_Law_No_57-FZ_"), hint
+        assert hint.endswith(".pdf")
+        thai = url_filename_hint(
+            storage, "TH", "https://www.mdes.go.th/content/download-detail/2473",
+            "Telecommunications Business Act B.E.2544",
+        )
+        assert thai == "Telecommunications_Business_Act_B_E_2544.pdf"
+
+    def test_a_file_name_in_another_script_gives_way_to_the_typed_name(self, storage):
+        from regcompass.corpus import url_filename_hint
+
+        name = "Cyber Security Maintenance Act B.E.2562"
+        for url in (
+            "https://www.nbtc.go.th/getattachment//law/x/ประกาศฯ.PDF?lang=th-TH",
+            "https://numbering.nbtc.go.th/getattachment/A/640/ประกาศฯ-ยืนยันตัวตน.pdf.aspx",
+            "https://www.ncsa.or.th/กฏหมาย-ข้อบังคับ-และประก.html",
+            "https://eec.eaeunion.org/upload/files/catr/EP.pdf/"
+            "%D0%9F%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5"
+            "%209_%D1%80%D0%B5%D0%B4%20131%20(6).pdf",
+        ):
+            assert url_filename_hint(storage, "TH", url, name) == (
+                "Cyber_Security_Maintenance_Act_B_E_2562.pdf"
+            ), url
+
+    def test_a_numbered_file_name_in_another_script_keeps_its_number(self, storage):
+        """A Lao Gazette file added by hand with no name typed keeps the id it
+        always had, not the host's."""
+        from regcompass.corpus import url_filename_hint
+        from regcompass.shortlist import document_id_for
+
+        hint = url_filename_hint(
+            storage, "LA",
+            "https://laoofficialgazette.gov.la/kcfinder/upload/files/05ສພຊ2021.pdf",
+        )
+        assert hint == "05_2021.pdf"
+        assert document_id_for(
+            {"economy": "LA", "filename_hint": hint, "local_path": hint}
+        ) == "doc_la_05_2021"
+        # A bare number is still no name: the host, as before.
+        assert url_filename_hint(
+            storage, "LA",
+            "https://laoofficialgazette.gov.la/kcfinder/upload/files/0918570.pdf",
+        ) == "laoofficialgazette.pdf"
+
+    def test_a_file_name_that_keeps_only_its_extension_is_never_the_name(self, storage):
+        from regcompass.corpus import url_filename_hint
+
+        for url in (
+            "https://www.nbtc.go.th/getattachment//law/x/ประกาศฯ.PDF?lang=th-TH",
+            "https://numbering.nbtc.go.th/getattachment/A/640/ประกาศฯ-ยืนยันตัวตน.pdf.aspx",
+        ):
+            assert url_filename_hint(storage, "TH", url, "Cyber Security Act") == (
+                "Cyber_Security_Act.pdf"
+            ), url
+            hint = url_filename_hint(storage, "TH", url)
+            assert hint.split(".")[0] in ("nbtc", "numbering"), (url, hint)
+
+    def test_an_ascii_file_name_is_still_the_name(self, storage):
+        from regcompass.corpus import url_filename_hint
+
+        assert url_filename_hint(
+            storage, "SG", "https://sso.agc.gov.sg/Acts-Supp/40-2020/", "Some Act"
+        ) == "40-2020.pdf"
+        assert url_filename_hint(
+            storage, "MY", "https://lom.agc.gov.my/ilims/upload/Act%20709%20ori.pdf"
+        ) == "Act_709_ori.pdf"

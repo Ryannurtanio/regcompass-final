@@ -63,7 +63,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable, Iterator, Literal
-from urllib.parse import quote
+from urllib.parse import quote, unquote, urlsplit
 
 from fastapi import FastAPI, File, Form, HTTPException, Query, Request, UploadFile
 from fastapi.responses import (
@@ -622,6 +622,10 @@ class RunManager(RunProgress):
         # The Engine the meter's cost is priced at, resolved once per Run.
         self._cost_engine: object | None = None
         self._cost_engine_name: str | None = None
+        # How a Document the Run did not list up front is named on its first
+        # Step (a Run that starts with Discovery), and those already named.
+        self._describe: Callable[[str], dict] | None = None
+        self._named: set[str] = set()
 
     # -- writer side (worker thread) --
     def push(self, msg: object) -> None:
@@ -647,6 +651,11 @@ class RunManager(RunProgress):
         with self._lock:
             event = {"type": type_, "seq": len(self._events), "ts": _utc_now(), **fields}
             self._events.append(event)
+            if type_ == "run_started":
+                self._named.update(
+                    d["document_id"] for d in fields.get("documents") or []
+                    if isinstance(d, dict) and d.get("document_id")
+                )
             if self._event_file is not None:
                 try:
                     self._event_file.write(event)
@@ -676,8 +685,38 @@ class RunManager(RunProgress):
     def _ended(self) -> bool:
         return bool(self._events) and self._events[-1]["type"] in FINAL_EVENTS
 
+    def describe_documents_with(self, describe: Callable[[str], dict]) -> None:
+        """How to name a Document the Run did not list in run_started: its
+        first step_started then carries the title (and language, n_pages,
+        format) the run_started list would have, so a screen never shows the
+        bare id of a Document Discovery added during the Run."""
+        with self._lock:
+            self._describe = describe
+
+    def _introduce(self, document_id: str | None) -> dict:
+        with self._lock:
+            describe = self._describe
+            if describe is None or document_id is None or document_id in self._named:
+                return {}
+        try:
+            fields = dict(describe(document_id) or {})
+        except Exception:  # noqa: BLE001 - a name is never a reason to fail a Run
+            return {}
+        # Named only once the lookup found the row: a Step that ran before
+        # the row was readable leaves the introduction to the next one.
+        if not fields:
+            return {}
+        with self._lock:
+            if document_id in self._named:
+                return {}
+            self._named.add(document_id)
+        return fields
+
     def step_started(self, document_id: str | None, step: str) -> None:
-        self.emit("step_started", document_id=document_id, step=step)
+        self.emit(
+            "step_started", document_id=document_id, step=step,
+            **self._introduce(document_id),
+        )
 
     def meter_fields(self) -> dict:
         """The Run's own meter now: Engine calls so far and their cost at the
@@ -948,6 +987,8 @@ class RunManager(RunProgress):
             self._proven = {}
             self._cost_engine = None
             self._cost_engine_name = None
+            self._describe = None
+            self._named = set()
             self._telemetry = RunTelemetry(
                 economy=self._meta.get("economy"),
                 engine=self._meta.get("engine"),
@@ -1125,6 +1166,7 @@ def _make_e2e_worker(
                 indicators=None if indicators is None else list(indicators),
                 engine=engine.name, documents=[],
             )
+            manager.describe_documents_with(lambda doc_id: _document_info(db_path, doc_id))
             storage = _open_for_write(db_path)
             report = run_e2e(
                 storage, economy, pillars, engine,
@@ -1164,6 +1206,72 @@ def _make_e2e_worker(
     return worker
 
 
+def _document_name(d: dict) -> str:
+    """The name a screen shows for a Document row: its title, else the title
+    derived from its text, else a name read off its Source URL (the Act code
+    in ".../Act/CoA1967", a file name), and the bare id only when nothing
+    better exists."""
+    return (
+        d.get("title") or d.get("derived_title")
+        or _url_name(d.get("source_url")) or d["document_id"]
+    )
+
+
+def _url_name(url: str | None) -> str | None:
+    """The last path segment of a URL that reads as a name, without its file
+    extension; None when the address has none."""
+    if not url:
+        return None
+    try:
+        segments = [unquote(s) for s in urlsplit(url).path.split("/") if s]
+    except ValueError:
+        return None
+    for segment in reversed(segments):
+        stem = segment.rsplit(".", 1)[0] if "." in segment else segment
+        # A letter, or a number that is more than a bare number or a date
+        # ("40-2020" is Act 40 of 2020; "0" and "2026-06-04" name nothing).
+        named = re.search(r"[^\W\d_]", stem) or (
+            re.search(r"\d", stem)
+            and not re.fullmatch(r"\d+|\d{4}-\d{2}-\d{2}", stem)
+        )
+        if named and stem.lower() not in _GENERIC_URL_NAMES:
+            return stem.strip(" .-_") or stem
+    return None
+
+
+# Path segments that say how a Portal serves files, not which law it is.
+_GENERIC_URL_NAMES = frozenset(
+    "content download file files view text pdf html htm index document documents"
+    " original latest print get show details detail default page".split()
+)
+
+
+def _document_info(db_path: str | Path, document_id: str) -> dict:
+    """One Document as run_started lists it, read over a read-only connection
+    (the Run's own connection belongs to its worker). Empty when it cannot be
+    read: the screen then keeps the id."""
+    path = Path(db_path)
+    if not path.is_file():
+        return {}
+    conn = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+    try:
+        conn.row_factory = sqlite3.Row
+        row = conn.execute(
+            "SELECT * FROM documents WHERE document_id = ?", (document_id,)
+        ).fetchone()
+    finally:
+        conn.close()
+    if row is None:
+        return {}
+    d = dict(row)
+    return {
+        "title": _document_name(d),
+        "language": d.get("language"),
+        "n_pages": d.get("n_pages"),
+        "format": format_for_extractor(d.get("extractor")),
+    }
+
+
 def _run_documents(storage, economy: str) -> list[dict]:
     """The Documents a Run over this Economy's Corpus reads, as run_started
     lists them. A Corpus that cannot be read here lists nothing: the Run
@@ -1178,7 +1286,7 @@ def _run_documents(storage, economy: str) -> list[dict]:
         out.append(
             {
                 "document_id": d["document_id"],
-                "title": d.get("title") or d["document_id"],
+                "title": _document_name(d),
                 "language": d.get("language"),
                 "n_pages": d.get("n_pages"),
                 # 'html' for a web page, which has no pages to count.

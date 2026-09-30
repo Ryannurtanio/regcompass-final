@@ -286,6 +286,11 @@ def test_ocr_proxy_migration_backfills_and_is_idempotent(tmp_path):
     assert [r["name"] for r in s.conn.execute("PRAGMA table_info(crawl_manifest)")].count(
         "notes"
     ) == 1
+    # title: the name a Portal's own listing gives a Document, carried from
+    # the manifest row to the Corpus row; null on every row that predates it.
+    assert [r["name"] for r in s.conn.execute("PRAGMA table_info(crawl_manifest)")].count(
+        "title"
+    ) == 1
     s.close()
 
 

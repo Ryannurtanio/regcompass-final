@@ -26,7 +26,7 @@ from dataclasses import dataclass, field
 from functools import partial
 from pathlib import Path
 from typing import Callable
-from urllib.parse import urlsplit
+from urllib.parse import parse_qsl, urlencode, urlsplit
 
 from regcompass.config import (
     CONFIG_DIR,
@@ -156,6 +156,51 @@ class DiscoveryReport:
 # A host that refuses this many kinds of address (first path segments) in one
 # Discovery is not asked again at all: refusals are not probed path by path.
 REFUSED_KINDS_BEFORE_HOST_CLOSES = 3
+
+
+# Query parameters that only choose how a Portal shows a law, not which law:
+# sso.agc.gov.sg serves one Act as /Act/CoA1967, /Act/CoA1967?ViewType=Pdf and
+# /Act/PDPA2012?ProvIds=P16A-, and the baseline cites one form where the
+# Corpus may hold another.
+_VIEW_ONLY_PARAMS = frozenset({"viewtype", "provids"})
+
+
+# The Federal Register of Legislation names one law by its series id
+# ("C2004A03712") and serves it under many paths: the bare id the baseline
+# cites, /latest/versions, /Details/<id>, and each dated compilation's PDF.
+_SERIES_HOSTS = frozenset({"legislation.gov.au"})
+_SERIES_ID = re.compile(r"[A-Z]\d{4}[A-Z]\d+", re.I)
+
+
+def same_law_key(url: str) -> str:
+    """An address with what does not change the law it names taken off: the
+    fragment, a view-only query parameter, a trailing slash, the case of the
+    host and a leading www, and on the Federal Register everything after the
+    series id. Two addresses with one key are one law, so a law already in
+    the Corpus under either is not fetched again. An address that cannot be
+    parsed is its own key."""
+    try:
+        parts = urlsplit(url.strip())
+        host = (parts.hostname or "").lower().removeprefix("www.")
+    except ValueError:
+        return url
+    query = urlencode(
+        [(k, v) for k, v in parse_qsl(parts.query, keep_blank_values=True)
+         if k.lower() not in _VIEW_ONLY_PARAMS]
+    )
+    path = parts.path.rstrip("/")
+    if host in _SERIES_HOSTS:
+        segments = [s for s in path.split("/") if s]
+        if segments and segments[0].lower() == "details":
+            segments = segments[1:]
+        if segments and _SERIES_ID.fullmatch(segments[0]):
+            path = f"/{segments[0].upper()}"
+    return f"{host}{path}" + (f"?{query}" if query else "")
+
+
+def _held_by_key(urls) -> dict[str, str]:
+    """same_law_key -> the address the Corpus holds that law under."""
+    return {same_law_key(u): u for u in sorted(urls)}
 
 
 def _path_key(url: str) -> tuple[str, str]:
@@ -680,7 +725,7 @@ def _discover(
             fetch=watched, robots=policy,
         )
         for target in targets:
-            tracker.found(target.url, target.filename_hint)
+            tracker.found(target.url, target.title or target.filename_hint)
 
         # The Portal whitelist binds what a Portal ANSWERS, not only what we
         # type. An adapter reads download URLs out of a Portal's own JSON, and
@@ -710,17 +755,18 @@ def _discover(
         # Corpus: manifest_add_pending is INSERT OR IGNORE, so a row that failed
         # once would otherwise stay failed forever and a Portal that was down
         # for one call would be written off permanently.
-        in_corpus = storage.corpus_source_urls(economy)
+        in_corpus = _held_by_key(storage.corpus_source_urls(economy))
         if refresh:
             storage.manifest_reset_pending(t.url for t in targets)
         else:
             keep: list[CrawlTarget] = []
             for target in targets:
-                if target.url in in_corpus:
+                held = in_corpus.get(same_law_key(target.url))
+                if held is not None:
                     report.skipped_existing += 1
                     tracker.skipped(
                         target.url, "in_corpus", skip_reason("in_corpus"),
-                        _corpus_title(storage, target.url),
+                        _corpus_title(storage, held),
                     )
                 else:
                     keep.append(target)
@@ -730,7 +776,7 @@ def _discover(
         # A row left pending by an earlier call is fetched in this one, so it
         # is announced like a Document the Portal listed today.
         for row in pending:
-            tracker.found(row["url"], row["filename_hint"])
+            tracker.found(row["url"], row["title"] or row["filename_hint"])
         if not targets and not pending:
             progress(
                 f"Discovery | {economy}: {report.skipped_existing} Document(s) already"
@@ -1437,12 +1483,16 @@ def _baseline_stage(
                 )
             return [], ("no_title_match", None)
 
-        in_corpus = storage.corpus_source_urls(economy)
+        # Keyed by same_law_key: the baseline cites /Act/CoA1967 where the
+        # Corpus holds /Act/CoA1967?ViewType=Pdf, and that is one law.
+        in_corpus = _held_by_key(storage.corpus_source_urls(economy))
 
         def already_held(urls: list[str], name: str, found_by: str) -> bool:
             """A law already in the Corpus under one of these addresses is
             reported as held and not fetched again, unless refreshing."""
-            held = next((u for u in urls if u in in_corpus), None)
+            held = next(
+                (in_corpus[k] for k in map(same_law_key, urls) if k in in_corpus), None
+            )
             if held is None or refresh:
                 return False
             report.skipped_existing += 1
@@ -1474,7 +1524,7 @@ def _baseline_stage(
                 u for u in usable
                 if title_search and urlsplit(u).netloc in IN_LEGACY_HOSTS
             ]
-            if legacy and (refresh or not any(u in in_corpus for u in legacy)):
+            if legacy and (refresh or not any(same_law_key(u) in in_corpus for u in legacy)):
                 usable = [u for u in usable if u not in legacy]
             else:
                 legacy = []
@@ -1574,7 +1624,7 @@ def _baseline_stage(
                         url, added.document_id, added.title, added.n_pages,
                         bool(added.ocr_applied),
                     )
-                    in_corpus.add(url)
+                    in_corpus[same_law_key(url)] = url
                     report.found_by.append(
                         {
                             "url": url, "document_id": added.document_id,

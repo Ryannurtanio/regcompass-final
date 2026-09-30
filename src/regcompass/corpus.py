@@ -544,8 +544,11 @@ def _filename_hint(hint: str | None, source_url: str | None) -> str:
     the hint is what the document id is derived from and it can never be
     empty."""
     # The URL's last segment is percent-encoded ("Act%20709%20ori.pdf"), and a
-    # document id built off the encoding reads as nonsense; decode first.
-    base = hint or unquote(urlsplit(source_url or "").path.rsplit("/", 1)[-1]) or "document.pdf"
+    # document id built off the encoding reads as nonsense; decode first. A
+    # trailing slash ("/Acts-Supp/40-2020/") does not end the name: the
+    # segment before it is the law's.
+    path = urlsplit(source_url or "").path.rstrip("/")
+    base = hint or unquote(path.rsplit("/", 1)[-1]) or "document.pdf"
     base = re.sub(r"[^A-Za-z0-9._()-]+", "_", base).strip("._") or "document"
     if "." not in base:
         base = f"{base}.pdf"
@@ -621,6 +624,10 @@ _DATE_SEGMENT = re.compile(r"\d{4}-\d{2}-\d{2}")
 _OPAQUE_SEGMENT = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|\d+", re.I)
 
 
+# A file extension inside a name ("ประกาศฯ.pdf.aspx" keeps ".pdf" in its stem).
+_INNER_EXTENSION = re.compile(r"\.(?:pdf|html?|aspx?|docx?|php)\b", re.I)
+
+
 def _is_meaningful(segment: str) -> bool:
     stem = segment.rsplit(".", 1)[0].lower()
     return bool(
@@ -628,7 +635,25 @@ def _is_meaningful(segment: str) -> bool:
         and stem not in _GENERIC_SEGMENTS
         and not _DATE_SEGMENT.fullmatch(stem)
         and not _OPAQUE_SEGMENT.fullmatch(stem)
+        and (stem.isascii() or _names_in_ascii(stem))
     )
+
+
+def _names_in_ascii(stem: str) -> bool:
+    """Does a name in another script still name something once the id's
+    ASCII spelling is all that is left of it? "ประกาศฯ" leaves nothing and
+    "Приложение 9_ред 131 (6)" leaves "9_131_(6)": neither is a name, so the
+    typed law name is used instead."""
+    ascii_only = re.sub(r"[^A-Za-z0-9()-]+", "_", _INNER_EXTENSION.sub("", stem))
+    return bool(re.search(r"[A-Za-z]", ascii_only))
+
+
+def _numbered_in_ascii(segment: str) -> bool:
+    """Does a file name in another script keep its number once only ASCII is
+    left? "05ສພຊ2021.pdf" keeps "05_2021", the Lao Gazette's own numbering,
+    which beats the host. "ประกาศฯ.PDF" keeps nothing but its extension."""
+    stem = _INNER_EXTENSION.sub("", segment.rsplit(".", 1)[0])
+    return bool(re.search(r"\d", re.sub(r"[^A-Za-z0-9()-]+", "_", stem)))
 
 
 def _is_identifier(segment: str) -> bool:
@@ -660,12 +685,18 @@ def url_filename_hint(
     if segments and _is_meaningful(segments[-1]):
         hint = _filename_hint(None, source_url)
     else:
-        typed = re.sub(r"\s+", "_", (title or "").strip())
+        # A dot in a law name ("No.57-FZ", "B.E.2544") is a word break, not
+        # the start of a file extension that would cut the name short.
+        typed = re.sub(r"\s+", "_", (title or "").replace(".", " ").strip())
         if not re.search(r"[A-Za-z0-9]", typed):
             typed = ""  # a name in another script sanitises to nothing
         named = next((s for s in reversed(segments) if _is_identifier(s)), None)
         host = (parts.hostname or "").removeprefix("www.").split(".")[0]
-        hint = _filename_hint(typed or named or host or None, None)
+        last = segments[-1] if segments else ""
+        if not (typed or named) and not last.isascii() and _numbered_in_ascii(last):
+            hint = _filename_hint(None, source_url)
+        else:
+            hint = _filename_hint(typed or named or host or None, None)
     plain = document_id_for({"economy": economy, "filename_hint": hint, "local_path": hint})
     held = storage.conn.execute(
         "SELECT source_url FROM documents WHERE document_id = ?", (plain,)

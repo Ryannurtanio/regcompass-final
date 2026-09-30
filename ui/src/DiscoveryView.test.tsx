@@ -129,6 +129,7 @@ describe('DiscoveryView masks how Discovery works', () => {
     for (const word of WORKINGS) expect(page).not.toMatch(word)
     for (const s of SKIPS) expect(page).not.toContain(s.reason)
     expect(page).toContain('Laws not found')
+    expect(html).toContain('data-testid="discovery-laws-not-found"')
     expect(page.match(/Add this law with Add document\./g)).toHaveLength(SKIPS.length)
     expect(page).toContain('No laws could be fetched for this search. Add them with Add document.')
     // A skipped Document is listed as not added, with no reason.
@@ -156,7 +157,7 @@ describe('DiscoveryView masks how Discovery works', () => {
     for (const word of WORKINGS) expect(text(html)).not.toMatch(word)
   })
 
-  it('with nothing left over, says every law was found', () => {
+  it('with nothing left over, shows no Laws not found box at all', () => {
     const html = renderToStaticMarkup(
       <DiscoveryView
         state={state({ drawn: { pillar: 7, indicators: null, max_documents: 12, baseline_skipped: [], notes: NOTES.slice(0, 5) } })}
@@ -164,7 +165,9 @@ describe('DiscoveryView masks how Discovery works', () => {
     )
     const page = text(html)
     expect(page).toContain('Search complete for Malaysia (Pillar 7).')
-    expect(page).toContain('Every law for this search was found or is already in the Corpus.')
+    expect(html).not.toContain('data-testid="discovery-laws-not-found"')
+    expect(page).not.toContain('Laws not found')
+    expect(page).not.toContain('Every law for this search was found')
     expect(page).not.toContain('No laws could be fetched')
     for (const word of WORKINGS) expect(page).not.toMatch(word)
   })

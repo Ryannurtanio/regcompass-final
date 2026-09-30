@@ -43,6 +43,7 @@ from regcompass.crawl import (  # noqa: E402
     read_robots_policy,
 )
 from regcompass.discovery import discover_economy  # noqa: E402
+from regcompass.discovery_progress import DiscoveryProgress  # noqa: E402
 from regcompass.engines import fake_completion, fake_embed, resolve_engine  # noqa: E402
 from regcompass.pipeline import run_economy  # noqa: E402
 from regcompass.storage import Storage  # noqa: E402
@@ -89,6 +90,9 @@ CONSUMER_LAO_PDF = f"{GAZETTE}/kcfinder/upload/files/Protecting%20consumers%20La
 CONSUMER_ENGLISH_PDF = f"{GAZETTE}/kcfinder/upload/files/Law%20on%20Consumer%20Protection.pdf"
 DATA_PROTECTION_PDF = f"{GAZETTE}/kcfinder/upload/files/0918570.pdf"
 CYBER_CRIME_PDF = f"{GAZETTE}/kcfinder/upload/files/1.%20Law%20on%20cyber%20crime.pdf"
+
+# The grid's own title for the Law on Consumer Protection.
+CONSUMER_TITLE = "ກົດໝາຍວ່າດ້ວຍ ການປົກປ້ອງຜູ້ຊົມໃຊ້"
 
 FAKE_ENGINE = resolve_engine("fake")
 
@@ -354,6 +358,16 @@ class TestDiscoverLa:
         assert CONSUMER_ENGLISH_PDF not in [t.url for t in targets]
         assert [t.notes for t in targets if t is not law] == [None] * 4
 
+    def test_each_document_carries_the_grids_own_title(self):
+        targets, _ = discover_la(
+            seeds_for(consumer_protection="ຜູ້ຊົມໃຊ້"), "LA",
+            fetch=recorded_fetch(), limiter=NullLimiter(),
+        )
+        law = next(t for t in targets if t.url == CONSUMER_LAO_PDF)
+        assert law.title == CONSUMER_TITLE
+        assert law.filename_hint == "Protecting consumers Law .pdf", "the id is unchanged"
+        assert all(t.title for t in targets)
+
     def test_the_walk_stops_at_the_configured_bound(self):
         fetch = recorded_fetch()
         one_page = ELECTRONIC_SEEDS.model_copy(update={"max_pages": 1})
@@ -461,6 +475,25 @@ class TestDiscoveryFillsTheLaoCorpus:
         assert notes[CONSUMER_LAO_PDF] == LA_ENGLISH_NOTE + CONSUMER_ENGLISH_PDF
         assert CONSUMER_ENGLISH_PDF not in notes, "never a Document of its own"
         assert [v for v in notes.values() if v is None] == [None] * 4
+
+    def test_the_corpus_row_is_named_by_the_grid_not_by_the_file(self, storage, tmp_path):
+        """The Portal's own title, never a file name such as 05ສພຊ2021, is the
+        Law Name a Lao Document is shown and exported under."""
+        found: list[tuple[str, str | None]] = []
+
+        class Names(DiscoveryProgress):
+            def found(self, url, name=None):
+                found.append((url, name))
+
+        discover_economy(
+            "LA", storage, data_dir=tmp_path / "data",
+            seeds=seeds_for(consumer_protection="ຜູ້ຊົມໃຊ້"),
+            fetch=recorded_fetch(), limiter=NullLimiter(), hook=Names(),
+        )
+        rows = {r["source_url"]: r for r in storage.corpus_documents("LA")}
+        assert rows[CONSUMER_LAO_PDF]["title"] == CONSUMER_TITLE
+        assert rows[CONSUMER_LAO_PDF]["document_id"] == "doc_la_Protecting_consumers_Law"
+        assert (CONSUMER_LAO_PDF, CONSUMER_TITLE) in found
 
     def test_the_min_interval_is_the_portals_floor_when_robots_is_silent(
         self, storage, tmp_path

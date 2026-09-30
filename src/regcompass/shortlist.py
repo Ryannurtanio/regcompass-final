@@ -398,6 +398,11 @@ def readable_stem(row) -> str:
     return re.sub(r"[^A-Za-z0-9()-]+", "_", stem).strip("_")
 
 
+def _listed(row) -> str | None:
+    """The Portal listing's own name on a manifest row, where it has one."""
+    return row["title"] if "title" in row.keys() else None
+
+
 def document_id_for(row) -> str:
     """Stable, human-readable id from the manifest row's filename hint."""
     return f"doc_{row['economy'].lower()}_{readable_stem(row) or 'document'}"
@@ -560,7 +565,12 @@ def ingest_economy(
                             evidence_dir=evidence_dir, policy=doc_policy,
                         )
                 ocr_applied = canonical.ocr_applied
-                title = derive_title(raw, fmt, canonical.full_text, row["filename_hint"])
+                # The Portal listing's own name wins over one read off the
+                # file (a Lao Gazette PDF is named "05ສພຊ2021.pdf"), the way a
+                # typed name wins on the add lane.
+                title = _listed(row) or derive_title(
+                    raw, fmt, canonical.full_text, row["filename_hint"]
+                )
                 rec.output_data = canonical.full_text
                 cached = reused
                 if not reused:

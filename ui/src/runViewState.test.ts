@@ -252,4 +252,18 @@ describe('the next Run', () => {
     )
     expect(s.documents.map((d) => [d.document_id, d.title, d.step])).toEqual([['doc_z', 'doc_z', 'read']])
   })
+
+  it('a Document Discovery added shows the name its first Step carries, not its id', () => {
+    const s = feed(
+      numbered([
+        { ...STARTED, run_id: null, documents: [] } as Draft,
+        { type: 'step_started', document_id: 'doc_sg_CoA1967', step: 'read', title: 'COMPANIES ACT 1967', n_pages: 12 },
+        { type: 'step_finished', document_id: 'doc_sg_CoA1967', step: 'read', counts: { pages: 12 } },
+        { type: 'step_started', document_id: 'doc_sg_CoA1967', step: 'scan_check' },
+      ]),
+    )
+    expect(s.documents.map((d) => [d.document_id, d.title, d.n_pages, d.step])).toEqual([
+      ['doc_sg_CoA1967', 'COMPANIES ACT 1967', 12, 'scan_check'],
+    ])
+  })
 })

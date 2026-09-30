@@ -1491,6 +1491,103 @@ class TestE2ELane:
         assert _wait_done(c)["status"] == "done"
         assert called["concurrency"] == 3
 
+    def test_a_document_discovery_added_is_named_on_its_first_step(
+        self, scratch_db, tmp_path, monkeypatch
+    ):
+        """A Run that starts with Discovery lists no Documents up front, so the
+        Run view learns each one from its first Step. That step_started carries
+        the Document's name: its title, else its derived title, else a name read
+        off its Source URL, never the bare id; later Steps carry nothing more."""
+        import regcompass.pipeline as pipeline_mod
+        from regcompass.pipeline import E2EReport, RunReport
+
+        def fake_run_e2e(storage, economy, pillars, engine, data_dir, outdir, **kwargs):
+            storage.upsert_document(
+                "doc_sg_BA1970", "SG", "a" * 64, title="BANKING ACT 1970",
+                source_url="https://sso.agc.gov.sg/Act/BA1970", full_text="x",
+                language="en", n_pages=3,
+            )
+            storage.upsert_document(
+                "doc_sg_document", "SG", "b" * 64, full_text="x",
+                derived_title="Personal Data Protection Act 2012",
+            )
+            storage.upsert_document(
+                "doc_sg_CoA1967", "SG", "c" * 64, full_text="x",
+                source_url="https://sso.agc.gov.sg/Act/CoA1967?ViewType=Pdf",
+            )
+            hook = kwargs["hook"]
+            for doc_id in ("doc_sg_BA1970", "doc_sg_document", "doc_sg_CoA1967"):
+                hook.step_started(doc_id, "read")
+                hook.step_started(doc_id, "scan_check")
+            rep = E2EReport(economy=economy, crawl_fetched=3, documents_mapped=[])
+            rep.run = RunReport(economy=economy, engine=engine.name)
+            return rep
+
+        monkeypatch.setattr(pipeline_mod, "run_e2e", fake_run_e2e)
+        out = tmp_path / "out"
+        out.mkdir()
+        c = TestClient(
+            create_app(
+                db_path=scratch_db, out_dir=out, data_dir=tmp_path / "crawl_data",
+                ui_dir=None,
+            )
+        )
+        r = c.post(
+            "/api/run",
+            json={"economy": "SG", "pillars": [7], "engine": "fake", "mode": "e2e",
+                  "max_documents": 3},
+        )
+        assert r.status_code == 200, r.text
+        assert _wait_done(c)["status"] == "done"
+
+        steps, name = [], None
+        with c.stream("GET", "/api/events") as resp:
+            for line in resp.iter_lines():
+                if line.startswith("event: "):
+                    name = line[len("event: "):]
+                elif line.startswith("data: ") and name == "step_started":
+                    steps.append(json.loads(line[len("data: "):]))
+                elif line == "":
+                    name = None
+        first = {e["document_id"]: e for e in steps if e["step"] == "read"}
+        assert first["doc_sg_BA1970"]["title"] == "BANKING ACT 1970"
+        assert first["doc_sg_BA1970"]["n_pages"] == 3
+        assert first["doc_sg_document"]["title"] == "Personal Data Protection Act 2012"
+        assert first["doc_sg_CoA1967"]["title"] == "CoA1967"
+        assert all("title" not in e for e in steps if e["step"] == "scan_check")
+
+    def test_a_document_the_lookup_missed_is_named_on_a_later_step(self):
+        """A Document is marked named only once the lookup found its row: a
+        first Step that ran before the row was readable does not use up the
+        one introduction."""
+        from regcompass.server import RunManager
+
+        answers = iter([{}, {"title": "Law on Consumer Protection"}])
+        manager = RunManager()
+        manager.describe_documents_with(lambda doc_id: next(answers))
+        assert manager._introduce("doc_la_x") == {}
+        assert manager._introduce("doc_la_x") == {"title": "Law on Consumer Protection"}
+        assert manager._introduce("doc_la_x") == {}
+
+    def test_a_numbered_segment_names_a_document_before_a_word_does(self):
+        from regcompass.server import _url_name
+
+        assert _url_name("https://sso.agc.gov.sg/Acts-Supp/40-2020/") == "40-2020"
+        assert _url_name(
+            "https://www.legislation.gov.au/C2004A03712/2026-06-04/2026-06-04/text/original/pdf/0"
+        ) == "C2004A03712", "a date or a bare number is not a name"
+
+    def test_a_name_from_the_address_drops_stray_spaces_and_punctuation(self):
+        from regcompass.server import _url_name
+
+        assert _url_name(
+            "https://www.etda.or.th/getattachment/x/3618-.pdf"
+        ) == "3618"
+        assert _url_name("https://example.la/files/%20278.%205.6.2024.pdf") == "278. 5.6.2024"
+        assert _url_name("https://example.la/files/Protecting%20consumers%20Law%20.pdf") == (
+            "Protecting consumers Law"
+        )
+
 
 # ---------------------------------------------------------------------------
 # Box 6: the committed bundle, and the interface at phone width

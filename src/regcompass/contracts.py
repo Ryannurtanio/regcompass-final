@@ -448,6 +448,10 @@ class CrawlTarget(_Contract):
     source_family: str
     kind: Literal["document", "index"] = "document"
     filename_hint: str | None = None
+    # The Portal's own name for the instrument, where its listing gives one
+    # (the Lao grid's title, the Register's name). It becomes the Corpus row's
+    # title; the id is still read from filename_hint, so no id changes.
+    title: str | None = None
     # A secondary reference the Portal published beside this Document, carried
     # to the manifest row and stored on the Corpus row: the Lao Official
     # Gazette offers an English rendering of a few instruments, and its URL is

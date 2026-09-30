@@ -200,6 +200,7 @@ CREATE TABLE IF NOT EXISTS crawl_manifest (
     source_family    TEXT,                        -- seed family, e.g. data_protection
     filename_hint    TEXT,
     notes            TEXT,                        -- secondary reference found beside the Document
+    title            TEXT,                        -- the Portal listing's own name for it
     status           TEXT NOT NULL DEFAULT 'pending',   -- pending | fetched | failed
     http_status      INTEGER,
     method           TEXT,                        -- httpx | curl_cffi | playwright

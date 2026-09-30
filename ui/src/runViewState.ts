@@ -212,11 +212,21 @@ function withDocument(
   state: RunViewState,
   documentId: string,
   change: (d: DocumentView) => DocumentView,
+  info?: Partial<RunDocumentInfo>,
 ): RunViewState {
   const known = state.documents.some((d) => d.document_id === documentId)
   const documents = known
     ? state.documents
-    : [...state.documents, newDocument({ document_id: documentId, title: documentId, language: null, n_pages: null })]
+    : [
+        ...state.documents,
+        newDocument({
+          document_id: documentId,
+          title: info?.title || documentId,
+          language: info?.language ?? null,
+          n_pages: info?.n_pages ?? null,
+          format: info?.format ?? null,
+        }),
+      ]
   return {
     ...state,
     documents: documents.map((d) => {
@@ -278,11 +288,18 @@ function apply(state: RunViewState, e: RunEvent): RunViewState {
             ? { ...state, reconcile: 'running', reconcileTimes: at === null ? null : { start: at, end: null } }
             : state
       } else {
-        next = withDocument(state, e.document_id, (d) => ({
-          ...d,
-          step: e.step,
-          times: at === null ? d.times : { ...d.times, [e.step]: { start: at, end: null } },
-        }))
+        // A Document the Run learns during Discovery is named on its first Step.
+        next = withDocument(
+          state,
+          e.document_id,
+          (d) => ({
+            ...d,
+            title: e.title && d.title === d.document_id ? e.title : d.title,
+            step: e.step,
+            times: at === null ? d.times : { ...d.times, [e.step]: { start: at, end: null } },
+          }),
+          { title: e.title ?? undefined, language: e.language, n_pages: e.n_pages, format: e.format },
+        )
       }
       break
     case 'step_finished':

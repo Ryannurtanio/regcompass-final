@@ -367,6 +367,9 @@ class TestDiscoverAU:
             "C2026C00243VOL01.pdf", "C2026C00243VOL02.pdf", "C2026C00243VOL03.pdf"
         ]
         assert all(t.source_family == "criminal_law" for t in targets)
+        assert {t.title for t in targets} == {"Criminal Code Act 1995"}, (
+            "the Register's own name travels with every volume"
+        )
 
     def test_no_exact_register_match_is_a_recorded_miss(self):
         seeds = CrawlSeedsEconomy(
@@ -1169,6 +1172,7 @@ class TestDiscoverIN:
         assert misses == []
         assert [t.url for t in targets] == [IN_DPDP_PDF]
         assert targets[0].filename_hint == "a2023-22.pdf"
+        assert targets[0].title == "The Digital Personal Data Protection Act, 2023"
         assert targets[0].economy == "IN"
         assert targets[0].source_family == "data_protection"
 

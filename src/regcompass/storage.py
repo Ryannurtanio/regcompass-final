@@ -262,6 +262,8 @@ class Storage:
             # Where that reference is recorded first: Discovery finds it on the
             # listing row, ingest copies it onto the Corpus row.
             "notes": "TEXT",
+            # The Portal listing's own name for the Document, the same way.
+            "title": "TEXT",
         },
         "extractions": {
             # Provenance of an OCR'd stream, added after the table:
@@ -1140,6 +1142,7 @@ class Storage:
         source_family: str | None = None,
         filename_hint: str | None = None,
         notes: str | None = None,
+        title: str | None = None,
     ) -> bool:
         """Register a URL for crawling. INSERT OR IGNORE: a row that is already
         fetched or failed is never demoted back to pending. Returns True if the
@@ -1147,12 +1150,15 @@ class Storage:
 
         `notes` is a secondary reference Discovery found beside the Document
         (the Lao Official Gazette's English rendering of an instrument); ingest
-        copies it onto the Corpus row, and it never becomes a Source URL."""
+        copies it onto the Corpus row, and it never becomes a Source URL.
+        `title` is the Portal listing's own name for it, which ingest makes the
+        Corpus row's title in place of one read off the file name."""
         cur = self.conn.execute(
             "INSERT OR IGNORE INTO crawl_manifest"
-            " (url, economy, kind, source_family, filename_hint, notes, status, created_at)"
-            " VALUES (?, ?, ?, ?, ?, ?, 'pending', ?)",
-            (url, economy, kind, source_family, filename_hint, notes, utc_now_iso()),
+            " (url, economy, kind, source_family, filename_hint, notes, title,"
+            " status, created_at)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?)",
+            (url, economy, kind, source_family, filename_hint, notes, title, utc_now_iso()),
         )
         self.conn.commit()
         return cur.rowcount == 1

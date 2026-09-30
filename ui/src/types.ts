@@ -680,7 +680,17 @@ export type RunEvent =
       /** What that older record never kept, e.g. 'gate_scores'. */
       not_recorded?: string[]
     })
-  | (RunEventBase & { type: 'step_started'; document_id: string | null; step: RunStep })
+  | (RunEventBase & {
+      type: 'step_started'
+      document_id: string | null
+      step: RunStep
+      /** On a Document's first Step when run_started did not list it (a Run
+       *  that starts with Discovery): what run_started would have said. */
+      title?: string | null
+      language?: string | null
+      n_pages?: number | null
+      format?: 'pdf' | 'html' | null
+    })
   | (RunEventBase & {
       type: 'step_finished'
       document_id: string | null

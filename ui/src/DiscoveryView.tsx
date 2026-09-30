@@ -471,15 +471,11 @@ function DiscoveryBody({ state }: { state: DiscoveryViewState }) {
         <DocumentList documents={documents} ended />
       )}
 
-      {state.drawn && (
+      {/* Only when at least one law was not found: an empty box says nothing. */}
+      {state.drawn && (state.drawn.baseline_skipped.length > 0 || nothingFetched) && (
         <div className="dv-list" data-testid="discovery-laws-not-found">
           <div className="dv-list-head">
             <h3>Laws not found</h3>
-            <span className="dv-list-note">
-              {state.drawn.baseline_skipped.length > 0 || nothingFetched
-                ? ''
-                : 'Every law for this search was found or is already in the Corpus.'}
-            </span>
           </div>
           {nothingFetched && (
             <p className="dv-note" data-testid="discovery-nothing-fetched">

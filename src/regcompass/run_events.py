@@ -7,7 +7,9 @@ Run, a `ts` in UTC, and the fields of its kind:
 
     run_started       run_id, economy, pillars, indicators, engine,
                       documents: [{document_id, title, language, n_pages}]
-    step_started      document_id, step
+    step_started      document_id, step; the first step_started of a
+                      Document the run_started list did not name also
+                      carries its title, language, n_pages and format
     step_finished     document_id, step, counts
     map_progress      document_id, done, total, engine_calls, cost_usd
     scan_flagged      document_id, reason

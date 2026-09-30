@@ -1780,3 +1780,92 @@ class TestIndiaCodeWhenEveryLinkFails:
         )
         assert search.queries == []
         assert report.baseline_skipped[0]["code"] == "robots"
+
+
+class TestOneLawUnderAnotherAddress:
+    """The baseline cites sso.agc.gov.sg/Act/CoA1967 where the Corpus already
+    holds /Act/CoA1967?ViewType=Pdf. That is one law: Discovery reports it as
+    held and never adds it again under a second id."""
+
+    HELD = f"{SSO}/Act/CoA1967?ViewType=Pdf"
+    NAME = "Companies Act 1967"
+
+    def _run(self, storage, tmp_path, urls, answers, name=NAME):
+        fetch = _answering(answers)
+        report = discover_economy(
+            "SG", storage, data_dir=tmp_path / "data", fetch=fetch,
+            limiter=NullLimiter(), seeds=NO_CRAWLER_SEEDS, pillar=6,
+            indicators=["6.2"],
+            baseline_dir=_one_law_baseline(
+                tmp_path, "SG", [_law(name, ["6.2"], urls, year=1967)]
+            ),
+        )
+        return report, fetch
+
+    def test_the_bare_act_address_finds_the_pdf_form_already_held(
+        self, storage, tmp_path
+    ):
+        from regcompass.discovery import IN_CORPUS_STATUS
+
+        first, _ = self._run(
+            storage, tmp_path, [self.HELD], {self.HELD: _page(self.NAME)}
+        )
+        assert first.fetched == 1
+        before = [r["document_id"] for r in storage.corpus_documents("SG")]
+
+        bare = f"{SSO}/Act/CoA1967"
+        cited = f"{SSO}/Act/CoA1967?ProvIds=P1-#pr2-"
+        second, fetch = self._run(
+            storage, tmp_path, [bare, cited],
+            {bare: _page("Companies Act 1967 (web page)")},
+        )
+        assert bare not in fetch.seen and cited not in fetch.seen
+        assert second.fetched == 0 and second.skipped_existing == 1
+        assert [(d["url"], d["status"]) for d in second.found_by] == [
+            (self.HELD, IN_CORPUS_STATUS)
+        ]
+        assert [r["document_id"] for r in storage.corpus_documents("SG")] == before
+
+    def test_a_different_query_is_still_a_different_address(self):
+        from regcompass.discovery import same_law_key
+
+        assert same_law_key(f"{SSO}/Act/CoA1967/") == same_law_key(
+            "https://SSO.agc.gov.sg/Act/CoA1967?ViewType=Pdf#pr1-"
+        )
+        assert same_law_key("https://example.gov/law?id=1") != same_law_key(
+            "https://example.gov/law?id=2"
+        )
+
+    def test_every_federal_register_form_of_one_act_is_one_law(self):
+        from regcompass.discovery import same_law_key
+
+        held = same_law_key(
+            "https://www.legislation.gov.au/C2004A03712/2026-06-04/2026-06-04/text/original/pdf/0"
+        )
+        for cited in (
+            "https://www.legislation.gov.au/C2004A03712",
+            "https://www.legislation.gov.au/C2004A03712/latest/versions",
+            "https://www.legislation.gov.au/Details/C2004A03712",
+        ):
+            assert same_law_key(cited) == held, cited
+        assert same_law_key("https://www.legislation.gov.au/C2004A04868") != held
+        # Only that Register: another host's first segment is not a series id.
+        assert same_law_key("https://example.gov/C2004A03712/a") != same_law_key(
+            "https://example.gov/C2004A03712/b"
+        )
+
+    def test_a_malformed_address_is_its_own_key_never_an_error(self):
+        from regcompass.discovery import same_law_key
+
+        assert same_law_key("http://[::1/law") == "http://[::1/law"
+
+    def test_an_address_ending_in_a_slash_names_the_document_by_its_last_segment(
+        self, storage, tmp_path
+    ):
+        url = f"{SSO}/Acts-Supp/40-2020/"
+        name = "Personal Data Protection (Amendment) Act 2020"
+        report, _ = self._run(storage, tmp_path, [url], {url: _page(name)}, name=name)
+        assert report.fetched == 1
+        [row] = storage.corpus_documents("SG")
+        assert row["document_id"] == "doc_sg_40-2020"
+        assert row["title"] == name

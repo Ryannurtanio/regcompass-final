@@ -1073,6 +1073,14 @@ def discover_sg(
     return targets, []
 
 
+def listed_title(name: str | None) -> str | None:
+    """A Portal listing's own name for a Document, as the Corpus row's title:
+    whitespace runs made single, and the full stop India Code ends a title
+    with taken off. None when the listing gave no name."""
+    cleaned = " ".join((name or "").split()).rstrip(" .")
+    return cleaned or None
+
+
 def _au_pick_title(query: str, hits: list[dict]) -> dict | None:
     """Exact register-name match only (casefold): seeds carry full act names,
     and a fuzzy pick could silently crawl the wrong statute."""
@@ -1144,6 +1152,7 @@ def discover_au(
                         economy=economy,
                         source_family=family,
                         filename_hint=hint,
+                        title=listed_title(title.get("name")),
                     )
                 )
     return targets, misses
@@ -1401,6 +1410,7 @@ def discover_in(
                             economy=economy,
                             source_family=family,
                             filename_hint=name,
+                            title=listed_title(item.get("name")),
                         )
                     )
                     found = True
@@ -1612,6 +1622,7 @@ def discover_la(
                             economy=economy,
                             source_family=family,
                             filename_hint=unquote(row.lao_pdf_url.rsplit("/", 1)[-1]),
+                            title=listed_title(row.title),
                             notes=(
                                 LA_ENGLISH_NOTE + row.english_pdf_url
                                 if row.english_pdf_url
@@ -2027,7 +2038,7 @@ def crawl_economy(
         if storage.manifest_add_pending(
             t.url, t.economy, kind=t.kind,
             source_family=t.source_family, filename_hint=t.filename_hint,
-            notes=t.notes,
+            notes=t.notes, title=t.title,
         ):
             report.discovered += 1
     progress(
